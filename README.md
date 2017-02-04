@@ -14,6 +14,12 @@ $ make rr
 $ make run
 ```
 
+## Required Software
+
+ - make
+ - g++
+ - dpdk-16.07
+
 ## Licence
 
 MIT Licence, see LICENCE file
