@@ -30,20 +30,20 @@ LDFLAGS += \
 	-Wl,--no-whole-archive
 LDFLAGS += -lreadline
 
-SRCS   =  ssnlib_sys.cc ssnlib_port.cc ssnlib_cpu.cc
+SRCS   =
 OBJS   = $(SRCS:.cc=.o)
-TARGET = libsusanoo.a
+TARGET = libsusanow.a
 
-.SUFFIXES: .out .c .cc .o .h
-.cc.o:
-	@echo "CXX $@"
-	@$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(TARGET): $(OBJS)
-	@$(RM) -rf $@
-	$(AR) rcs $@ $(OBJS)
-
-clean:
-	$(RM) $(OBJS) $(TARGET)
-
-re: clean $(TARGET)
+# .SUFFIXES: .out .c .cc .o .h
+# .cc.o:
+# 	@echo "CXX $@"
+# 	@$(CXX) $(CXXFLAGS) -c $< -o $@
+#
+# $(TARGET): $(OBJS)
+# 	@$(RM) -rf $@
+# 	$(AR) rcs $@ $(OBJS)
+#
+# clean:
+# 	$(RM) $(OBJS) $(TARGET)
+#
+# re: clean $(TARGET)

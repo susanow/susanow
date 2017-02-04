@@ -38,5 +38,6 @@ CXXFLAGS += -Wno-format-security
 
 $(TARGET): $(OBJS)
 	@echo "LD $@"
-	@$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) lib/libsusanoo.a $(LDFLAGS)
+	@$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
+
 
