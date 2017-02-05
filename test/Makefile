@@ -2,8 +2,7 @@
 
 SSN := /home/slank/git/susanow
 include $(SSN)/mk/vars.mk
-CXXFLAGS += -Wno-format-security
-CXXFLAGS += -g -fsanitize=address
+CXXFLAGS += -Wno-format-security -g -fsanitize=address
 
 
 TARGET = a.out
@@ -16,5 +15,6 @@ all: $(TARGET)
 clean:
 	$(RM) $(TARGET) $(OBJS)
 
-include ../mk/runenv.mk
+
+include $(SSN)/mk/runenv.mk
 
