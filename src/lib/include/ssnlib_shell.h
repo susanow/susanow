@@ -66,6 +66,7 @@ public:
     bool kill() { return false; }
     void add_cmd(ssnlib::Command* newcmd)
     {
+        if (newcmd->name == "") throw slankdev::exception("Command name is empty");
         for (auto& cmd : cmds) {
             if (cmd->name == newcmd->name)
                 throw slankdev::exception("command name is already registred");

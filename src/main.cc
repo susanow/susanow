@@ -164,9 +164,9 @@ int main(int argc, char** argv)
     sys.cpus.at(2).thread = &rx;
     sys.cpus.at(3).thread = &tx;
     sys.cpus.at(4).thread = &wk;
-    sys.cpus.at(5).thread = &wk;
-    sys.cpus.at(6).thread = &wk;
-    sys.cpus.at(7).thread = &wk;
+    // sys.cpus.at(5).thread = &wk;
+    // sys.cpus.at(6).thread = &wk;
+    // sys.cpus.at(7).thread = &wk;
 #endif
 
     sys.cpus[1].launch();

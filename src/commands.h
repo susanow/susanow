@@ -328,12 +328,14 @@ public:
     }
     void show()
     {
+        printf("%-5s %-10s %-15s\n", "cid", "status", "ptr");
         for (Cpu& cpu : sys->cpus) {
             if (cpu.lcore_id == 0) {
-                printf("lcore%u thread status: COM \n", cpu.lcore_id);
+                printf("%-5u %-10s \n", cpu.lcore_id, "COM");
             } else {
-                printf("lcore%u thread status: %s \n", cpu.lcore_id,
-                    ssnlib::util::rte_lcore_state_t2str(rte_eal_get_lcore_state(cpu.lcore_id)));
+                printf("%-5u %-10s %-15p \n", cpu.lcore_id,
+                    ssnlib::util::rte_lcore_state_t2str(rte_eal_get_lcore_state(cpu.lcore_id)),
+                    cpu.thread);
             }
         }
     }

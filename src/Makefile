@@ -5,8 +5,8 @@ TARGET = a.out
 SRCS   = main.cc
 OBJS   = $(SRCS:.cc=.o)
 include ../mk/vars.mk
+CXXFLAGS += -Wno-format-security
 CXXFLAGS += -g -fsanitize=address
-
 
 all: $(TARGET)
 

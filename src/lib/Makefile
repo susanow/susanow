@@ -3,12 +3,9 @@ AR := ar
 RM := rm -rf
 
 INCLUDES   += \
-	 -I$(prefix)/src \
-	 -I$(prefix)/src/include \
+	 -I./include
 	 -I$(RTE_SDK)/$(RTE_TARGET)/include \
-	 -I/home/slank/git/libslankdev/include \
 	 -include $(RTE_SDK)/$(RTE_TARGET)/include/rte_config.h
-INCLUDES += -I./include
 
 CXXFLAGS += -Wall -Wextra
 ifeq ($(CXX), clang++)
@@ -16,7 +13,6 @@ CXXFLAGS += -Weverything # Thankyou, @herumi.
 endif
 CXXFLAGS += -std=c++11
 CXXFLAGS += -m64 -pthread -march=native $(INCLUDES)
-CXXFLAGS += -Wno-format-security
 
 LDFLAGS += \
 	-Wl,--no-as-needed \
