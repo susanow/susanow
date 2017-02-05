@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <ssnlib_sys.h>
 #include <ssnlib_shell.h>
+#include <ssnlib_timer.h>
 #include <ssnlib_thread.h>
 #include <slankdev/system.h>
 
@@ -131,6 +132,27 @@ public:
 };
 
 
+class getportinfo : public ssnlib::Timer {
+    System* sys;
+    size_t rx_bps;
+    size_t tx_bps;
+public:
+    getportinfo(System* s) : sys(s), rx_bps(0), tx_bps(0) {}
+    void func() override
+    {
+        printf("\n");
+        for (Port& port : sys->ports) {
+            port.stats.update();
+            printf("port%u rx/tx  %zd/%zd \n",
+                port.id,
+                port.stats.rx_bytepersec * 8 / 1000000 ,
+                port.stats.tx_bytepersec * 8 / 1000000
+            );
+        }
+    }
+};
+
+
 int main(int argc, char** argv)
 {
     using namespace ssnlib;
@@ -152,6 +174,9 @@ int main(int argc, char** argv)
     shell.add_cmd(new Cmd_show    ("show"  , &sys        ));
     shell.add_cmd(new Cmd_port    ("port"  , &sys        ));
 
+    Timersubsys timersubsys(5);
+    timersubsys.add_timer(new getportinfo(&sys));
+
 #if 0
     ssnt_txrxwk txrxwk(&sys);
     sys.cpus[1].thread = &shell;
@@ -164,6 +189,7 @@ int main(int argc, char** argv)
     sys.cpus.at(2).thread = &rx;
     sys.cpus.at(3).thread = &tx;
     sys.cpus.at(4).thread = &wk;
+    sys.cpus.at(5).thread = &timersubsys;
     // sys.cpus.at(5).thread = &wk;
     // sys.cpus.at(6).thread = &wk;
     // sys.cpus.at(7).thread = &wk;

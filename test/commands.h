@@ -64,6 +64,7 @@ public:
         shell->exe_cmd("thread launch 2");
         shell->exe_cmd("thread launch 3");
         shell->exe_cmd("thread launch 4");
+        shell->exe_cmd("thread launch 5");
     }
 };
 
@@ -159,24 +160,24 @@ class Cmd_port : public ssnlib::Command {
 
             auto& stats = port.stats;
             printf("  RX packets:%lu errors:%lu dropped:%lu allocmiss:%lu \n",
-                        stats.raw.ipackets, stats.raw.ierrors,
-                        stats.raw.imissed, stats.raw.rx_nombuf);
+                        stats.cure.ipackets, stats.cure.ierrors,
+                        stats.cure.imissed, stats.cure.rx_nombuf);
             printf("  TX packets:%lu errors:%lu  \n",
-                    stats.raw.opackets, stats.raw.oerrors);
-            printf("  RX bytes:%lu TX bytes:%lu \n", stats.raw.ibytes, stats.raw.obytes);
+                    stats.cure.opackets, stats.cure.oerrors);
+            printf("  RX bytes:%lu TX bytes:%lu \n", stats.cure.ibytes, stats.cure.obytes);
 
             size_t nb_rxq = port.rxq.size();
             size_t nb_txq = port.txq.size();
             for (uint8_t qid=0; qid<nb_rxq; qid++) {
                 printf("  RX%u packets:%lu errors:%lu ", qid,
-                        stats.raw.q_ipackets[qid], stats.raw.q_errors[qid]);
+                        stats.cure.q_ipackets[qid], stats.cure.q_errors[qid]);
                 size_t rxqsize  = port.rxq[qid].size();
                 size_t rxqcount = port.rxq[qid].count();
                 printf("  RX ring%u:%zd/%zd \n", qid,
                         rxqcount, rxqsize);
             }
             for (uint8_t qid=0; qid<nb_txq; qid++) {
-                printf("  TX%u packets:%lu ", qid, stats.raw.q_opackets[qid]);
+                printf("  TX%u packets:%lu ", qid, stats.cure.q_opackets[qid]);
                 printf("  TX ring%u:%zd/%zd \n", qid,
                         port.txq[qid].count(), port.txq[qid].size());
             }

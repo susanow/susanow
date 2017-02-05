@@ -32,6 +32,7 @@
 
 #pragma once
 #include <ssnlib_dpdk.h>
+#include <slankdev/system.h>
 
 
 
@@ -59,10 +60,25 @@ public:
 class port_stats {
 public:
     const size_t id;
-    struct rte_eth_stats raw;
-    port_stats(size_t i) : id(i) {}
-    void reset()  { rte_eth_stats_reset(id);       }
-    void update() { rte_eth_stats_get  (id, &raw); }
+    size_t rx_bytepersec;
+    size_t tx_bytepersec;
+    struct rte_eth_stats init;
+    struct rte_eth_stats cure_prev;
+    struct rte_eth_stats cure;
+
+    port_stats(size_t i) : id(i) { reset(); }
+    void reset()
+    {
+        rte_eth_stats_reset(id);
+        rte_eth_stats_get(id, &init);
+    }
+    void update()
+    {
+        rte_eth_stats_get(id, &cure);
+        rx_bytepersec = (cure.ibytes - cure_prev.ibytes);
+        tx_bytepersec = (cure.obytes - cure_prev.obytes);
+        cure_prev = cure;
+    }
 };
 
 /*
