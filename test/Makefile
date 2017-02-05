@@ -15,6 +15,9 @@ all: $(TARGET)
 clean:
 	$(RM) $(TARGET) $(OBJS)
 
+runcpu:
+	sudo ./a.out --vdev=eth_null0 --vdev=eth_null1
+
 
 include $(SSN)/mk/runenv.mk
 
