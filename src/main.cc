@@ -6,7 +6,7 @@
 #include <ssnlib_thread.h>
 #include <slankdev/system.h>
 
-#if 0
+#if 1
 using Rxq    = ssnlib::Rxq_interface<ssnlib::Ring_dpdk>;
 using Txq    = ssnlib::Txq_interface<ssnlib::Ring_dpdk>;
 #else
@@ -160,13 +160,13 @@ int main(int argc, char** argv)
     ssnt_rx rx(&sys);
     ssnt_tx tx(&sys);
     ssnt_wk wk(&sys);
-    sys.cpus[1].thread = &shell;
-    sys.cpus[2].thread = &rx;
-    sys.cpus[3].thread = &tx;
-    sys.cpus[4].thread = &wk;
-    sys.cpus[5].thread = &wk;
-    sys.cpus[6].thread = &wk;
-    sys.cpus[7].thread = &wk;
+    sys.cpus.at(1).thread = &shell;
+    sys.cpus.at(2).thread = &rx;
+    sys.cpus.at(3).thread = &tx;
+    sys.cpus.at(4).thread = &wk;
+    sys.cpus.at(5).thread = &wk;
+    sys.cpus.at(6).thread = &wk;
+    sys.cpus.at(7).thread = &wk;
 #endif
 
     sys.cpus[1].launch();
