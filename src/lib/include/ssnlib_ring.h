@@ -36,6 +36,7 @@
 #include <ssnlib_log.h>
 #include <ssnlib_mempool.h>
 #include <queue> // for Ring_stdqueue
+#include <mutex> // lock
 
 namespace ssnlib {
 
@@ -60,21 +61,25 @@ public:
 
 class Ring_stdqueue : public Ring_interface {
     std::queue<rte_mbuf*> queue_;
+    mutable std::mutex* m;
+    using auto_lock = std::lock_guard<std::mutex>;
 public:
-    Ring_stdqueue(size_t, size_t, size_t, const char*) {}
+    Ring_stdqueue(size_t, size_t, size_t, const char*) { m = new std::mutex; }
+    virtual ~Ring_stdqueue() { delete(m); }
+    Ring_stdqueue(const Ring_stdqueue&) { m = new std::mutex; }
+    Ring_stdqueue(Ring_stdqueue&&) = default;
     void push_bulk(rte_mbuf** obj_table, size_t n) override
     {
+        auto_lock lg(*m);
         for (size_t i=0; i<n; i++) {
             queue_.push(obj_table[i]);
         }
     }
     bool pop_bulk(rte_mbuf** obj_table, size_t n) override
     {
-        if (queue_.size() < n) {
+        auto_lock lg(*m);
+        if (queue_.size() < n)
             return false;
-        } else {
-            printf("GAAAA\n");
-        }
 
         for (size_t i=0; i<n; i++) {
             obj_table[i] = queue_.front();
@@ -82,9 +87,9 @@ public:
         }
         return true;
     }
-    size_t count() const override { return queue_.size(); }
-    size_t size()  const override { return queue_.size(); }
-    bool   empty() const override { return queue_.empty(); }
+    size_t count() const override { auto_lock lg(*m); return queue_.size(); }
+    size_t size()  const override { auto_lock lg(*m); return queue_.size(); }
+    bool   empty() const override { auto_lock lg(*m); return queue_.empty(); }
 };
 
 class Ring_dpdk : public Ring_interface {
