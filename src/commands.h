@@ -63,7 +63,7 @@ public:
         UNUSED(args);
         shell->exe_cmd("thread launch 2");
         shell->exe_cmd("thread launch 3");
-        // shell->exe_cmd("thread launch 4");
+        shell->exe_cmd("thread launch 4");
     }
 };
 

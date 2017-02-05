@@ -6,10 +6,13 @@
 #include <ssnlib_thread.h>
 #include <slankdev/system.h>
 
-// using Rxq    = ssnlib::Rxq_interface<ssnlib::Ring_dpdk>;
-// using Txq    = ssnlib::Txq_interface<ssnlib::Ring_dpdk>;
+#if 0
+using Rxq    = ssnlib::Rxq_interface<ssnlib::Ring_dpdk>;
+using Txq    = ssnlib::Txq_interface<ssnlib::Ring_dpdk>;
+#else
 using Rxq    = ssnlib::Rxq_interface<ssnlib::Ring_stdqueue>;
 using Txq    = ssnlib::Txq_interface<ssnlib::Ring_stdqueue>;
+#endif
 using Port   = ssnlib::Port_interface<Rxq, Txq>;
 using Cpu    = ssnlib::Cpu_interface;
 using System = ssnlib::System_interface<Cpu, Port>;
@@ -156,14 +159,14 @@ int main(int argc, char** argv)
 #else
     ssnt_rx rx(&sys);
     ssnt_tx tx(&sys);
-    ssnt_wk wk(&sys, 40000);
+    ssnt_wk wk(&sys);
     sys.cpus[1].thread = &shell;
     sys.cpus[2].thread = &rx;
     sys.cpus[3].thread = &tx;
-    // sys.cpus[4].thread = &wk;
-    // sys.cpus[5].thread = &wk;
-    // sys.cpus[6].thread = &wk;
-    // sys.cpus[7].thread = &wk;
+    sys.cpus[4].thread = &wk;
+    sys.cpus[5].thread = &wk;
+    sys.cpus[6].thread = &wk;
+    sys.cpus[7].thread = &wk;
 #endif
 
     sys.cpus[1].launch();
