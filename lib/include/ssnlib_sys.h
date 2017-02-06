@@ -128,6 +128,12 @@ public:
         sleep(1);
         rte_eal_mp_wait_lcore();
     }
+    virtual void cyclic_task()
+    {
+        for (PORT& port : ports) {
+            port.stats.update();
+        }
+    }
 };
 
 

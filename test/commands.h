@@ -144,7 +144,6 @@ class Cmd_port : public ssnlib::Command {
     void show()
     {
         for (auto& port : sys->ports) {
-            port.stats.update();
             port.link.update();
 
             auto& link = port.link;
@@ -257,9 +256,19 @@ class Cmd_port : public ssnlib::Command {
         Port::nb_rx_rings    = nb_rings;
         Port::nb_tx_rings    = nb_rings;
     }
+    void stat()
+    {
+        for (auto& port : sys->ports) {
+            printf("  Throughput Rx/Tx: %lu/%luMbps, %lu/%luKpps \n",
+                    port.stats.rx_bps/1000000, port.stats.tx_bps/1000000,
+                    port.stats.rx_pps/1000   , port.stats.tx_pps/1000
+                    );
+
+        }
+    }
     void usage()
     {
-        fprintf(stderr, "Usage: %s { show | configure | dev | link | promisc | ring }\n",
+        fprintf(stderr, "Usage: %s { show | configure | dev | link | promisc | ring | stat }\n",
             name.c_str());
     }
 public:
@@ -273,6 +282,8 @@ public:
 
         if (args[1] == "show") {
             show();
+        } else if (args[1] == "stat") {
+            stat();
         } else if (args[1] == "configure") {
             std::vector<std::string> vec;
             std::copy(args.begin()+1, args.end(), std::back_inserter(vec));

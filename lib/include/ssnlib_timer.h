@@ -50,15 +50,28 @@ struct Timer : public rte_timer {
 
 
 class Timersubsys : public ssnlib::ssn_thread {
-    bool runnning;
+    size_t lcore_id;
+    std::vector<Timer*> timers;
 public:
-    Timersubsys() : runnning(false) {}
-    bool kill() { runnning=false; return true; }
+    Timersubsys(size_t id) : lcore_id(id) {}
+    ~Timersubsys()
+    {
+        while (timers.size() > 0) {
+            Timer* tmp = timers.back();
+            timers.pop_back();
+            delete tmp;
+        }
+    }
     void init() { rte_timer_subsystem_init(); }
+    void add_timer(Timer* newtimer, uint64_t interval_hz)
+    {
+        rte_timer_init(newtimer);
+        rte_timer_reset(newtimer, interval_hz, PERIODICAL, lcore_id, newtimer->doo, newtimer);
+        timers.push_back(newtimer);
+    }
     void operator()()
     {
-        runnning=true;
-        while (runnning) {
+        while (true) {
             rte_timer_manage();
         }
     }

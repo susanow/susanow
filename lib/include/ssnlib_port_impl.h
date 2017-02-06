@@ -58,34 +58,46 @@ public:
  * This class has dynamically informations.
  */
 class port_stats {
+    static const size_t IFG = 12;  /* Inter Frame Gap [Byte] */
+    static const size_t PAM =  8;  /* Preamble        [Byte] */
+    static const size_t FCS =  4;  /* Frame Check Seq [Byte] */
+    static const size_t IFO = IFG+PAM+FCS; /* Pack Overhead  */
 public:
     const size_t id;
     size_t rx_pps;
     size_t tx_pps;
     size_t rx_bps;
     size_t tx_bps;
+    uint64_t last_update;
     struct rte_eth_stats init;
     struct rte_eth_stats cure_prev;
     struct rte_eth_stats cure;
 
-    port_stats(size_t i) : id(i) { reset(); }
+    port_stats(size_t i)
+        : id(i), rx_pps(0), tx_pps(0), rx_bps(0), tx_bps(0),
+        last_update(0) { reset(); }
     void reset()
     {
         rte_eth_stats_reset(id);
         rte_eth_stats_get(id, &init);
         cure = init;
         cure_prev = init;
+        last_update = slankdev::rdtsc();
     }
     void update()
     {
         rte_eth_stats_get(id, &cure);
-        rx_pps = cure.ipackets - cure_prev.ipackets;
-        tx_pps = cure.opackets - cure_prev.opackets;
-        rx_bps = (cure.ibytes - cure_prev.ibytes) << 3;
-        tx_bps = (cure.obytes - cure_prev.obytes) << 3;
+        uint64_t now = slankdev::rdtsc();
+        double diff_time = double(now-last_update)/rte_get_timer_hz();
+        rx_pps = (cure.ipackets - cure_prev.ipackets)/diff_time;
+        tx_pps = (cure.opackets - cure_prev.opackets)/diff_time;
+        rx_bps = (((cure.ibytes - cure_prev.ibytes) + IFO * rx_pps) << 3)/diff_time;
+        tx_bps = (((cure.obytes - cure_prev.obytes) + IFO * tx_pps) << 3)/diff_time;
         cure_prev = cure;
+        last_update = now;
     }
 };
+
 
 /*
  * This class has dynamically informations.
