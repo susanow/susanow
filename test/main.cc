@@ -154,9 +154,12 @@ void func(struct rte_timer*, void* arg)
         port.stats.update();
     }
     for (Port& port : sys->ports) {
-        printf("port%u rx/tx  %lu/%lu  \n", port.id,
-                port.stats.rx_pps/1000000,
-                port.stats.tx_pps/1000000);
+        printf("port%u pps=%lu/%lu  bps=%lu/%lu \n", port.id,
+                port.stats.rx_pps,
+                port.stats.tx_pps,
+                port.stats.rx_bps/1000000,
+                port.stats.tx_bps/1000000
+                );
     }
 }
 
@@ -192,9 +195,8 @@ int main(int argc, char** argv)
     rte_timer_reset(&timer, hz, PERIODICAL, 1, func, &sys);
 
     ssnt_txrxwk txrxwk(&sys);
-    ssnt_rx rx(&sys);
     sys.cpus.at(1).thread = &timersubsys;
-    sys.cpus.at(2).thread = &rx;
+    sys.cpus.at(2).thread = &txrxwk;
     sys.cpus.at(3).thread = &shell;
 
     sys.cpus.at(1).launch();

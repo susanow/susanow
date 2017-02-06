@@ -62,6 +62,8 @@ public:
     const size_t id;
     size_t rx_pps;
     size_t tx_pps;
+    size_t rx_bps;
+    size_t tx_bps;
     struct rte_eth_stats init;
     struct rte_eth_stats cure_prev;
     struct rte_eth_stats cure;
@@ -79,6 +81,8 @@ public:
         rte_eth_stats_get(id, &cure);
         rx_pps = cure.ipackets - cure_prev.ipackets;
         tx_pps = cure.opackets - cure_prev.opackets;
+        rx_bps = (cure.ibytes - cure_prev.ibytes) << 3;
+        tx_bps = (cure.obytes - cure_prev.obytes) << 3;
         cure_prev = cure;
     }
 };
