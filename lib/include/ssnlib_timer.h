@@ -53,7 +53,7 @@ class Timersubsys : public ssnlib::ssn_thread {
     size_t lcore_id;
     std::vector<Timer*> timers;
 public:
-    Timersubsys(size_t id) : lcore_id(id) {}
+    Timersubsys(size_t id) : ssn_thread("timersubsys"), lcore_id(id) {}
     ~Timersubsys()
     {
         while (timers.size() > 0) {

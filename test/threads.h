@@ -9,7 +9,7 @@ class ssnt_txrxwk : public ssnlib::ssn_thread {
     System* sys;
     bool running;
 public:
-    ssnt_txrxwk(System* s) : sys(s), running(false) {}
+    ssnt_txrxwk(System* s) : ssn_thread("txrxwk"), sys(s), running(false) {}
     void operator()()
     {
         const uint8_t nb_ports = sys->ports.size();
@@ -43,7 +43,7 @@ class ssnt_rx : public ssnlib::ssn_thread {
     System* sys;
     bool running;
 public:
-    ssnt_rx(System* s) : sys(s), running(false) {}
+    ssnt_rx(System* s) : ssn_thread("rx"), sys(s), running(false) {}
     void operator()()
     {
         const uint8_t nb_ports = sys->ports.size();
@@ -63,7 +63,7 @@ class ssnt_tx : public ssnlib::ssn_thread {
     System* sys;
     bool running;
 public:
-    ssnt_tx(System* s) : sys(s), running(false) {}
+    ssnt_tx(System* s) : ssn_thread("tx"), sys(s), running(false) {}
     void operator()()
     {
         const uint8_t nb_ports = sys->ports.size();
@@ -84,8 +84,8 @@ class ssnt_wk : public ssnlib::ssn_thread {
     bool running;
     size_t nb_delay_clk;
 public:
-    ssnt_wk(System* s) : sys(s), running(false), nb_delay_clk(0) {}
-    ssnt_wk(System* s, size_t d) : sys(s), running(false), nb_delay_clk(d) {}
+    ssnt_wk(System* s) : ssn_thread("wk"), sys(s), running(false), nb_delay_clk(0) {}
+    ssnt_wk(System* s, size_t d) : ssn_thread("wk"), sys(s), running(false), nb_delay_clk(d) {}
     void operator()()
     {
         const uint8_t nb_ports = sys->ports.size();

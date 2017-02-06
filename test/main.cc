@@ -37,12 +37,13 @@ int main(int argc, char** argv)
     shell.add_cmd(new Cmd_thread  ("thread", &sys        ));
     shell.add_cmd(new Cmd_show    ("show"  , &sys        ));
     shell.add_cmd(new Cmd_port    ("port"  , &sys        ));
+    shell.add_cmd(new Cmd_findthread("find"  , &sys      ));
 
     Timersubsys timersubsys(1);
     timersubsys.init();
     timersubsys.add_timer(new TimerDefault(&sys), rte_get_timer_hz());
 
-#if 1
+#if 0
     ssnt_txrxwk txrxwk(&sys);
     sys.append_thread(&timersubsys);
     sys.append_thread(&txrxwk     );
@@ -50,18 +51,21 @@ int main(int argc, char** argv)
 #else
     ssnt_rx rx(&sys);
     ssnt_tx tx(&sys);
-    ssnt_wk wk(&sys);
-    sys.cpus.at(1).thread = &shell;
-    sys.cpus.at(2).thread = &rx;
-    sys.cpus.at(3).thread = &tx;
-    sys.cpus.at(4).thread = &wk;
-    sys.cpus.at(5).thread = &timersubsys;
-    // sys.cpus.at(5).thread = &wk;
-    // sys.cpus.at(6).thread = &wk;
-    // sys.cpus.at(7).thread = &wk;
+    ssnt_wk wk(&sys, 25000);
+    sys.append_thread(&timersubsys);
+    sys.append_thread(&shell      );
+    sys.append_thread(&rx         );
+    sys.append_thread(&tx         );
+    sys.append_thread(&wk         );
+    sys.append_thread(&wk         );
+    sys.append_thread(&wk         );
 #endif
 
-    sys.launch_all();
+    sys.cpus.at(1).launch();
+    sys.cpus.at(2).launch();
+    sys.cpus.at(3).launch();
+    sys.cpus.at(4).launch();
+    sys.cpus.at(5).launch();
     sys.wait_all();
 }
 

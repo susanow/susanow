@@ -31,12 +31,15 @@
 
 #pragma once
 
+#include <string>
 #include <slankdev/exception.h>
 
 namespace ssnlib {
 
 class ssn_thread {
 public:
+    const std::string name;
+    ssn_thread(const char* n) : name(n) {}
     virtual void operator()() { printf("not set thread \n"); }
     virtual bool kill()
     {

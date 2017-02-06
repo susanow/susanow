@@ -56,6 +56,7 @@ namespace ssnlib {
 class Shell : public ssnlib::ssn_thread {
     std::vector<std::unique_ptr<Command>> cmds;
 public:
+    Shell() : ssn_thread("shell") {}
     void help()
     {
         printf("Commands: \n");

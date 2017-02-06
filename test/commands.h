@@ -316,21 +316,21 @@ public:
     Cmd_thread(const char* n, System* s) : ssnlib::Command(n), sys(s) {}
     void launch(size_t lcore_id)
     {
-        rte_lcore_state_t state = sys->cpus[lcore_id].get_state();
+        rte_lcore_state_t state = sys->cpus.at(lcore_id).get_state();
         if (state == RUNNING) {
             fprintf(stderr, "Error: lcore%zd was already launched \n", lcore_id);
             return ;
         }
-        sys->cpus[lcore_id].launch();
+        sys->cpus.at(lcore_id).launch();
     }
     void kill(size_t lcore_id)
     {
-        rte_lcore_state_t state = sys->cpus[lcore_id].get_state();
+        rte_lcore_state_t state = sys->cpus.at(lcore_id).get_state();
         if (state != RUNNING) {
             fprintf(stderr, "Error: lcore%zd is not runnning \n", lcore_id);
             return ;
         }
-        bool ret = sys->cpus[lcore_id].thread->kill();
+        bool ret = sys->cpus.at(lcore_id).thread->kill();
         if (ret) {
             rte_eal_wait_lcore(lcore_id);
             printf("done \n");
@@ -340,14 +340,18 @@ public:
     }
     void show()
     {
-        printf("%-5s %-10s %-15s\n", "cid", "status", "ptr");
+        printf("%-5s %-10s %-15s %-15s\n", "cid", "status", "ptr", "name");
         for (Cpu& cpu : sys->cpus) {
             if (cpu.lcore_id == 0) {
                 printf("%-5u %-10s \n", cpu.lcore_id, "COM");
             } else {
-                printf("%-5u %-10s %-15p \n", cpu.lcore_id,
+                printf("%-5u %-10s %-15p ", cpu.lcore_id,
                     ssnlib::util::rte_lcore_state_t2str(rte_eal_get_lcore_state(cpu.lcore_id)),
                     cpu.thread);
+                if (cpu.thread)
+                    printf("%-15s \n", cpu.thread->name.c_str());
+                else
+                    printf("\n");
             }
         }
     }
@@ -379,6 +383,32 @@ public:
 
 };
 
+
+
+
+class Cmd_findthread : public  ssnlib::Command {
+    System* sys;
+    void usage(const std::string& s) { printf("Usage: %s name \n", s.c_str()); }
+public:
+    Cmd_findthread(const char* n, System* s) : Command(n), sys(s) {}
+    void operator()(const std::vector<std::string>& args)
+    {
+        if (args.size() < 2) {
+            usage(args[0]);
+            return ;
+        }
+
+        for (Cpu& cpu : sys->cpus) {
+            if (cpu.thread) {
+                if (cpu.thread->name == args[1]) {
+                    printf("%s at %p \n", cpu.thread->name.c_str(), cpu.thread);
+                    return ;
+                }
+            }
+        }
+        printf("not found \n");
+    }
+};
 
 
 
