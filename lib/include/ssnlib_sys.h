@@ -123,10 +123,19 @@ public:
         kernel_log(SYSTEM, "[+] System Halt ...\n");
         rte_exit(0, "Bye...\n");
     }
-	virtual void wait_all()
+	virtual void wait_all()   { rte_eal_mp_wait_lcore(); }
+    virtual void launch_all() { for (CPU& cpu : cpus) cpu.launch(); }
+    virtual void append_thread(ssn_thread* thread)
     {
-        sleep(1);
-        rte_eal_mp_wait_lcore();
+        for (CPU& cpu : cpus) {
+            if (cpu.lcore_id == 0) continue;
+
+            if (cpu.thread == nullptr) {
+                cpu.thread = thread;
+                return ;
+            }
+        }
+        throw slankdev::exception("No such lcore to append thread");
     }
     virtual void cyclic_task()
     {

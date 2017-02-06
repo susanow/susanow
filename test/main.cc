@@ -7,20 +7,14 @@
 #include <ssnlib_thread.h>
 #include <slankdev/system.h>
 
-#if 1
 using Rxq    = ssnlib::Rxq_interface<ssnlib::Ring_dpdk>;
 using Txq    = ssnlib::Txq_interface<ssnlib::Ring_dpdk>;
-#else
-using Rxq    = ssnlib::Rxq_interface<ssnlib::Ring_stdqueue>;
-using Txq    = ssnlib::Txq_interface<ssnlib::Ring_stdqueue>;
-#endif
 using Port   = ssnlib::Port_interface<Rxq, Txq>;
 using Cpu    = ssnlib::Cpu_interface;
 using System = ssnlib::System_interface<Cpu, Port>;
 #include "commands.h"
 #include "threads.h"
 #include "timers.h"
-
 
 
 int main(int argc, char** argv)
@@ -50,13 +44,9 @@ int main(int argc, char** argv)
 
 #if 1
     ssnt_txrxwk txrxwk(&sys);
-    sys.cpus.at(1).thread = &timersubsys;
-    sys.cpus.at(2).thread = &txrxwk;
-    sys.cpus.at(3).thread = &shell;
-
-    for (Cpu& cpu : sys.cpus) {
-        cpu.launch();
-    }
+    sys.append_thread(&timersubsys);
+    sys.append_thread(&txrxwk     );
+    sys.append_thread(&shell      );
 #else
     ssnt_rx rx(&sys);
     ssnt_tx tx(&sys);
@@ -71,6 +61,7 @@ int main(int argc, char** argv)
     // sys.cpus.at(7).thread = &wk;
 #endif
 
+    sys.launch_all();
     sys.wait_all();
 }
 

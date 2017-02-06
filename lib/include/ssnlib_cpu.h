@@ -72,7 +72,7 @@ public:
 	{
         if (thread) {
             if (lcore_id == 0) {
-                fprintf(stderr, "This is COM core. can not launch thread");
+                throw slankdev::exception("The core, id==0 can't launch thread");
             } else {
                 kernel_log(SYSTEM, "%s lanching ... ", name.c_str());
                 rte_eal_remote_launch(Cpu_interface::Exe, this, lcore_id);
