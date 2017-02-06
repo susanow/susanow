@@ -166,12 +166,6 @@ class Cmd_port : public ssnlib::Command {
                     stats.cure.opackets, stats.cure.oerrors);
             printf("  RX bytes:%lu TX bytes:%lu \n", stats.cure.ibytes, stats.cure.obytes);
 
-            printf("  Throughput[Mbps]: %zd/%zd",
-                stats.rx_bytepersec * 8 / 1000000 ,
-                stats.tx_bytepersec * 8 / 1000000
-            );
-            printf("\n");
-
             size_t nb_rxq = port.rxq.size();
             size_t nb_txq = port.txq.size();
             for (uint8_t qid=0; qid<nb_rxq; qid++) {

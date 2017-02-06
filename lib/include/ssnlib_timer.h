@@ -51,38 +51,16 @@ struct Timer : public rte_timer {
 
 class Timersubsys : public ssnlib::ssn_thread {
     bool runnning;
-    std::vector<Timer*> timers;
-    const uint8_t lcoreid;
 public:
-    Timersubsys(uint8_t id) : runnning(false), lcoreid(id) {}
-    ~Timersubsys()
-    {
-        while(timers.size() > 0)
-        {
-            auto* temp = timers.back();
-            delete temp;
-            timers.pop_back();
-        }
-    }
-    void add_timer(Timer* newtimer)
-    {
-        rte_timer_init(newtimer);
-        printf("timer init \n");
-
-        uint64_t hz = rte_get_timer_hz();
-        rte_timer_reset(newtimer, hz, PERIODICAL, lcoreid, newtimer->doo, newtimer);
-        printf("timer reset \n");
-
-        timers.push_back(newtimer);
-        printf("timer push_back \n");
-    }
-    void manage() { rte_timer_manage(); }
+    Timersubsys() : runnning(false) {}
     bool kill() { runnning=false; return true; }
+    void init() { rte_timer_subsystem_init(); }
     void operator()()
     {
-        rte_timer_subsystem_init();
         runnning=true;
-        while (runnning) rte_timer_manage();
+        while (runnning) {
+            rte_timer_manage();
+        }
     }
 };
 

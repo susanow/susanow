@@ -60,8 +60,8 @@ public:
 class port_stats {
 public:
     const size_t id;
-    size_t rx_bytepersec;
-    size_t tx_bytepersec;
+    size_t rx_pps;
+    size_t tx_pps;
     struct rte_eth_stats init;
     struct rte_eth_stats cure_prev;
     struct rte_eth_stats cure;
@@ -71,12 +71,14 @@ public:
     {
         rte_eth_stats_reset(id);
         rte_eth_stats_get(id, &init);
+        cure = init;
+        cure_prev = init;
     }
     void update()
     {
         rte_eth_stats_get(id, &cure);
-        rx_bytepersec = (cure.ibytes - cure_prev.ibytes);
-        tx_bytepersec = (cure.obytes - cure_prev.obytes);
+        rx_pps = cure.ipackets - cure_prev.ipackets;
+        tx_pps = cure.opackets - cure_prev.opackets;
         cure_prev = cure;
     }
 };
