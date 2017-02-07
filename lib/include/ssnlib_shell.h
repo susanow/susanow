@@ -44,19 +44,23 @@
 #include <ssnlib_cmd.h>
 
 
-static inline char* Readline(const char* p)
+static inline char* Readline(const char* prompt)
 {
-    char* line = readline(p);
-    add_history(line);
+    char* line = readline(prompt);
+    static std::string prev_cmd = "";
+    if (prev_cmd!=line && strlen(line)!=0) add_history(line);
+    prev_cmd = line;
     return line;
 }
 
 namespace ssnlib {
 
 class Shell : public ssnlib::ssn_thread {
+    const std::string prompt;
     std::vector<std::unique_ptr<Command>> cmds;
 public:
-    Shell() : ssn_thread("shell") {}
+    Shell() : ssn_thread("shell"), prompt("SUSANOO$ ") {}
+    Shell(const char* p) : ssn_thread("shell"), prompt(p) {}
     void help()
     {
         printf("Commands: \n");
@@ -92,8 +96,7 @@ public:
     }
     void operator()()
     {
-        const char* prmpt = "SUSANOO$ ";
-        while (char* line = Readline(prmpt)) {
+        while (char* line = Readline(prompt.c_str())) {
             exe_cmd(line);
             free(line);
         }
