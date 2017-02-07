@@ -43,7 +43,7 @@ int main(int argc, char** argv)
     timersubsys.init();
     timersubsys.add_timer(new TimerDefault(&sys), rte_get_timer_hz());
 
-#if 0
+#if 1
     ssnt_txrxwk txrxwk(&sys);
     sys.append_thread(&timersubsys);
     sys.append_thread(&txrxwk     );
@@ -59,13 +59,14 @@ int main(int argc, char** argv)
     sys.append_thread(&wk         );
     sys.append_thread(&wk         );
     sys.append_thread(&wk         );
-#endif
-
     sys.cpus.at(1).launch();
     sys.cpus.at(2).launch();
     sys.cpus.at(3).launch();
     sys.cpus.at(4).launch();
     sys.cpus.at(5).launch();
+#endif
+
+    sys.launch_all();
     sys.wait_all();
 }
 
