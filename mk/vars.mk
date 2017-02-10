@@ -11,7 +11,7 @@ LDFLAGS += \
 	-Wl,--no-as-needed \
 	-Wl,-export-dynamic \
 	-L$(DPDK_DIR)/lib \
-	-lpthread -ldl -lrt -lm -lpcap -lreadline \
+	-lpthread -ldl -lrt -lm -lpcap \
 	-Wl,--whole-archive -Wl,--start-group \
 	-ldpdk \
 	-Wl,--end-group -Wl,--no-whole-archive
