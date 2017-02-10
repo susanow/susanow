@@ -12,7 +12,7 @@ using Txq    = ssnlib::Txq_interface<ssnlib::Ring_dpdk>;
 using Port   = ssnlib::Port_interface<Rxq, Txq>;
 using Cpu    = ssnlib::Cpu_interface;
 using System = ssnlib::System_interface<Cpu, Port>;
-#include "commands.h"
+// #include "commands.h"
 #include "threads.h"
 #include "timers.h"
 
@@ -29,6 +29,7 @@ int main(int argc, char** argv)
     System sys(argc, argv);
     if (sys.ports.size()%2 != 0) return -1;
 
+#if 0
     Shell shell;
     shell.add_cmd(new Cmd_clear   ("clear"               ));
     shell.add_cmd(new Cmd_quit    ("quit"  , &sys        ));
@@ -38,12 +39,20 @@ int main(int argc, char** argv)
     shell.add_cmd(new Cmd_show    ("show"  , &sys        ));
     shell.add_cmd(new Cmd_port    ("port"  , &sys        ));
     shell.add_cmd(new Cmd_findthread("find"  , &sys      ));
+#else
+    Shell shell("EthApp> ");
+    shell.add_cmd(new quit);
+    shell.add_cmd(new open);
+    shell.add_cmd(new ip  );
+    shell.fin();
+    shell.interact();
+#endif
 
     Timersubsys timersubsys(1);
     timersubsys.init();
     timersubsys.add_timer(new TimerDefault(&sys), rte_get_timer_hz());
 
-#if 0
+#if 1
     ssnt_txrxwk txrxwk(&sys);
     sys.append_thread(&timersubsys);
     sys.append_thread(&txrxwk     );
@@ -61,11 +70,12 @@ int main(int argc, char** argv)
     sys.append_thread(&wk         );
 #endif
 
-    sys.cpus.at(1).launch();
-    sys.cpus.at(2).launch();
-    sys.cpus.at(3).launch();
-    sys.cpus.at(4).launch();
-    sys.cpus.at(5).launch();
+    // sys.cpus.at(1).launch();
+    // sys.cpus.at(2).launch();
+    // sys.cpus.at(3).launch();
+    // sys.cpus.at(4).launch();
+    // sys.cpus.at(5).launch();
+    sys.launch_all();
     sys.wait_all();
 }
 
