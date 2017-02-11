@@ -16,7 +16,6 @@ using System = ssnlib::System_interface<Cpu, Port>;
 
 
 
-
 int main(int argc, char** argv)
 {
     using namespace ssnlib;
