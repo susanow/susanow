@@ -40,6 +40,7 @@ class ssn_thread {
 public:
     const std::string name;
     ssn_thread(const char* n) : name(n) {}
+    virtual ~ssn_thread() {}
     virtual void operator()() { printf("not set thread \n"); }
     virtual bool kill()
     {

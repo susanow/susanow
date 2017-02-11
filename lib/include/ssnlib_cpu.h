@@ -67,7 +67,7 @@ public:
 
         kernel_log(SYSTEM, "boot  %s ... done\n", name.c_str());
     }
-    ~Cpu_interface() { rte_eal_wait_lcore(lcore_id); }
+    ~Cpu_interface() { wait(); }
 	void launch()
 	{
         if (thread) {
@@ -80,6 +80,10 @@ public:
             }
         }
 	}
+    void wait()
+    {
+        rte_eal_wait_lcore(lcore_id);
+    }
     rte_lcore_state_t get_state()
     {
         return rte_eal_get_lcore_state(lcore_id);
