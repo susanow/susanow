@@ -70,68 +70,19 @@ public:
 };
 
 
-class dta2 {
-
-    class Cmd_dta : public ssnlib::Command {
-        struct pcmd_params {
-            cmdline_fixed_string_t cmd;
-            cmdline_fixed_string_t op;
-        };
-        dta2* d;
-    public:
-        Cmd_dta(dta2* d_) : d(d_)
-        {
-            append_token(TOKEN_STRING(struct pcmd_params, cmd, "dta"));
-            append_token(TOKEN_STRING(struct pcmd_params, op , NULL));
-            token_fin();
-
-            init_raw();
-            set_raw("dta < inc** | dec** | stop >");
-        }
-        void handle(void* p)
-        {
-            pcmd_params* param = reinterpret_cast<pcmd_params*>(p);
-            const std::string op = param->op;
-
-            if (op == "stop") d->stop();
-            else if (op == "incwk") d->inc("wk");
-            else if (op == "incrx") d->inc("rx");
-            else if (op == "decwk") d->dec("wk");
-            else if (op == "decrx") d->dec("rx");
-            else printf("Bad arguments\n");
-        }
-    };
-
-
-public:
-    System sys;
-    ssnlib::Shell shell;
+class dta2system : public System {
     std::vector<Allocator*> allocators;
 
 public:
-    dta2(int argc, char** argv) : sys(argc, argv), shell("susanow> ")
-    {
-        shell.add_cmd(new Cmd_clear           );
-        shell.add_cmd(new Cmd_findthread(&sys));
-        shell.add_cmd(new Cmd_quit      (&sys));
-        shell.add_cmd(new Cmd_thread    (&sys));
-        shell.add_cmd(new Cmd_port      (&sys));
-        shell.add_cmd(new Cmd_lscpu     (&sys));
-        shell.add_cmd(new Cmd_version   (&sys));
-        shell.add_cmd(new Cmd_dta       (this));
-        shell.fin();
-
-        allocators.push_back(new Allocator_wk);
-        allocators.push_back(new Allocator_rx);
-
-        sys.append_thread(&shell);
-    }
+    dta2system(int argc, char** argv) : System(argc, argv) {}
+    void append_dtaa_thread(Allocator* newthread)
+    { allocators.push_back(newthread); }
     void inc(const std::string& threadname)
     {
         try {
             for (auto* p : allocators) {
                 if (p->name == threadname) {
-                    sys.append_thread(p->alloc());
+                    append_thread(p->alloc());
                     start();
                     return;
                 }
@@ -143,11 +94,11 @@ public:
     }
     void dec(const std::string& threadname)
     {
-        size_t nb_cpus = sys.cpus.size();
+        size_t nb_cpus = cpus.size();
         for (ssize_t i=nb_cpus-1; i>=0; i--) {
             if (i == 0) continue;
 
-            Cpu& cpu = sys.cpus.at(i);
+            Cpu& cpu = cpus.at(i);
             if (cpu.thread && cpu.thread->name == threadname) {
                 ssnlib::ssn_thread* tmp = cpu.thread;
                 if (cpu.get_state() != RUNNING) {
@@ -164,7 +115,7 @@ public:
     }
     void start()
     {
-        for (Cpu& cpu : sys.cpus) {
+        for (Cpu& cpu : cpus) {
             if (cpu.thread && have_thread(cpu.thread->name)) {
                 cpu.launch();
             }
@@ -172,7 +123,7 @@ public:
     }
     void stop()
     {
-        for (Cpu& cpu : sys.cpus) {
+        for (Cpu& cpu : cpus) {
             if (cpu.thread && have_thread(cpu.thread->name)) {
                 cpu.thread->kill();
                 cpu.wait();
@@ -189,6 +140,37 @@ public:
 };
 
 
+class Cmd_dta : public ssnlib::Command {
+    struct pcmd_params {
+        cmdline_fixed_string_t cmd;
+        cmdline_fixed_string_t op;
+    };
+    dta2system* sys;
+public:
+    Cmd_dta(dta2system* s) : sys(s)
+    {
+        append_token(TOKEN_STRING(struct pcmd_params, cmd, "dta"));
+        append_token(TOKEN_STRING(struct pcmd_params, op , NULL));
+        token_fin();
+
+        init_raw();
+        set_raw("dta < inc** | dec** | stop >");
+    }
+    void handle(void* p)
+    {
+        pcmd_params* param = reinterpret_cast<pcmd_params*>(p);
+        const std::string op = param->op;
+
+        if (op == "stop")       sys->stop();
+        else if (op == "incwk") sys->inc("wk");
+        else if (op == "incrx") sys->inc("rx");
+        else if (op == "decwk") sys->dec("wk");
+        else if (op == "decrx") sys->dec("rx");
+        else printf("Bad arguments\n");
+    }
+};
+
+
 
 int main(int argc, char** argv)
 {
@@ -199,9 +181,24 @@ int main(int argc, char** argv)
     Port::rx_ring_size   = 128;
     Port::tx_ring_size   = 512;
 
-    dta2 d(argc, argv);
+    dta2system sys(argc, argv);
 
-    d.sys.launch_all();
-    d.sys.wait_all();
+    ssnlib::Shell shell("susanow> ");
+    shell.add_cmd(new Cmd_clear           );
+    shell.add_cmd(new Cmd_findthread(&sys));
+    shell.add_cmd(new Cmd_quit      (&sys));
+    shell.add_cmd(new Cmd_thread    (&sys));
+    shell.add_cmd(new Cmd_port      (&sys));
+    shell.add_cmd(new Cmd_lscpu     (&sys));
+    shell.add_cmd(new Cmd_version   (&sys));
+    shell.add_cmd(new Cmd_dta       (&sys));
+    shell.fin();
+
+    sys.append_thread(&shell);
+    sys.append_dtaa_thread(new Allocator_wk);
+    sys.append_dtaa_thread(new Allocator_rx);
+
+    sys.launch_all();
+    sys.wait_all();
 }
 
