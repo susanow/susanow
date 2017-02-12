@@ -58,7 +58,7 @@ class dta2 {
         {
             running = true;
             while (running) {
-                // printf("wk");
+                // printf("wk\n");
                 fflush(stdout);
                 sleep(1);
             }
@@ -74,7 +74,7 @@ class dta2 {
         {
             running = true;
             while (running) {
-                // printf("rx");
+                // printf("rx\n");
                 fflush(stdout);
                 sleep(1);
             }
