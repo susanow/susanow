@@ -16,6 +16,60 @@ using System = ssnlib::System_interface<Cpu, Port>;
 
 
 
+class Allocator {
+public:
+    const std::string name;
+    Allocator(const char* n) : name(n)
+    { if (name == "") throw slankdev::exception("not set thread name"); }
+    virtual ~Allocator() {}
+    virtual ssnlib::ssn_thread* alloc() = 0;
+};
+
+class Allocator_wk : public Allocator {
+
+    class Thrd_wk : public ssnlib::ssn_thread {
+        bool running;
+        size_t id;
+    public:
+        Thrd_wk() : ssn_thread("wk"), running(false) {}
+        bool kill() { running = false; return true; }
+        void operator()()
+        {
+            running = true;
+            while (running) {
+                sleep(1);
+            }
+        }
+    };
+
+public:
+    Allocator_wk() : Allocator("wk") {}
+    ssnlib::ssn_thread* alloc() override { return new Thrd_wk; }
+};
+
+class Allocator_rx : public Allocator {
+
+    class Thrd_rx : public ssnlib::ssn_thread {
+        bool running;
+        size_t id;
+    public:
+        Thrd_rx() : ssn_thread("rx"), running(false) {}
+        bool kill() { running = false; return true; }
+        void operator()()
+        {
+            running = true;
+            while (running) {
+                sleep(1);
+            }
+        }
+    };
+
+public:
+    Allocator_rx() : Allocator("rx") {}
+    ssnlib::ssn_thread* alloc() override { return new Thrd_rx; }
+};
+
+
 class dta2 {
 
     class Cmd_dta : public ssnlib::Command {
@@ -40,48 +94,19 @@ class dta2 {
             const std::string op = param->op;
 
             if (op == "stop") d->stop();
-            else if (op == "incwk") d->inc(new Thrd_wk);
-            else if (op == "incrx") d->inc(new Thrd_rx);
+            else if (op == "incwk") d->inc("wk");
+            else if (op == "incrx") d->inc("rx");
             else if (op == "decwk") d->dec("wk");
             else if (op == "decrx") d->dec("rx");
             else printf("Bad arguments\n");
         }
     };
 
-    class Thrd_wk : public ssnlib::ssn_thread {
-        bool running;
-        size_t id;
-    public:
-        Thrd_wk() : ssn_thread("wk"), running(false) {}
-        bool kill() { running = false; return true; }
-        void operator()()
-        {
-            running = true;
-            while (running) {
-                // printf("wk\n");
-                sleep(1);
-            }
-        }
-    };
-    class Thrd_rx : public ssnlib::ssn_thread {
-        bool running;
-        size_t id;
-    public:
-        Thrd_rx() : ssn_thread("rx"), running(false) {}
-        bool kill() { running = false; return true; }
-        void operator()()
-        {
-            running = true;
-            while (running) {
-                // printf("rx\n");
-                sleep(1);
-            }
-        }
-    };
 
 public:
     System sys;
     ssnlib::Shell shell;
+    std::vector<Allocator*> allocators;
 
 public:
     dta2(int argc, char** argv) : sys(argc, argv), shell("susanow> ")
@@ -96,13 +121,22 @@ public:
         shell.add_cmd(new Cmd_dta       (this));
         shell.fin();
 
+        allocators.push_back(new Allocator_wk);
+        allocators.push_back(new Allocator_rx);
+
         sys.append_thread(&shell);
     }
-    void inc(ssnlib::ssn_thread* thread)
+    void inc(const std::string& threadname)
     {
         try {
-            sys.append_thread(thread);
-            start();
+            for (auto* p : allocators) {
+                if (p->name == threadname) {
+                    sys.append_thread(p->alloc());
+                    start();
+                    return;
+                }
+            }
+            printf("can't append thread\n");
         } catch (std::exception& e) {
             printf("can't append thread\n");
         }
@@ -131,19 +165,26 @@ public:
     void start()
     {
         for (Cpu& cpu : sys.cpus) {
-            if (cpu.thread) cpu.launch();
+            if (cpu.thread && have_thread(cpu.thread->name)) {
+                cpu.launch();
+            }
         }
     }
     void stop()
     {
         for (Cpu& cpu : sys.cpus) {
-            if (cpu.thread && cpu.thread->name == "shell") continue;
-
-            if (cpu.thread) {
+            if (cpu.thread && have_thread(cpu.thread->name)) {
                 cpu.thread->kill();
                 cpu.wait();
             }
         }
+    }
+    bool have_thread(const std::string& name)
+    {
+        for (auto* alctr : allocators) {
+            if (alctr->name == name) return true;
+        }
+        return false;
     }
 };
 
