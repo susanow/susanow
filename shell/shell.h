@@ -26,7 +26,6 @@ class shell {
         virtual ~Command() {}
         virtual void exec() = 0;
     };
-
     class Cmd_quit : public Command {
         shell* sh;
     public:
@@ -37,6 +36,14 @@ class shell {
             sh->fd = -1;
             sh->closed = true;
         }
+    };
+    class Cmd_halt : public Command {
+    public:
+           Cmd_halt(const char* str) : Command(str) {}
+           void exec()
+           {
+               exit(0);
+           }
     };
     class KeyFunc {
     public:
@@ -103,6 +110,7 @@ public:
     }
     void init_commands()
     {
+        commands.push_back(new Cmd_halt("halt"));
         commands.push_back(new Cmd_quit("quit", this));
     }
     void exec_command()
