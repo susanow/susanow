@@ -16,12 +16,15 @@ LDFLAGS += \
 	-ldpdk \
 	-Wl,--end-group -Wl,--no-whole-archive
 
-CXXFLAGS += -Wall -Wextra
-ifeq ($(CXX), clang++)
-CXXFLAGS += -Weverything
+
+
+CFLAGS += -Wall -Wextra
+ifeq ($(CXX), clang)
+CFLAGS += -Weverything
 endif
+CFLAGS += -m64 -pthread -march=native $(INCLUDES)
+CFLAGS += -Wno-format-security
+
+
+CXXFLAGS += $(CFLAGS)
 CXXFLAGS += -std=c++11
-CXXFLAGS += -m64 -pthread -march=native $(INCLUDES)
-CXXFLAGS += -Wno-format-security
-
-
