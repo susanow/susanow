@@ -1,62 +1,63 @@
 
 #pragma once
 
-#include <termios.h>
-#include <fcntl.h>
-#include <time.h>
-#include <netinet/tcp.h>
-#include <slankdev/exception.h>
-#include <slankdev/socketfd.h>
-#include <slankdev/util.h>
-
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+
 #include <unistd.h>
+#include <time.h>
 #include <poll.h>
 #include <fcntl.h>
-#include <string>
+#include <netinet/tcp.h>
 
-#include <slankdev/exception.h>
+#include <string>
+#include <vector>
+
 #include <slankdev/socketfd.h>
 #include <slankdev/util.h>
 
-#include "telnet.h"
-#include "asciicode.h"
 #include "shell.h"
-
-#include <vector>
+#include "telnet.h"
 
 
 
 class vty {
-    std::vector<struct pollfd> fds;
+    int server_fd;
     std::vector<shell> shells;
 public:
-    vty(int port)
+    bool running;
+    vty(int port) : running(false)
     {
-        slankdev::socketfd sock;
-        sock.noclose_in_destruct = true;
-        sock.socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        srand(time(NULL));
+        slankdev::socketfd server_sock;
+        server_sock.noclose_in_destruct = true;
+        server_sock.socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        int option = 1;
+        server_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
         struct sockaddr_in addr;
         addr.sin_family = AF_INET;
         addr.sin_port   = htons(port);
         addr.sin_addr.s_addr = INADDR_ANY;
-        sock.bind((sockaddr*)&addr, sizeof(addr));
-        sock.listen(5);
-
-        struct pollfd pfd;
-        pfd.fd = sock.get_fd();
-        pfd.events = POLLIN;
-        fds.push_back(pfd);
-
-        setbuf(stdout, NULL);
-        setbuf(stdin, NULL);
+        server_sock.bind((sockaddr*)&addr, sizeof(addr));
+        server_sock.listen(5);
+        server_fd = server_sock.get_fd();
     }
     void dispatch()
     {
-        while (1) {
+        running = true;
+        while (running) {
+            struct Pollfd : public pollfd {
+                Pollfd(int ifd, short ievents)
+                {
+                    fd = ifd;
+                    events = ievents;
+                }
+            };
+            std::vector<struct Pollfd> fds;
+            fds.push_back(Pollfd(server_fd, POLLIN));
+            for (shell& sh : shells) fds.emplace_back(Pollfd(sh.fd, POLLIN));
+
             if (poll(fds.data(), fds.size(), 1000)) {
                 if (fds[0].revents & POLLIN) {
                     /*
@@ -65,25 +66,23 @@ public:
                     struct sockaddr_in client;
                     socklen_t client_len = sizeof(client);
                     int fd = accept(fds[0].fd, (sockaddr*)&client, &client_len);
-                    setbuf(fdopen(fd, "wr"), NULL);
+
                     slankdev::socketfd client_sock(fd);
                     uint32_t on = 1;
-                    client_sock.setsockopt(IPPROTO_TCP, TCP_NODELAY,
-                            (char*)&on, sizeof(on));
+                    client_sock.setsockopt(IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
                     int flags = client_sock.fcntl(F_GETFL);
                     client_sock.fcntl(F_SETFL, (flags | O_NONBLOCK));
                     client_sock.noclose_in_destruct = true;
+                    vty_will_echo (fd);
+                    vty_will_suppress_go_ahead (fd);
+                    vty_dont_linemode (fd);
+                    vty_do_window_size (fd);
 
-                    struct pollfd client_pfd;
-                    client_pfd.fd = fd;
-                    client_pfd.events = POLLIN | POLLERR;
-                    fds.push_back(client_pfd);
-
+                    // TODO: fix this KUSO-implementation
                     shells.resize(shells.size()+1);
                     shells[shells.size()-1].fd = fd;
                     shells[shells.size()-1].dispatch();
-                    printf("Connected new client. now, nb_client=%zd nb_shells=%zd\n",
-                            fds.size()-1, shells.size());
+                    printf("Connected new client. now, nb_shells=%zd\n", shells.size());
                 }
 
                 /*
@@ -94,9 +93,8 @@ public:
                         int res = shells[i-1].process();
                         if (shells[i-1].closed || res<=0) {
                             close(fds[i].fd);
-                            fds.erase(fds.begin()+i);
                             shells.erase(shells.begin() + i);
-                            printf("Disconnect client. nb_client=%zd nb_shells=%zd\n", fds.size()-1, shells.size());
+                            printf("Disconnect client. nb_shells=%zd\n", shells.size());
                             continue;
                         }
                     }
@@ -104,15 +102,6 @@ public:
             }
         }
     }
-
-
 };
-
-
-
-
-int func()
-{
-}
 
 
