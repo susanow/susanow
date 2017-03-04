@@ -1,11 +1,10 @@
 
-#include "shell.h"
-#include "socket.h"
+#include "vty.h"
 
 int main()
 {
-    int fd = get_client_sock();
-    shell shell(fd, "Susanw> ");
-    shell.dispatch();
+    int port = rand()%8  + 9990 ;
+    vty vty(port);
+    vty.dispatch();
 }
 

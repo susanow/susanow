@@ -28,9 +28,15 @@ class shell {
     };
 
     class Cmd_quit : public Command {
+        shell* sh;
     public:
-        Cmd_quit(const char* str) : Command(str) {}
-        void exec() { exit(0); }
+        Cmd_quit(const char* str, shell* s) : Command(str), sh(s) {}
+        void exec()
+        {
+            close(sh->fd);
+            sh->fd = -1;
+            sh->closed = true;
+        }
     };
     class KeyFunc {
     public:
@@ -53,7 +59,7 @@ class shell {
         {
             char cs[] = "\r\n";
             sh->write(cs, sizeof(cs));
-            sh->exec_command(sh->inputstr.c_str());
+            sh->exec_command();
             sh->refresh_promptline();
         }
     };
@@ -79,10 +85,12 @@ class shell {
     };
 
 private:
+public:
     std::string inputstr;
     int fd;
     std::vector<Command*> commands;
     std::vector<KeyFunc*> keyfuncs;
+    bool closed;
 
     void writestr(const char* str) { write(str, strlen(str)); }
     void write(const void* buf, size_t size) { ::write(fd, buf, size); }
@@ -95,15 +103,15 @@ private:
     }
     void init_commands()
     {
-        commands.push_back(new Cmd_quit("quit"));
+        commands.push_back(new Cmd_quit("quit", this));
     }
-    void exec_command(const char* str)
+    void exec_command()
     {
-        if (strlen(str) == 0) return;
+        if (inputstr.empty()) return;
 
-        ::printf("exec(\"%s\")\n", str);
+        ::printf("exec(\"%s\")\n", inputstr.c_str());
         for (Command* c : commands) {
-            if (c->name == str) {
+            if (c->name == inputstr) {
                 c->exec();
             }
         }
@@ -158,11 +166,33 @@ private:
     }
 public:
     const char* prompt;
-    shell(int d, const char* prmpt) : fd(d), prompt(prmpt)
+    shell() : fd(-1), closed(false), prompt("Susanow> ")
     {
         init_keyfuncs();
         init_commands();
     }
+
+    int process()
+    {
+        char str[100];
+        ssize_t res = ::read(fd, str, sizeof(str));
+        if (res <= 0) return -1;
+
+        if (res == 1 || res == 2) {
+            press_key(str[0]);
+        } else if (res == 2) {
+            press_key_2(str, res);
+        } else if (res == 3) {
+            press_key_3(str, res);
+        } else {
+            return 1;
+            printf("input control character length=%zd   [%x]\n", res, str[0]);
+            slankdev::hexdump("", str, res);
+            throw slankdev::exception("INPUT Long string");
+        }
+        return 1;
+    }
+
     void dispatch()
     {
         setup_telnet_term();
@@ -175,32 +205,7 @@ public:
             "Copyright 2017-2020 Hiroki SHIROKURA.\r\n"
             "\r\n";
         write(str, sizeof(str));
-
         refresh_promptline();
-        while (1) {
-            if (poll(&pfd, 1, 100)) {
-                if (pfd.revents & POLLIN) {
-                    char str[100];
-                    ssize_t res = ::read(pfd.fd, str, sizeof(str));
-                    if (res <= 0) continue;
-
-                    if (res == 1 || res == 2) {
-                        press_key(str[0]);
-                    } else if (res == 2) {
-                        press_key_2(str, res);
-                    } else if (res == 3) {
-                        press_key_3(str, res);
-                    } else {
-                        continue;
-                        printf("input control character length=%zd   [%x]\n", res, str[0]);
-                        slankdev::hexdump("", str, res);
-                        throw slankdev::exception("INPUT Long string");
-                    }
-
-
-                }
-            }
-        }
     }
 };
 
