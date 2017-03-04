@@ -45,7 +45,6 @@ public:
         addr.sin_addr.s_addr = INADDR_ANY;
         sock.bind((sockaddr*)&addr, sizeof(addr));
         sock.listen(5);
-        printf("server: %d/tcp \n", port);
 
         struct pollfd pfd;
         pfd.fd = sock.get_fd();
@@ -80,7 +79,6 @@ public:
                     client_pfd.events = POLLIN | POLLERR;
                     fds.push_back(client_pfd);
 
-                    std::string ttt = "client" + std::to_string(fd) + "> ";
                     shells.resize(shells.size()+1);
                     shells[shells.size()-1].fd = fd;
                     shells[shells.size()-1].dispatch();
