@@ -29,15 +29,15 @@ int main(int argc, char** argv)
     System sys(argc, argv);
     if (sys.ports.size()%2 != 0) return -1;
 
-    Shell shell;
-    shell.add_cmd(new Cmd_clear   ("clear"               ));
-    shell.add_cmd(new Cmd_quit    ("quit"  , &sys        ));
-    shell.add_cmd(new Cmd_test    ("test"  , &sys, &shell));
-    shell.add_cmd(new Cmd_run     ("run"   , &sys, &shell));
-    shell.add_cmd(new Cmd_thread  ("thread", &sys        ));
-    shell.add_cmd(new Cmd_show    ("show"  , &sys        ));
-    shell.add_cmd(new Cmd_port    ("port"  , &sys        ));
-    shell.add_cmd(new Cmd_findthread("find"  , &sys      ));
+    Shell shell("susanow> ");
+    shell.add_cmd(new Cmd_clear           );
+    shell.add_cmd(new Cmd_findthread(&sys));
+    shell.add_cmd(new Cmd_quit      (&sys));
+    shell.add_cmd(new Cmd_thread    (&sys));
+    shell.add_cmd(new Cmd_port      (&sys));
+    shell.add_cmd(new Cmd_lscpu     (&sys));
+    shell.add_cmd(new Cmd_version   (&sys));
+    shell.fin();
 
     Timersubsys timersubsys(1);
     timersubsys.init();
