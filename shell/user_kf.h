@@ -35,56 +35,76 @@ public:
 };
 
 
-#if 0
+#if 1
 class KF_question : public KeyFunc {
 public:
     KF_question(char c) : KeyFunc(c) {}
     void function(shell* sh)
     {
+        function_impl(sh);
+        sh->refresh_prompt();
+    }
+    void function_impl(shell* sh)
+    {
         printf("buf=[%s]\n", sh->inputstr.c_str());
-        FILE* fp = fdopen(sh->fd, "w");
-        fprintf(fp, "\r\n");
-        const char* str = sh->inputstr.c_str();
-        const size_t slen = sh->inputstr.length();
+        sh->Printf("\r\n");
 
-        std::vector<Command*> match_cmds;
-        for (Command* cmd : shell::commands) {
-            if (slen > cmd->name.length()) continue;
-            if (strncmp(str, cmd->name.c_str(), slen) == 0)
-                match_cmds.push_back(cmd);
-        }
-        if (match_cmds.empty()) {
-            printf("no match command\n");
-            fprintf(fp, "\r%s%s", sh->prompt, sh->inputstr.c_str());
-            fflush(fp);
+        std::vector<std::string> list = slankdev::split(sh->inputstr, ' ');
+        if (list.empty()) {
+            for (size_t i=0; i<sh->commands.size(); i++) {
+                sh->Printf("  %s\r\n", sh->commands[i]->name.c_str());
+            }
             return ;
-        } else if (match_cmds.size() > 1) {
-            for (size_t i=slen; i<match_cmds[0]->name.length(); i++) {
-                bool flag = true;
-                for (Command* cmd : match_cmds) {
-                    if (match_cmds[0]->name[i] == cmd->name[i]) {
-                        continue;
-                    } else {
-                        flag = false;
-                        break;
+        }
+
+        size_t index = 0;
+        for (std::string& nodestr : list) {
+            std::vector<node*> match_nd;
+            if (sh->inputstr[sh->inputstr.length()-1] == ' ')
+                index ++;
+            if (index == 0) {
+                /*----------------------------------------*/
+                for (node* nd : sh->commands) {
+                    if (strncmp(nodestr.c_str(), nd->name.c_str(), nodestr.length()) == 0) {
+                        match_nd.push_back(nd);
                     }
                 }
-                if (flag) {
-                    sh->inputstr += match_cmds[0]->name[i];
-                } else {
-                    break;
+
+                if (match_nd.empty()) {
+                    return;
+                } else if (match_nd.size() == 1) {
+                    printf("compare(%s,%s)\n", match_nd[0]->name.c_str(), nodestr.c_str());
+                    if (match_nd[0]->name == nodestr) {
+                        if (sh->inputstr[sh->inputstr.length()-1] != ' ') {
+                            sh->inputstr += " ";
+                            continue;
+                        }
+                    }
                 }
-            }
 
-            for (Command* cmd : match_cmds) {
-                fprintf(fp, "  %s\r\n", cmd->name.c_str());
+                for (size_t j=sh->inputstr.length(); j<match_nd[0]->name.length(); j++) {
+                    char c = match_nd[0]->name[j];
+                    for (size_t i=1; i<match_nd.size(); i++) {
+                        if (match_nd[i]->name[j] == c) {
+                            continue;
+                        } else {
+                            /*  print  */
+                            for (node* nn : match_nd) {
+                                sh->Printf("  %s \r\n", nn->name.c_str());
+                            }
+                            return ;
+                        }
+                    }
+                    sh->inputstr += c;
+                }
+                /*----------------------------------------*/
+            } else {
+                /*----------------------------------------*/
+                printf("222222222222222222222222\n");
+                index ++;
+                /*----------------------------------------*/
             }
-        } else {
-            sh->inputstr = match_cmds[0]->name;
         }
-
-        fprintf(fp, "%s%s", sh->prompt, sh->inputstr.c_str());
-        fflush(fp);
     }
 };
 #endif

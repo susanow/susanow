@@ -28,7 +28,7 @@ public:
     std::string inputstr;
     bool closed;
     const char* prompt;
-    static std::vector<Command*> commands;
+    static std::vector<node*> commands;
     static std::vector<KeyFunc*> keyfuncs;
     static std::vector<std::string> history;
     size_t hist_index;
@@ -40,7 +40,7 @@ public:
         if (inputstr.empty()) return;
 
         ::printf("exec(\"%s\")\n", inputstr.c_str());
-        for (Command* c : commands) {
+        for (node* c : commands) {
             node* nd = c->match(inputstr);
             if (nd) {
                 nd->function(this);
@@ -146,7 +146,7 @@ public:
         refresh_prompt();
     }
 };
-std::vector<Command*> shell::commands;
+std::vector<node*> shell::commands;
 std::vector<KeyFunc*> shell::keyfuncs;
 std::vector<std::string> shell::history;
 

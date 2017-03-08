@@ -34,10 +34,10 @@ public:
         shell::keyfuncs.push_back(kf);
         printf("Add Keyfunction \"0x%02x\"\n", kf->code);
     }
-    static void add_command(Command* cmd)
+    static void add_command(node* cmd)
     {
         shell::commands.push_back(cmd);
-        printf("Add Command, \"%s\"\n", cmd->n->name.c_str());
+        printf("Add Command, \"%s\"\n", cmd->name.c_str());
     }
     static void set_port(uint16_t p)
     {

@@ -24,20 +24,10 @@ public:
         }
         return nullptr;
     }
-};
-
-
-
-#if 1
-class Command {
-public:
-    node* n;
-    Command(node* nd) : n(nd) {}
-    // virtual node* match(const std::string&) = 0;
     node* match(const std::string& str)
     {
         std::vector<std::string> list = slankdev::split(str, ' ');
-        node* nd = this->n;
+        node* nd = this;
 
         if (nd->name != list[0]) return nullptr;
         for (size_t i=1; i<list.size(); i++) {
@@ -49,6 +39,16 @@ public:
         return nd;
     }
 };
+
+
+
+#if 1
+// class Command {
+// public:
+//     node* n;
+//     Command(node* nd) : n(nd) {}
+//     const char* name() { return n->name.c_str(); }
+// };
 #else
 class Command {
 public:
