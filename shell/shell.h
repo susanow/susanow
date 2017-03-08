@@ -45,6 +45,7 @@ public:
     static std::vector<Command*> commands;
     static std::vector<KeyFunc*> keyfuncs;
     static std::vector<std::string> history;
+    size_t hist_index;
 
     void writestr(const char* str) { write(str, strlen(str)); }
     void write(const void* buf, size_t size) { ::write(fd, buf, size); }
@@ -57,10 +58,11 @@ public:
             if (c->name == inputstr) {
                 c->exec(this);
                 history.push_back(inputstr);
-                printf("add_history \"%s\"", inputstr.c_str());
+                ::printf("add_history \"%s\"\n", inputstr.c_str());
             }
         }
         inputstr = "";
+        hist_index = 0;
     }
     void press_key(char c)
     {
@@ -111,7 +113,7 @@ public:
         *n = "Susanow" + std::to_string(c++) + "> ";
         return n->c_str();
     }
-    shell() : fd(-1), closed(false), prompt(name()) {}
+    shell() : fd(-1), closed(false), prompt(name()), hist_index(0) {}
 
     int process()
     {

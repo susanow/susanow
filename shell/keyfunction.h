@@ -2,6 +2,39 @@
 #pragma once
 
 
+class KF_hist_search_deep : public KeyFunc {
+public:
+    KF_hist_search_deep(char c) : KeyFunc(c) {}
+    void function(shell* sh)
+    {
+        if (sh->hist_index+1 > sh->history.size()) return;
+
+        FILE* fp = fdopen(sh->fd, "w");
+        fprintf(fp, "\r%s", sh->prompt);
+        for (size_t i=0; i<sh->inputstr.length(); i++)
+            fprintf(fp, " ");
+        sh->hist_index++;
+        sh->inputstr = sh->history.at(sh->history.size() - sh->hist_index);
+        fprintf(fp, "\r%s%s", sh->prompt, sh->inputstr.c_str());
+        fflush(fp);
+    }
+};
+class KF_hist_search_shallow : public KeyFunc {
+public:
+    KF_hist_search_shallow(char c) : KeyFunc(c) {}
+    void function(shell* sh)
+    {
+        if (sh->hist_index = 0) return;
+
+        FILE* fp = fdopen(sh->fd, "w");
+        sh->hist_index--;
+        sh->inputstr = sh->history.at(sh->history.size() - sh->hist_index);
+        fprintf(fp, "\r%s%s", sh->prompt, sh->inputstr.c_str());
+        fflush(fp);
+    }
+};
+
+
 class KF_question : public KeyFunc {
 public:
     KF_question(char c) : KeyFunc(c) {}
