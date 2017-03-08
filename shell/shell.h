@@ -41,18 +41,27 @@ public:
 
         ::printf("exec(\"%s\")\n", inputstr.c_str());
         for (Command* c : commands) {
-            if (c->match(inputstr)) {
-                c->exec(this, inputstr);
+            node* nd = c->match(inputstr);
+            if (nd) {
+                nd->function(this);
                 history.push_back(inputstr);
                 ::printf("add_history \"%s\"\n", inputstr.c_str());
-                inputstr = "";
-                hist_index = 0;
+                clean_prompt();
                 return ;
             }
         }
-        Printf("command not found: %s\r\n", inputstr.c_str());
-        inputstr = "";
+        Printf("command not found: \"%s\"\r\n", inputstr.c_str());
+        clean_prompt();
+    }
+    void clean_prompt()
+    {
+        inputstr.clear();
         hist_index = 0;
+        Printf("\r%s", prompt);
+    }
+    void refresh_prompt()
+    {
+        Printf("\r%s%s", prompt, inputstr.c_str());
     }
     template <class... ARGS>
     void Printf(const char* fmt, ARGS... args)
@@ -95,12 +104,6 @@ public:
     void cursor_up   () { writestr("\033[A"); }
     void cursor_down () { writestr("\033[B"); }
 
-    void refresh_promptline()
-    {
-        write("\r", 1);
-        write(prompt, strlen(prompt));
-        write(inputstr.c_str(), inputstr.length());
-    }
 public:
 
     const char* name()
@@ -140,7 +143,7 @@ public:
             "Copyright 2017-2020 Hiroki SHIROKURA.\r\n"
             "\r\n";
         write(str, sizeof(str));
-        refresh_promptline();
+        refresh_prompt();
     }
 };
 std::vector<Command*> shell::commands;

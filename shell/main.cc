@@ -5,53 +5,30 @@
 #include <slankdev/string.h>
 
 
-class nd_author : public node {
-public:
-    nd_author() : node("author") {}
-    void function()
-    {
-        printf("nd_author\n");
-    }
-};
-
-class nd_version : public node {
-public:
-    nd_version() : node("version") {}
-    void function()
-    {
-        printf("nd_version\n");
-    }
-};
-
-
-class nd_show : public node {
-public:
-    nd_show() : node("show")
-    {
-        append_childnode(new nd_author);
-        append_childnode(new nd_version);
-    }
-};
 
 
 class Cmd_show : public Command {
+    class nd_show : public node {
+        class nd_author : public node {
+        public:
+            nd_author() : node("author") {}
+            void function(shell* sh) { sh->Printf("nd_author\r\n"); }
+        };
+        class nd_version : public node {
+        public:
+            nd_version() : node("version") {}
+            void function(shell* sh) { sh->Printf("nd_version\r\n"); }
+        };
+    public:
+        nd_show() : node("show")
+        {
+            append_childnode(new nd_author);
+            append_childnode(new nd_version);
+        }
+        void function(shell* sh) { sh->Printf("show\r\n"); }
+    };
 public:
-    Cmd_show() {
-        n = new nd_show;
-    }
-    bool match(const std::string& str)
-    {
-        std::vector<std::string> list = slankdev::split(str, ' ');
-        printf("\n\n");
-        for (size_t i=0; i<list.size(); i++)
-            printf("%s \n", list[i].c_str());
-        printf("\n\n");
-        return true;
-    }
-    void exec(shell* sh, const std::string& str)
-    {
-        printf("show\n");
-    }
+    Cmd_show() : Command(new nd_show) {}
 };
 
 

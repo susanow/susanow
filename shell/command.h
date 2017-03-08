@@ -2,7 +2,7 @@
 #pragma once
 
 #include <vector>
-
+#include <slankdev/string.h>
 
 class node {
 public:
@@ -10,9 +10,13 @@ public:
     std::vector<node*> childs;
 
     node(const char* s) : name(s) {}
+    virtual ~node()
+    {
+        for (node* n : childs)
+            delete n;
+    }
+    virtual void function(shell*) = 0;
     void append_childnode(node* n) { childs.push_back(n); }
-    virtual ~node() {}
-    virtual void function(shell*) { printf("not set\n"); };
     node* next(const char* str)
     {
         for (node* nd : childs) {
@@ -28,8 +32,22 @@ public:
 class Command {
 public:
     node* n;
-    virtual bool match(const std::string&) = 0;
-    virtual void exec(shell* sh, const std::string& str) = 0;
+    Command(node* nd) : n(nd) {}
+    // virtual node* match(const std::string&) = 0;
+    node* match(const std::string& str)
+    {
+        std::vector<std::string> list = slankdev::split(str, ' ');
+        node* nd = this->n;
+
+        if (nd->name != list[0]) return nullptr;
+        for (size_t i=1; i<list.size(); i++) {
+            nd = nd->next(list[i].c_str());
+            if (nd == nullptr) {
+                return nullptr;
+            }
+        }
+        return nd;
+    }
 };
 #else
 class Command {

@@ -97,7 +97,7 @@ public:
         char cs[] = "\r\n";
         sh->write(cs, sizeof(cs));
         sh->exec_command();
-        sh->refresh_promptline();
+        sh->refresh_prompt();
     }
 };
 class KF_delete : public KeyFunc {
@@ -109,7 +109,7 @@ public:
         sh->write(str, sizeof(str));
         if (!sh->inputstr.empty()) {
             sh->inputstr.resize(sh->inputstr.length()-1);
-            sh->refresh_promptline();
+            sh->refresh_prompt();
         }
     }
 };

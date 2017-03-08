@@ -26,6 +26,7 @@ class vty {
     int server_fd;
     std::vector<shell> shells;
     static uint16_t port_default;
+    bool running;
 
 public:
     static void add_keyfunction(KeyFunc* kf)
@@ -45,7 +46,6 @@ public:
     }
 
 public:
-    bool running;
     vty() : running(false)
     {
         slankdev::socketfd server_sock;
@@ -61,6 +61,8 @@ public:
         server_sock.listen(5);
         server_fd = server_sock.get_fd();
     }
+    virtual ~vty() {}
+    void halt() { running = false; }
     void dispatch()
     {
         running = true;
@@ -120,6 +122,5 @@ public:
         }
     }
 };
-
 uint16_t vty::port_default = 9999;
 
