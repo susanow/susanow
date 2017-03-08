@@ -48,10 +48,16 @@ public:
 
         std::vector<Command*> match_cmds;
         for (Command* cmd : shell::commands) {
+            if (slen > cmd->name.length()) continue;
             if (strncmp(str, cmd->name.c_str(), slen) == 0)
                 match_cmds.push_back(cmd);
         }
-        if (match_cmds.size() > 1) {
+        if (match_cmds.empty()) {
+            printf("no match command\n");
+            fprintf(fp, "\r%s%s", sh->prompt, sh->inputstr.c_str());
+            fflush(fp);
+            return ;
+        } else if (match_cmds.size() > 1) {
             for (size_t i=slen; i<match_cmds[0]->name.length(); i++) {
                 bool flag = true;
                 for (Command* cmd : match_cmds) {
