@@ -1,42 +1,44 @@
 
 #pragma once
 
+#include <vector>
 
-class Cmd_quit : public Command {
+
+class node {
 public:
-    Cmd_quit(const char* str) : Command(str) {}
-    void exec(shell* sh)
+    const std::string name;
+    std::vector<node*> childs;
+
+    node(const char* s) : name(s) {}
+    void append_childnode(node* n) { childs.push_back(n); }
+    virtual ~node() {}
+    virtual void function(shell*) { printf("not set\n"); };
+    node* next(const char* str)
     {
-        close(sh->fd);
-        sh->fd = -1;
-        sh->closed = true;
+        for (node* nd : childs) {
+            if (nd->name == str) return nd;
+        }
+        return nullptr;
     }
 };
-class Cmd_halt : public Command {
+
+
+
+#if 1
+class Command {
 public:
-       Cmd_halt(const char* str) : Command(str) {}
-       void exec(shell*)
-       {
-           exit(0);
-       }
+    node* n;
+    virtual bool match(const std::string&) = 0;
+    virtual void exec(shell* sh, const std::string& str) = 0;
 };
-class Cmd_show : public Command {
+#else
+class Command {
 public:
-    Cmd_show(const char* str) : Command(str) {}
-    void exec(shell* sh)
-    {
-        FILE* fp = fdopen(sh->fd, "w");
-        fprintf(fp, "show command\r\n");
-        fflush(fp);
-    }
+    const std::string name;
+    Command(const char* n) : name(n) {}
+    virtual ~Command() {}
+    virtual void exec(shell*) = 0;
 };
-class Cmd_show_thread_info : public Command {
-public:
-    Cmd_show_thread_info(const char* str) : Command(str) {}
-    void exec(shell* sh)
-    {
-        FILE* fp = fdopen(sh->fd, "w");
-        fprintf(fp, "show thread-info\r\n");
-        fflush(fp);
-    }
-};
+#endif
+
+

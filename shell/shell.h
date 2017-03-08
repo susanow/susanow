@@ -17,22 +17,8 @@
 
 
 class shell;
-
-class Command {
-public:
-    const std::string name;
-    Command(const char* n) : name(n) {}
-    virtual ~Command() {}
-    virtual void exec(shell*) = 0;
-};
-
-class KeyFunc {
-public:
-    const char code;
-    KeyFunc(char c) : code(c) {}
-    virtual ~KeyFunc() {}
-    virtual void function(shell*) = 0;
-};
+#include "command.h"
+#include "keyfunction.h"
 
 
 class shell {
@@ -55,8 +41,8 @@ public:
 
         ::printf("exec(\"%s\")\n", inputstr.c_str());
         for (Command* c : commands) {
-            if (c->name == inputstr) {
-                c->exec(this);
+            if (c->match(inputstr)) {
+                c->exec(this, inputstr);
                 history.push_back(inputstr);
                 ::printf("add_history \"%s\"\n", inputstr.c_str());
                 inputstr = "";

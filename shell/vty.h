@@ -36,7 +36,7 @@ public:
     static void add_command(Command* cmd)
     {
         shell::commands.push_back(cmd);
-        printf("Add Command, \"%s\"\n", cmd->name.c_str());
+        printf("Add Command, \"%s\"\n", cmd->n->name.c_str());
     }
     static void set_port(uint16_t p)
     {
