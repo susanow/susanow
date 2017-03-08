@@ -30,3 +30,13 @@ public:
         fflush(fp);
     }
 };
+class Cmd_show_thread_info : public Command {
+public:
+    Cmd_show_thread_info(const char* str) : Command(str) {}
+    void exec(shell* sh)
+    {
+        FILE* fp = fdopen(sh->fd, "w");
+        fprintf(fp, "show thread-info\r\n");
+        fflush(fp);
+    }
+};

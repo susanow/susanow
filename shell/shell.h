@@ -44,6 +44,7 @@ public:
     const char* prompt;
     static std::vector<Command*> commands;
     static std::vector<KeyFunc*> keyfuncs;
+    static std::vector<std::string> history;
 
     void writestr(const char* str) { write(str, strlen(str)); }
     void write(const void* buf, size_t size) { ::write(fd, buf, size); }
@@ -55,6 +56,8 @@ public:
         for (Command* c : commands) {
             if (c->name == inputstr) {
                 c->exec(this);
+                history.push_back(inputstr);
+                printf("add_history \"%s\"", inputstr.c_str());
             }
         }
         inputstr = "";
@@ -143,6 +146,6 @@ public:
 };
 std::vector<Command*> shell::commands;
 std::vector<KeyFunc*> shell::keyfuncs;
-
+std::vector<std::string> shell::history;
 
 
