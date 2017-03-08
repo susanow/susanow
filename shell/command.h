@@ -20,3 +20,13 @@ public:
            exit(0);
        }
 };
+class Cmd_show : public Command {
+public:
+    Cmd_show(const char* str) : Command(str) {}
+    void exec(shell* sh)
+    {
+        FILE* fp = fdopen(sh->fd, "w");
+        fprintf(fp, "show command\r\n");
+        fflush(fp);
+    }
+};

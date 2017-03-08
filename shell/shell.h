@@ -18,27 +18,30 @@
 
 class shell;
 
-    class Command {
-    public:
-        const std::string name;
-        Command(const char* n) : name(n) {}
-        virtual ~Command() {}
-        virtual void exec(shell*) = 0;
-    };
-    class KeyFunc {
-    public:
-        const char code;
-        KeyFunc(char c) : code(c) {}
-        virtual ~KeyFunc() {}
-        virtual void function(shell*) = 0;
-    };
+class Command {
+public:
+    const std::string name;
+    Command(const char* n) : name(n) {}
+    virtual ~Command() {}
+    virtual void exec(shell*) = 0;
+};
+
+class KeyFunc {
+public:
+    const char code;
+    KeyFunc(char c) : code(c) {}
+    virtual ~KeyFunc() {}
+    virtual void function(shell*) = 0;
+};
 
 
 class shell {
-public:
-
 private:
 public:
+    int fd;
+    std::string inputstr;
+    bool closed;
+    const char* prompt;
     static std::vector<Command*> commands;
     static std::vector<KeyFunc*> keyfuncs;
 
@@ -97,10 +100,6 @@ public:
         write(inputstr.c_str(), inputstr.length());
     }
 public:
-    int fd;
-    std::string inputstr;
-    bool closed;
-    const char* prompt;
 
     const char* name()
     {

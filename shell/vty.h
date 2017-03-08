@@ -22,13 +22,31 @@
 #include "telnet.h"
 
 
-
 class vty {
     int server_fd;
     std::vector<shell> shells;
+    static uint16_t port_default;
+
+public:
+    static void add_keyfunction(KeyFunc* kf)
+    {
+        shell::keyfuncs.push_back(kf);
+        printf("Add Keyfunction \"0x%02x\"\n", kf->code);
+    }
+    static void add_command(Command* cmd)
+    {
+        shell::commands.push_back(cmd);
+        printf("Add Command, \"%s\"\n", cmd->name.c_str());
+    }
+    static void set_port(uint16_t p)
+    {
+        port_default = p;
+        printf("Set port number %u \n", port_default);
+    }
+
 public:
     bool running;
-    vty(int port) : running(false)
+    vty() : running(false)
     {
         slankdev::socketfd server_sock;
         server_sock.noclose_in_destruct = true;
@@ -37,7 +55,7 @@ public:
         server_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
         struct sockaddr_in addr;
         addr.sin_family = AF_INET;
-        addr.sin_port   = htons(port);
+        addr.sin_port   = htons(port_default);
         addr.sin_addr.s_addr = INADDR_ANY;
         server_sock.bind((sockaddr*)&addr, sizeof(addr));
         server_sock.listen(5);
@@ -78,7 +96,6 @@ public:
                     vty_dont_linemode (fd);
                     vty_do_window_size (fd);
 
-                    // TODO: fix this KUSO-implementation
                     shells.resize(shells.size()+1);
                     shells[shells.size()-1].fd = fd;
                     shells[shells.size()-1].dispatch();
@@ -104,4 +121,5 @@ public:
     }
 };
 
+uint16_t vty::port_default = 9999;
 
