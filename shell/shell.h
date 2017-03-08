@@ -59,10 +59,21 @@ public:
                 c->exec(this);
                 history.push_back(inputstr);
                 ::printf("add_history \"%s\"\n", inputstr.c_str());
+                inputstr = "";
+                hist_index = 0;
+                return ;
             }
         }
+        Printf("command not found: %s\r\n", inputstr.c_str());
         inputstr = "";
         hist_index = 0;
+    }
+    template <class... ARGS>
+    void Printf(const char* fmt, ARGS... args)
+    {
+        FILE* fp = fdopen(fd, "w");
+        ::fprintf(fp, fmt, args...);
+        fflush(fp);
     }
     void press_key(char c)
     {
@@ -129,7 +140,7 @@ public:
             press_key_3(str, res);
         } else {
             return 1;
-            printf("input control character length=%zd   [%x]\n", res, str[0]);
+            ::printf("input control character length=%zd   [%x]\n", res, str[0]);
             slankdev::hexdump("", str, res);
             throw slankdev::exception("INPUT Long string");
         }
