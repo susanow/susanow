@@ -7,19 +7,19 @@
 class node {
 public:
     const std::string name;
-    std::vector<node*> childs;
+    std::vector<node*> commands;
 
     node(const char* s) : name(s) {}
     virtual ~node()
     {
-        for (node* n : childs)
+        for (node* n : commands)
             delete n;
     }
     virtual void function(shell*) = 0;
-    void append_childnode(node* n) { childs.push_back(n); }
+    void append_childnode(node* n) { commands.push_back(n); }
     node* next(const char* str)
     {
-        for (node* nd : childs) {
+        for (node* nd : commands) {
             if (nd->name == str) return nd;
         }
         return nullptr;

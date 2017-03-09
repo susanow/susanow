@@ -21,8 +21,8 @@ class Cmd_show : public node {
 public:
     Cmd_show() : node("show")
     {
-        childs.push_back(new nd_author);
-        childs.push_back(new nd_version);
+        commands.push_back(new nd_author);
+        commands.push_back(new nd_version);
     }
     void function(shell* sh) { sh->Printf("show\r\n"); }
 };
@@ -37,7 +37,7 @@ class Cmd_quit : public node {
 public:
     Cmd_quit() : node("quit")
     {
-        childs.push_back(new nd_sys);
+        commands.push_back(new nd_sys);
     }
     void function(shell* sh) { sh->Printf("quit\r\n"); }
 };
