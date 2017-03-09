@@ -34,7 +34,7 @@ public:
 class KF_question : public KeyFunc {
     bool debugmode;
 public:
-    KF_question(const void* c, size_t l) : KeyFunc(c, l), debugmode(true) {}
+    KF_question(const void* c, size_t l) : KeyFunc(c, l), debugmode(false) {}
     void function(shell* sh)
     {
         std::vector<std::string> list = slankdev::split(sh->buffer_c_str(), ' ');
@@ -46,16 +46,14 @@ public:
     void append_space(std::string& str)
     {
         if (*(str.end()-1) != ' ') str += " ";
-        else dprintf("append IGNORE\n");
     }
     void remove_space(std::string& str)
     {
         if (*(str.end()-1) == ' ') str.resize(str.size()-1);
-        else dprintf("remove IGNORE\n");
     }
     void update(shell* sh, std::vector<std::string>& list)
     {
-            dprintf("update \n");
+            dprintf("[+] update \n");
             sh->buffer_clear();
             for (size_t i=0; i<list.size(); i++) {
                 sh->input_str_to_buffer(list[i]);

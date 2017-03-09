@@ -51,13 +51,11 @@ public:
             return;
         }
 
-        ::printf("exec(\"%s\")\n", inputstr.c_str());
         for (node* c : commands) {
             node* nd = c->match(inputstr);
             if (nd) {
                 nd->function(this);
                 history.push_back(inputstr);
-                ::printf("add_history \"%s\"\n", inputstr.c_str());
                 clean_prompt();
                 return ;
             }
@@ -121,8 +119,6 @@ public:
     {
         if (cursor_index > 0) {
             cursor_index --;
-            printf("inputstr: \"%s\"\n", inputstr.c_str());
-            printf("cursor idx: %zd\n", cursor_index);
             inputstr.erase(inputstr.begin() + cursor_index);
         }
     }
@@ -139,7 +135,6 @@ public:
         }
 
         if (l > 1) {
-            printf("Unsupport Escape Sequence\n");
             return ;
         }
         input_char_to_buffer(p[0]);

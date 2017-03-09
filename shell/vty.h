@@ -26,27 +26,32 @@ class vty {
     int server_fd;
     std::vector<shell> shells;
     static uint16_t port_default;
+    static bool     debugmode;
     bool running;
 
 public:
     static void add_keyfunction(KeyFunc* kf)
     {
         shell::keyfuncs.push_back(kf);
-        printf("Add Keyfunction ");
-        for (size_t i=0; i<kf->len; i++) {
-            printf("0x%02x ", kf->code[i]);
+        if (debugmode) {
+            printf("Add Keyfunction ");
+            for (size_t i=0; i<kf->len; i++) {
+                printf("0x%02x ", kf->code[i]);
+            }
+            printf("\n");
         }
-        printf("\n");
     }
     static void add_command(node* cmd)
     {
         shell::commands.push_back(cmd);
-        printf("Add Command, \"%s\"\n", cmd->name.c_str());
+        if (debugmode)
+            printf("Add Command, \"%s\"\n", cmd->name.c_str());
     }
     static void set_port(uint16_t p)
     {
         port_default = p;
-        printf("Set port number %u \n", port_default);
+        if (debugmode)
+            printf("Set port number %u \n", port_default);
     }
 
 public:
@@ -105,7 +110,8 @@ public:
                     shells.resize(shells.size()+1);
                     shells[shells.size()-1].fd = fd;
                     shells[shells.size()-1].dispatch();
-                    printf("Connected new client. now, nb_shells=%zd\n", shells.size());
+                    if (debugmode)
+                        printf("Connected new client. now, nb_shells=%zd\n", shells.size());
                 }
 
                 /*
@@ -117,7 +123,8 @@ public:
                         if (shells[i-1].closed || res<=0) {
                             close(fds[i].fd);
                             shells.erase(shells.begin() + i);
-                            printf("Disconnect client. nb_shells=%zd\n", shells.size());
+                            if (debugmode)
+                                printf("Disconnect client. nb_shells=%zd\n", shells.size());
                             continue;
                         }
                     }
@@ -127,4 +134,5 @@ public:
     }
 };
 uint16_t vty::port_default = 9999;
+bool     vty::debugmode    = false;
 
