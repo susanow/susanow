@@ -35,6 +35,10 @@ public:
 
     void writestr(const char* str) { write(str, strlen(str)); }
     void write(const void* buf, size_t size) { ::write(fd, buf, size); }
+    void close()
+    {
+        Printf("close shell\r\n");
+    }
     void exec_command()
     {
         if (inputstr.empty()) return;

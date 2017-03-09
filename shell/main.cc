@@ -7,18 +7,15 @@
 
 
 
-class Cmd_show : public node {
-    class nd_author : public node {
-    public:
+struct Cmd_show : public node {
+    struct nd_author : public node {
         nd_author() : node("author") {}
         void function(shell* sh) { sh->Printf("nd_author\r\n"); }
     };
-    class nd_version : public node {
-    public:
+    struct nd_version : public node {
         nd_version() : node("version") {}
         void function(shell* sh) { sh->Printf("nd_version\r\n"); }
     };
-public:
     Cmd_show() : node("show")
     {
         commands.push_back(new nd_author);
@@ -27,27 +24,38 @@ public:
     void function(shell* sh) { sh->Printf("show\r\n"); }
 };
 
-
-class Cmd_quit : public node {
-    class nd_sys : public node {
-    public:
+struct Cmd_quit : public node {
+    struct nd_sys : public node {
         nd_sys() : node("system") {}
         void function(shell* sh) { sh->Printf("quit system\r\n"); exit(0); }
     };
-public:
+    struct nd_shell : public node {
+        nd_shell() : node("shell") {}
+        void function(shell* sh) { sh->Printf("quit system\r\n"); sh->close(); }
+    };
     Cmd_quit() : node("quit")
     {
         commands.push_back(new nd_sys);
+        commands.push_back(new nd_shell);
     }
     void function(shell* sh) { sh->Printf("quit\r\n"); }
 };
 
-class Cmd_shot : public node {
-public:
+struct Cmd_shot : public node {
     Cmd_shot() : node("shot")
     {
     }
     void function(shell* sh) { sh->Printf("shot\r\n"); }
+};
+
+struct Cmd_test : public node {
+    struct nd_slankdev : public node {
+        nd_slankdev() : node("slankdev") {}
+        void function(shell* sh) { sh->Printf("slankdev\r\n"); }
+    };
+    Cmd_test() : node("test")
+    { commands.push_back(new nd_slankdev); }
+    void function(shell* sh) { sh->Printf("test\r\n"); }
 };
 
 
@@ -70,6 +78,7 @@ int main()
     vty::add_command(new Cmd_show);
     vty::add_command(new Cmd_shot);
     vty::add_command(new Cmd_quit);
+    vty::add_command(new Cmd_test);
     // vty::add_command(new Cmd_show_thread_info("show thread-info"));
     vty::set_port(9999);
 
