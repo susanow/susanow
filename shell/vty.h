@@ -32,7 +32,11 @@ public:
     static void add_keyfunction(KeyFunc* kf)
     {
         shell::keyfuncs.push_back(kf);
-        printf("Add Keyfunction \"0x%02x\"\n", kf->code);
+        printf("Add Keyfunction ");
+        for (size_t i=0; i<kf->len; i++) {
+            printf("0x%02x ", kf->code[i]);
+        }
+        printf("\n");
     }
     static void add_command(node* cmd)
     {

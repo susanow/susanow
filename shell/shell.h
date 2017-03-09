@@ -23,18 +23,20 @@ class shell;
 
 class shell {
 private:
+    std::string inputstr;
 public:
     int fd;
-    std::string inputstr;
-    bool closed;
+    size_t cursor_index;
+
+    bool closed; // XXX: erase  TODO
     const char* prompt;
     static std::vector<node*> commands;
     static std::vector<KeyFunc*> keyfuncs;
     static std::vector<std::string> history;
     size_t hist_index;
 
-    void writestr(const char* str) { write(str, strlen(str)); }
-    void write(const void* buf, size_t size) { ::write(fd, buf, size); }
+    shell() : fd(-1), cursor_index(0), closed(false), prompt(name()), hist_index(0) {}
+
     void close()
     {
         Printf("close shell\r\n");
@@ -61,11 +63,20 @@ public:
     {
         inputstr.clear();
         hist_index = 0;
-        Printf("\r%s", prompt);
+        cursor_index = 0;
+        Printf("\r%s%s", prompt);
     }
     void refresh_prompt()
     {
+        char lineclear[] = {slankdev::AC_ESC, '[', 2, slankdev::AC_K};
+        Printf("\r%s", lineclear);
         Printf("\r%s%s", prompt, inputstr.c_str());
+
+        size_t backlen = inputstr.length() - cursor_index;
+        char left [] = {slankdev::AC_ESC, '[', slankdev::AC_D};
+        for (size_t i=0; i<backlen; i++) {
+            Printf("%s", left);
+        }
     }
     template <class... ARGS>
     void Printf(const char* fmt, ARGS... args)
@@ -74,39 +85,59 @@ public:
         ::fprintf(fp, fmt, args...);
         fflush(fp);
     }
-    void press_key(char c)
+    void buffer_clear()
     {
+        inputstr.clear();
+        cursor_index = 0;
+    }
+    const char* buffer_c_str() const
+    {
+        return inputstr.c_str();
+    }
+    size_t buffer_length() const
+    {
+        return inputstr.length();
+    }
+    void input_char_to_buffer(char c)
+    {
+        inputstr.insert(inputstr.begin() + cursor_index, c);
+        cursor_index++;
+    }
+    void input_str_to_buffer(std::string& str)
+    {
+        for (char c : str) {
+            input_char_to_buffer(c);
+        }
+    }
+    void cursor_right() { cursor_index ++ ; }
+    void cursor_left() { cursor_index -- ; }
+    void cursor_backspace()
+    {
+        if (cursor_index > 0) {
+            cursor_index --;
+            printf("inputstr: \"%s\"\n", inputstr.c_str());
+            printf("cursor idx: %zd\n", cursor_index);
+            inputstr.erase(inputstr.begin() + cursor_index);
+        }
+    }
+    void press_keys(const void* d, size_t l)
+    {
+        const uint8_t* p = reinterpret_cast<const uint8_t*>(d);
+        if (l == 0) throw slankdev::exception("empty data received");
+
         for (KeyFunc* kf : keyfuncs) {
-            if (kf->code == c) {
+            if (kf->match(p, l)) {
                 kf->function(this);
                 return ;
             }
         }
-        inputstr += c;
-        write(&c, 1);
-    }
-    void press_key_2(char str[], size_t len)
-    {
-        press_key(str[0]);
-    }
-    void press_key_3(char str[], size_t len)
-    {
-        uint8_t right[] = {slankdev::AC_ESC, '[', slankdev::AC_C};
-        uint8_t left [] = {slankdev::AC_ESC, '[', slankdev::AC_D};
-        uint8_t up   [] = {slankdev::AC_ESC, '[', slankdev::AC_A};
-        uint8_t down [] = {slankdev::AC_ESC, '[', slankdev::AC_B};
 
-        if (len != 3) return;
-        if (memcmp(str, right, 3) == 0) cursor_right();
-        else if (memcmp(str, left , 3) == 0) cursor_left ();
-        else if (memcmp(str, up   , 3) == 0) cursor_up   ();
-        else if (memcmp(str, down , 3) == 0) cursor_down ();
-        else return;
+        if (l > 1) {
+            printf("Unsupport Escape Sequence\n");
+            return ;
+        }
+        input_char_to_buffer(p[0]);
     }
-    void cursor_right() { writestr("\033[C"); }
-    void cursor_left () { writestr("\033[D"); }
-    void cursor_up   () { writestr("\033[A"); }
-    void cursor_down () { writestr("\033[B"); }
 
 public:
 
@@ -117,7 +148,6 @@ public:
         *n = "Susanow" + std::to_string(c++) + "> ";
         return n->c_str();
     }
-    shell() : fd(-1), closed(false), prompt(name()), hist_index(0) {}
 
     int process()
     {
@@ -125,18 +155,8 @@ public:
         ssize_t res = ::read(fd, str, sizeof(str));
         if (res <= 0) return -1;
 
-        if (res == 1 || res == 2) {
-            press_key(str[0]);
-        } else if (res == 2) {
-            press_key_2(str, res);
-        } else if (res == 3) {
-            press_key_3(str, res);
-        } else {
-            return 1;
-            ::printf("input control character length=%zd   [%x]\n", res, str[0]);
-            slankdev::hexdump("", str, res);
-            throw slankdev::exception("INPUT Long string");
-        }
+        press_keys(str, res);
+        refresh_prompt();
         return 1;
     }
 
@@ -146,7 +166,7 @@ public:
             "Hello, this is Susanow (version 0.00.00.0).\r\n"
             "Copyright 2017-2020 Hiroki SHIROKURA.\r\n"
             "\r\n";
-        write(str, sizeof(str));
+        Printf(str);
         refresh_prompt();
     }
 };

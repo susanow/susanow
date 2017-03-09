@@ -4,33 +4,30 @@
 
 class KF_hist_search_deep : public KeyFunc {
 public:
-    KF_hist_search_deep(char c) : KeyFunc(c) {}
+    KF_hist_search_deep(const void* c, size_t l) : KeyFunc(c, l) {}
     void function(shell* sh)
     {
         if (sh->hist_index+1 > sh->history.size()) return;
 
-        FILE* fp = fdopen(sh->fd, "w");
-        fprintf(fp, "\r%s", sh->prompt);
-        for (size_t i=0; i<sh->inputstr.length(); i++)
-            fprintf(fp, " ");
+        sh->Printf("\r%s", sh->prompt);
+        for (size_t i=0; i<sh->buffer_length(); i++)
+            sh->Printf(" ");
         sh->hist_index++;
-        sh->inputstr = sh->history.at(sh->history.size() - sh->hist_index);
-        fprintf(fp, "\r%s%s", sh->prompt, sh->inputstr.c_str());
-        fflush(fp);
+        sh->input_str_to_buffer(sh->history.at(sh->history.size() - sh->hist_index));
+        sh->Printf("\r%s%s", sh->prompt, sh->buffer_c_str());
     }
 };
+
 class KF_hist_search_shallow : public KeyFunc {
 public:
-    KF_hist_search_shallow(char c) : KeyFunc(c) {}
+    KF_hist_search_shallow(const void* c, size_t l) : KeyFunc(c, l) {}
     void function(shell* sh)
     {
         if (sh->hist_index = 0) return;
 
-        FILE* fp = fdopen(sh->fd, "w");
         sh->hist_index--;
-        sh->inputstr = sh->history.at(sh->history.size() - sh->hist_index);
-        fprintf(fp, "\r%s%s", sh->prompt, sh->inputstr.c_str());
-        fflush(fp);
+        sh->input_str_to_buffer(sh->history.at(sh->history.size() - sh->hist_index));
+        sh->Printf("\r%s%s", sh->prompt, sh->buffer_c_str());
     }
 };
 
@@ -38,10 +35,10 @@ public:
 class KF_question : public KeyFunc {
     bool debugmode;
 public:
-    KF_question(char c) : KeyFunc(c), debugmode(true) {}
+    KF_question(const void* c, size_t l) : KeyFunc(c, l), debugmode(true) {}
     void function(shell* sh)
     {
-        std::vector<std::string> list = slankdev::split(sh->inputstr, ' ');
+        std::vector<std::string> list = slankdev::split(sh->buffer_c_str(), ' ');
         list.push_back("");
         function_impl(sh, list);
         update(sh, list);
@@ -60,9 +57,9 @@ public:
     void update(shell* sh, std::vector<std::string>& list)
     {
             dprintf("update \n");
-            sh->inputstr.clear();
+            sh->buffer_clear();
             for (size_t i=0; i<list.size(); i++) {
-                sh->inputstr += list[i];
+                sh->input_str_to_buffer(list[i]);
             }
     }
     template <class... ARGS>
@@ -106,17 +103,19 @@ public:
                 {
                     dprintf("[+] Can't complete \n");
                     sh->Printf("  <none>\r\n");
-                    return; // TODO fix
+                    for (size_t i=0; i<list.size(); i++) {
+                        append_space(list[i]);
+                    }
+                    return;
                     break;
                 }
                 case 1:
                 {
                     dprintf("[+] Found 1 complete Item\n");
-
-                    size_t d = match_nd[0]->name.length() - list[index].length();
-                    std::string cmpstr = match_nd[0]->name.substr(list[index].length(), d);
-
-                    list[index]  += cmpstr;
+                    // size_t d = match_nd[0]->name.length() - list[index].length();
+                    // std::string cmpstr = match_nd[0]->name.substr(list[index].length(), d);
+                    // list[index]  += cmpstr;
+                    list[index] = match_nd[0]->name;
                     append_space(list[index]);
                     tree = &match_nd[0]->commands;
                     break;
@@ -146,30 +145,57 @@ public:
 
 class KF_return : public KeyFunc {
 public:
-    KF_return(char c) : KeyFunc(c) {}
+    KF_return(const void* c, size_t l) : KeyFunc(c, l) {}
     void function(shell* sh)
     {
-        char cs[] = "\r\n";
-        sh->write(cs, sizeof(cs));
+        sh->Printf("\r\n");
         sh->exec_command();
         sh->refresh_prompt();
     }
 };
+
 class KF_delete : public KeyFunc {
 public:
-    KF_delete(char c) : KeyFunc(c) {}
+    KF_delete(const void* c, size_t l) : KeyFunc(c, l) {}
     void function(shell* sh)
     {
-        char str[] = { 0x08, ' '};
-        sh->write(str, sizeof(str));
-        if (!sh->inputstr.empty()) {
-            sh->inputstr.resize(sh->inputstr.length()-1);
-            sh->refresh_prompt();
-        }
+        sh->cursor_backspace();
     }
 };
-class KF_ctrl_B : public KeyFunc {
+
+class KF_up : public KeyFunc {
 public:
-    KF_ctrl_B(char c) : KeyFunc(c) {}
-    void function(shell* sh) { char c=0x08; sh->write(&c, 1); }
+    KF_up(const void* c, size_t l) : KeyFunc(c, l) {}
+    void function(shell* sh)
+    {
+        printf("up\n");
+    }
 };
+
+class KF_down : public KeyFunc {
+public:
+    KF_down(const void* c, size_t l) : KeyFunc(c, l) {}
+    void function(shell* sh)
+    {
+        printf("down\n");
+    }
+};
+
+class KF_right : public KeyFunc {
+public:
+    KF_right(const void* c, size_t l) : KeyFunc(c, l) {}
+    void function(shell* sh)
+    {
+        sh->cursor_right();
+    }
+};
+
+class KF_left : public KeyFunc {
+public:
+    KF_left(const void* c, size_t l) : KeyFunc(c, l) {}
+    void function(shell* sh)
+    {
+        sh->cursor_left();
+    }
+};
+
