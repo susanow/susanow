@@ -24,18 +24,21 @@ class shell;
 class shell {
 private:
     std::string inputstr;
+    const char* prompt;
 public:
     int fd;
     size_t cursor_index;
 
     bool closed; // XXX: erase  TODO
-    const char* prompt;
     static std::vector<node*> commands;
     static std::vector<KeyFunc*> keyfuncs;
     static std::vector<std::string> history;
     size_t hist_index;
 
-    shell() : fd(-1), cursor_index(0), closed(false), prompt(name()), hist_index(0) {}
+    shell() :
+        prompt(name()),
+        fd(-1), cursor_index(0), closed(false),
+        hist_index(0) {}
 
     void close()
     {
@@ -43,7 +46,10 @@ public:
     }
     void exec_command()
     {
-        if (inputstr.empty()) return;
+        if (inputstr.empty()) {
+            clean_prompt();
+            return;
+        }
 
         ::printf("exec(\"%s\")\n", inputstr.c_str());
         for (node* c : commands) {

@@ -14,8 +14,8 @@ void keyfunction_init()
     uint8_t down [] = {AC_ESC, '[', AC_B};
     uint8_t right[] = {AC_ESC, '[', AC_C};
     uint8_t left [] = {AC_ESC, '[', AC_D};
-    vty::add_keyfunction(new KF_up   (up   , sizeof(up   )));
-    vty::add_keyfunction(new KF_down (down , sizeof(down )));
+    vty::add_keyfunction(new KF_hist_search_deep   (up   , sizeof(up   )));
+    vty::add_keyfunction(new KF_hist_search_shallow(down , sizeof(down )));
     vty::add_keyfunction(new KF_right(right, sizeof(right)));
     vty::add_keyfunction(new KF_left (left , sizeof(left )));
 
@@ -23,8 +23,8 @@ void keyfunction_init()
     uint8_t ctrlN[] = {AC_Ctrl_N};
     uint8_t ctrlF[] = {AC_Ctrl_F};
     uint8_t ctrlB[] = {AC_Ctrl_B};
-    vty::add_keyfunction(new KF_up   (ctrlP, sizeof(ctrlP)));
-    vty::add_keyfunction(new KF_down (ctrlN, sizeof(ctrlN)));
+    vty::add_keyfunction(new KF_hist_search_deep   (ctrlP, sizeof(ctrlP)));
+    vty::add_keyfunction(new KF_hist_search_shallow(ctrlN, sizeof(ctrlN)));
     vty::add_keyfunction(new KF_right(ctrlF, sizeof(ctrlF)));
     vty::add_keyfunction(new KF_left (ctrlB, sizeof(ctrlB)));
 

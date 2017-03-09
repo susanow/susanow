@@ -9,12 +9,10 @@ public:
     {
         if (sh->hist_index+1 > sh->history.size()) return;
 
-        sh->Printf("\r%s", sh->prompt);
-        for (size_t i=0; i<sh->buffer_length(); i++)
-            sh->Printf(" ");
+        sh->buffer_clear();
+        sh->input_str_to_buffer(sh->history.at(sh->history.size() - 1 - sh->hist_index));
         sh->hist_index++;
-        sh->input_str_to_buffer(sh->history.at(sh->history.size() - sh->hist_index));
-        sh->Printf("\r%s%s", sh->prompt, sh->buffer_c_str());
+        sh->refresh_prompt();
     }
 };
 
@@ -23,11 +21,12 @@ public:
     KF_hist_search_shallow(const void* c, size_t l) : KeyFunc(c, l) {}
     void function(shell* sh)
     {
-        if (sh->hist_index = 0) return;
+        if (sh->hist_index == 0) return;
 
-        sh->hist_index--;
+        sh->buffer_clear();
         sh->input_str_to_buffer(sh->history.at(sh->history.size() - sh->hist_index));
-        sh->Printf("\r%s%s", sh->prompt, sh->buffer_c_str());
+        sh->hist_index--;
+        sh->refresh_prompt();
     }
 };
 
@@ -112,9 +111,6 @@ public:
                 case 1:
                 {
                     dprintf("[+] Found 1 complete Item\n");
-                    // size_t d = match_nd[0]->name.length() - list[index].length();
-                    // std::string cmpstr = match_nd[0]->name.substr(list[index].length(), d);
-                    // list[index]  += cmpstr;
                     list[index] = match_nd[0]->name;
                     append_space(list[index]);
                     tree = &match_nd[0]->commands;
