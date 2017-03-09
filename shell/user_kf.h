@@ -36,68 +36,95 @@ public:
 
 
 class KF_question : public KeyFunc {
+    bool debugmode;
 public:
-    KF_question(char c) : KeyFunc(c) {}
+    KF_question(char c) : KeyFunc(c), debugmode(true) {}
     void function(shell* sh)
     {
         std::vector<std::string> list = slankdev::split(sh->inputstr, ' ');
         list.push_back("");
         function_impl(sh, list);
+        update(sh, list);
         sh->refresh_prompt();
     }
-    void append_space(shell* sh)
+    void append_space(std::string& str)
     {
-        if (*(sh->inputstr.end()-1) != ' ') sh->inputstr += " ";
+        if (*(str.end()-1) != ' ') str += " ";
+        else dprintf("append IGNORE\n");
     }
-    void remove_space(shell* sh)
+    void remove_space(std::string& str)
     {
-        if (*(sh->inputstr.end()-1) == ' ') sh->inputstr.resize(sh->inputstr.size()-1);
+        if (*(str.end()-1) == ' ') str.resize(str.size()-1);
+        else dprintf("remove IGNORE\n");
     }
+    void update(shell* sh, std::vector<std::string>& list)
+    {
+            dprintf("update \n");
+            sh->inputstr.clear();
+            for (size_t i=0; i<list.size(); i++) {
+                sh->inputstr += list[i];
+            }
+    }
+    template <class... ARGS>
+    void dprintf(const char* fmt, ARGS... args)
+    { if (debugmode) printf(fmt, args...); }
+
     void function_impl(shell* sh, std::vector<std::string>& list)
     {
+        dprintf("===============================================\n");
+
         sh->Printf("\r\n");
         std::vector<node*>* tree = &sh->commands;
         for (size_t index=0; index < list.size(); index++) {
             /*-----------------------------------------------------------------------------*/
+            dprintf("-------------------------\n");
 
+            dprintf("[+] list[%zd]=\"%s\"\n", index, list[index].c_str());
+
+            /*
+             * Create Match List
+             */
+            dprintf("[+] create match list\n");
             std::vector<node*> match_nd;
             for (node* nd : *tree) {
+                dprintf(" \"%s\" ", nd->name.c_str());
                 if (strncmp(list[index].c_str(), nd->name.c_str(), list[index].length()) == 0) {
                     match_nd.push_back(nd);
+                    dprintf("add");
+                } else {
+                    dprintf("ignore");
                 }
+                dprintf("\n");
             }
+            dprintf("[+] create math list... done\n");
 
+            /*
+             * If avalable, Completation
+             */
             switch (match_nd.size()) {
                 case 0:
                 {
+                    dprintf("[+] Can't complete \n");
                     sh->Printf("  <none>\r\n");
-                    return;
+                    return; // TODO fix
                     break;
                 }
                 case 1:
                 {
-                    remove_space(sh);
+                    dprintf("[+] Found 1 complete Item\n");
 
                     size_t d = match_nd[0]->name.length() - list[index].length();
                     std::string cmpstr = match_nd[0]->name.substr(list[index].length(), d);
-                    if (list[index].size() == 0)
-                        append_space(sh);
 
-                    sh->inputstr += cmpstr;
-                    append_space(sh);
-
-                    if (cmpstr.size() > 0) {
-                        append_space(sh);
-                        return ;
-                    }
-                    else
-                        tree = &match_nd[0]->commands;
-
+                    list[index]  += cmpstr;
+                    append_space(list[index]);
+                    tree = &match_nd[0]->commands;
                     break;
                 }
                 default:
                 {
-                    for (size_t j=sh->inputstr.length(); j<match_nd[0]->name.length(); j++) {
+                    dprintf("[+] Found many complete Items\n");
+                    for (size_t j=list[index].length(); j<match_nd[0]->name.length(); j++) {
                         char c = match_nd[0]->name[j];
                         for (size_t i=1; i<match_nd.size(); i++) {
                             if (match_nd[i]->name[j] != c) {
@@ -107,12 +134,11 @@ public:
                                 return ;
                             }
                         }
-                        sh->inputstr += c;
+                        list[index]  += c;
                     }
                     break;
                 }
             }
-            append_space(sh);
             /*-----------------------------------------------------------------------------*/
         }
     }
