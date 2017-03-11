@@ -45,8 +45,9 @@ public:
     }
     void append_space(std::string& str)
     {
-        if (*(str.end()-1) != ' ') str += " ";
-    }
+        if (str.empty()) return;
+        if (*(str.end()-1) != ' ') { str += " "; }
+}
     void remove_space(std::string& str)
     {
         if (*(str.end()-1) == ' ') str.resize(str.size()-1);

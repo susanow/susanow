@@ -2,56 +2,48 @@
 #pragma once
 
 
-
 struct Cmd_show : public node {
-    struct nd_author : public node {
-        nd_author() : node("author") {}
-        void function(shell* sh) { sh->Printf("nd_author\r\n"); }
+    struct author : public node {
+        author() : node("author") {}
+        void function(shell* sh)
+        {
+            sh->Printf("Hiroki SHIROKURA.\r\n");
+            sh->Printf(" Twitter : @slankdev\r\n");
+            sh->Printf(" Github  : slankdev\r\n");
+            sh->Printf(" Facebook: hiroki.shirokura\r\n");
+            sh->Printf(" E-mail  : slank.dev@gmail.com\r\n");
+        }
     };
-    struct nd_version : public node {
-        nd_version() : node("version") {}
-        void function(shell* sh) { sh->Printf("nd_version\r\n"); }
+    struct version : public node {
+        version() : node("version") {}
+        void function(shell* sh)
+        {
+            sh->Printf("Susanow 0.0.0\r\n");
+            sh->Printf("Copyright 2017-2020 Hiroki SHIROKURA.\r\n");
+        }
+    };
+    struct thread_info : public node {
+        thread_info() : node("thread-info") {}
+        void function(shell* sh)
+        {
+            sh->Printf("show thread-info\r\n");
+        }
     };
     Cmd_show() : node("show")
     {
-        commands.push_back(new nd_author);
-        commands.push_back(new nd_version);
+        commands.push_back(new author);
+        commands.push_back(new version);
+        commands.push_back(new thread_info);
     }
     void function(shell* sh) { sh->Printf("show\r\n"); }
 };
 
 struct Cmd_quit : public node {
-    struct nd_sys : public node {
-        nd_sys() : node("system") {}
-        void function(shell* sh) { sh->Printf("quit system\r\n"); exit(0); }
-    };
-    struct nd_shell : public node {
-        nd_shell() : node("shell") {}
-        void function(shell* sh)
-        {
-            sh->Printf("quit system\r\n");
-            sh->closed = true;
-        }
-    };
-    Cmd_quit() : node("quit")
+    Cmd_quit() : node("quit") {}
+    void function(shell* sh)
     {
-        commands.push_back(new nd_sys);
-        commands.push_back(new nd_shell);
+        sh->Printf("quit system\r\n");
+        sh->closed = true;
     }
-    void function(shell* sh) { sh->Printf("quit\r\n"); }
 };
 
-struct Cmd_shot : public node {
-    Cmd_shot() : node("shot") {}
-    void function(shell* sh) { sh->Printf("shot\r\n"); }
-};
-
-struct Cmd_test : public node {
-    struct nd_slankdev : public node {
-        nd_slankdev() : node("slankdev") {}
-        void function(shell* sh) { sh->Printf("slankdev\r\n"); }
-    };
-    Cmd_test() : node("test")
-    { commands.push_back(new nd_slankdev); }
-    void function(shell* sh) { sh->Printf("test\r\n"); }
-};

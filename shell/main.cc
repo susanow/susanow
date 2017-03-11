@@ -44,9 +44,7 @@ void keyfunction_init()
 void command_init()
 {
     vty::add_command(new Cmd_show);
-    vty::add_command(new Cmd_shot);
     vty::add_command(new Cmd_quit);
-    vty::add_command(new Cmd_test);
 }
 
 
