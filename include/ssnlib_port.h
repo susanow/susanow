@@ -77,73 +77,72 @@ public:
     {
         if (id >= rte_eth_dev_count())
             throw slankdev::exception("invalid port id");
-
         kernel_log("Construct %s\n", name.c_str());
-        rte_eth_macaddr_get(id, &addr);
-        info.get();
-        kernel_log("%s address=%s \n", name.c_str(), addr.toString().c_str());
     }
     ~Port()
     {
+        fini();
         kernel_log("Destruct %s\n", name.c_str());
     }
-    void boot()
+    void init()
     {
+        kernel_log("Initialize %s\n", name.c_str());
         configure();
-        start();
-        promiscuous_set(true);
-        kernel_log("%s configure ... done\n", name.c_str());
+        devstart();
+        promisc_enable();
+    }
+    void fini()
+    {
+        kernel_log("Finilize %s\n", name.c_str());
+        devstop();
     }
     void linkup  ()
     {
         int ret = rte_eth_dev_set_link_up  (id);
-        if (ret < 0) {
+        if (ret < 0)
             throw slankdev::exception("rte_eth_dev_link_up: failed");
-        }
     }
     void linkdown() { rte_eth_dev_set_link_down(id); }
-    void start()
+    void devstart()
     {
         int ret = rte_eth_dev_start(id);
-        if (ret < 0) {
+        if (ret < 0)
             throw slankdev::exception("rte_eth_dev_start: failed");
-        }
     }
-    void stop () { rte_eth_dev_stop (id); }
-    void promiscuous_set(bool on)
-    {
-        if (on) rte_eth_promiscuous_enable(id);
-        else    rte_eth_promiscuous_disable(id);
-    }
+    void devstop () { rte_eth_dev_stop (id); }
+    void promisc_enable()  { rte_eth_promiscuous_enable(id);  }
+    void promisc_disable() { rte_eth_promiscuous_disable(id); }
     bool is_promiscuous() { return rte_eth_promiscuous_get(id)==1; }
-    void configure()
-    {
-
-        conf.raw.rxmode.mq_mode = ETH_MQ_RX_RSS;
-        conf.raw.rx_adv_conf.rss_conf.rss_key = nullptr;
-        conf.raw.rx_adv_conf.rss_conf.rss_hf  = ETH_RSS_IP;
-
-        int retval = rte_eth_dev_configure(id, nb_rx_rings, nb_tx_rings, &conf.raw);
-        if (retval != 0)
-            throw slankdev::exception("rte_eth_dev_configure failed");
-
-        rxq.clear();
-        rxq.reserve(nb_tx_rings);
-        for (uint16_t qid=0; qid<nb_rx_rings; qid++) {
-            rxq.emplace_back(id, qid, rx_ring_size);
-        }
-        txq.clear();
-        txq.reserve(nb_tx_rings);
-        for (uint16_t qid=0; qid<nb_tx_rings; qid++) {
-            txq.emplace_back(id, qid, tx_ring_size);
-        }
-
-        kernel_log("%s configure \n", name.c_str());
-        kernel_log("  nb_rx_rings=%zd size=%zd\n", nb_rx_rings, rx_ring_size);
-        kernel_log("  nb_tx_rings=%zd size=%zd\n", nb_tx_rings, tx_ring_size);
-    }
+    void configure();
 };
 
+
+inline void Port::configure()
+{
+
+    conf.raw.rxmode.mq_mode = ETH_MQ_RX_RSS;
+    conf.raw.rx_adv_conf.rss_conf.rss_key = nullptr;
+    conf.raw.rx_adv_conf.rss_conf.rss_hf  = ETH_RSS_IP;
+
+    int retval = rte_eth_dev_configure(id, nb_rx_rings, nb_tx_rings, &conf.raw);
+    if (retval != 0)
+        throw slankdev::exception("rte_eth_dev_configure failed");
+
+    rxq.reserve(nb_tx_rings);
+    for (uint16_t qid=0; qid<nb_rx_rings; qid++) {
+        rxq.emplace_back(id, qid, rx_ring_size);
+    }
+    txq.reserve(nb_tx_rings);
+    for (uint16_t qid=0; qid<nb_tx_rings; qid++) {
+        txq.emplace_back(id, qid, tx_ring_size);
+    }
+    rte_eth_macaddr_get(id, &addr);
+    info.get();
+
+    kernel_log("Configuration %s %s \n", name.c_str(), addr.toString().c_str());
+    kernel_log("  nb_rx_rings=%zd size=%zd\n", nb_rx_rings, rx_ring_size);
+    kernel_log("  nb_tx_rings=%zd size=%zd\n", nb_tx_rings, tx_ring_size);
+}
 
 
 

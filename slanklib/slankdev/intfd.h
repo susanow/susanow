@@ -17,10 +17,10 @@ namespace slankdev {
 
 
 class safe_intfd {
-    public:
-        bool noclose_in_destruct;
     protected:
         int fd;
+    public:
+        bool noclose_in_destruct;
     public:
         safe_intfd() : fd(-1), noclose_in_destruct(false) {}
         ~safe_intfd()

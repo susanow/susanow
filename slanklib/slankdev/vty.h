@@ -31,21 +31,63 @@ namespace slankdev {
 
 
 
+/*
+ * Sample Code
+ *
+ *      slankdev::vty vty0(9999, str);
+ *      vty0.add_command(new Cmd_show);
+ *      vty0.dispatch();
+ *
+ */
+
+/*
+ * class Cmd_show : public slankdev::vty::cmd_node {
+ *     struct author : public cmd_node {
+ *         author() : cmd_node("author") {}
+ *         void function(vty::shell* sh)
+ *         {
+ *             sh->Printf("Hiroki SHIROKURA.\r\n");
+ *             sh->Printf(" Twitter : @slankdev\r\n");
+ *             sh->Printf(" Github  : slankdev\r\n");
+ *             sh->Printf(" Facebook: hiroki.shirokura\r\n");
+ *             sh->Printf(" E-mail  : slank.dev@gmail.com\r\n");
+ *         }
+ *     };
+ *     struct version : public cmd_node {
+ *         version() : cmd_node("version") {}
+ *         void function(vty::shell* sh)
+ *         {
+ *             sh->Printf("Susanow 0.0.0\r\n");
+ *             sh->Printf("Copyright 2017-2020 Hiroki SHIROKURA.\r\n");
+ *         }
+ *     };
+ * public:
+ *     Cmd_show() : cmd_node("show")
+ *     {
+ *         commands.push_back(new author);
+ *         commands.push_back(new version);
+ *     }
+ *     void function(vty::shell* sh) { sh->Printf("show\r\n"); }
+ * };
+ */
+
+
 class vty {
 public:
     class shell {
         friend class vty;
-        std::string ibuf;
         std::string prompt;
-        bool closed;
         int fd;
         size_t cur_idx;
+        bool closed;
+
+        std::string ibuf;
         void press_keys(const void* d, size_t l);
         std::string name();
     public:
         vty* root_vty;
-        std::vector<std::string> history;
         size_t hist_index;
+        std::vector<std::string> history;
 
         shell(vty* v, int d, const char* bootmsg);
         void close() { closed = true; }
@@ -102,11 +144,11 @@ public:
         }
     };
 private:
-    int server_fd;
-    std::vector<shell> shells;
     bool running;
     uint16_t port;
     const std::string bootmsg;
+    int server_fd;
+    std::vector<shell> shells;
     std::vector<cmd_node*> commands;
     std::vector<key_func*> keyfuncs;
 public:
@@ -331,11 +373,11 @@ inline vty::cmd_node* vty::cmd_node::match(const std::string& str)
  * vty::shell's Member Functinon Definition
  */
 inline vty::shell::shell(vty* v, int d, const char* bootmsg) :
-    root_vty(v),
     prompt(name()),
     fd(d),
     cur_idx(0),
     closed(false),
+    root_vty(v),
     hist_index(0)
 {
     Printf(bootmsg);

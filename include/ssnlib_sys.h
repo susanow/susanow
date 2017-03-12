@@ -77,11 +77,23 @@ namespace ssnlib {
 
 
 
+
+int _thread_launch(void* arg)
+{
+    Thread* thread = reinterpret_cast<Thread*>(arg);
+    uint8_t lcore_id = rte_lcore_id();
+    printf("launch to lcore%u \n", lcore_id);
+    thread->impl();
+    return 0;
+}
+
+
+
 class System {
 public:
 	std::vector<Cpu>  cpus;
 	std::vector<Port> ports;
-    bool              cpuflags[RTE_CPUFLAG_NUMFLAGS];
+    std::vector<Thread*> threads;
 
 	System(int argc, char** argv)
     {
@@ -99,7 +111,6 @@ public:
         ports.reserve(nb_ports);
         for (size_t lid=0; lid<nb_cores; lid++) cpus.emplace_back(lid);
         for (size_t pid=0; pid<nb_ports; pid++) ports.emplace_back(pid);
-        for (auto& port : ports) port.boot();
 
         if (nb_cores < 2)
             throw slankdev::exception("Susanow needs at least 2 cores");
@@ -113,6 +124,13 @@ public:
         for (Port& port : ports) {
             port.stats.update();
         }
+    }
+    void dispatch()
+    {
+        rte_eal_remote_launch(_thread_launch, threads[0], 1);
+        rte_eal_remote_launch(_thread_launch, threads[1], 2);
+        rte_eal_remote_launch(_thread_launch, threads[2], 3);
+        rte_eal_mp_wait_lcore();
     }
 };
 

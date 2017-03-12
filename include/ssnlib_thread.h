@@ -33,15 +33,17 @@
 
 #include <string>
 #include <slankdev/exception.h>
+#include <ssnlib_log.h>
 
 namespace ssnlib {
 
-class ssn_thread {
+class Thread {
 public:
     const std::string name;
-    ssn_thread(const char* n) : name(n) {}
-    virtual ~ssn_thread() {}
-    virtual void operator()() { printf("not set thread \n"); }
+    Thread(const char* n) : name(n)
+    { kernel_log("Construct thread %s\n", name.c_str()); }
+    virtual ~Thread() { kernel_log("Destruct thread %s \n", name.c_str()); }
+    virtual void impl() { printf("not set thread \n"); }
     virtual bool kill()
     {
         throw slankdev::exception("kill() is not implemented yet.");
