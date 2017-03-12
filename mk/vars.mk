@@ -4,7 +4,6 @@ DPDK_DIR   := $(RTE_SDK)/$(RTE_TARGET)
 
 INCLUDES += \
 	 -I$(DPDK_DIR)/include \
-	 -I$(SSN)/lib/include \
 	 -include $(DPDK_DIR)/include/rte_config.h
 
 LDFLAGS += \

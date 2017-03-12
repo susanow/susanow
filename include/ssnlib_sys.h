@@ -69,7 +69,6 @@
 #include <ssnlib_thread.h>
 #include <ssnlib_cpu.h>
 #include <ssnlib_port.h>
-#include <ssnlib_misc.h>
 
 #include <slankdev/exception.h>
 
@@ -78,67 +77,40 @@ namespace ssnlib {
 
 
 
-template <class CPU, class PORT>
-class System_interface {
+class System {
 public:
-	std::vector<CPU>  cpus;
-	std::vector<PORT> ports;
+	std::vector<Cpu>  cpus;
+	std::vector<Port> ports;
     bool              cpuflags[RTE_CPUFLAG_NUMFLAGS];
 
-	System_interface(int argc, char** argv)
+	System(int argc, char** argv)
     {
-        /*
-         * Boot DPDK System.
-         */
-        kernel_log(SYSTEM, "[+] Booting ...\n");
-        ssnlib::print_message();
-
-        /*
-         * DPDK init
-         */
+        kernel_log("[+] System Boot...\n");
         int ret = rte_eal_init(argc, argv);
         if (ret < 0) {
             throw slankdev::exception("rte_eal_init");
         }
 
-        kernel_log(SYSTEM, "configure \n");
-
         size_t nb_cores = rte_lcore_count();
-        for (size_t lcore_id=0; lcore_id<nb_cores; lcore_id++) cpus.emplace_back(lcore_id);
-
         size_t nb_ports = rte_eth_dev_count();
+        kernel_log("Found %zd lcores and %zd ports\n", nb_cores, nb_ports);
+
+        cpus.reserve(nb_cores);
+        ports.reserve(nb_ports);
+        for (size_t lid=0; lid<nb_cores; lid++) cpus.emplace_back(lid);
         for (size_t pid=0; pid<nb_ports; pid++) ports.emplace_back(pid);
-
-        for (size_t i=0; i<RTE_CPUFLAG_NUMFLAGS; i++)
-            cpuflags[i] = rte_cpu_get_flag_name(rte_cpu_flag_t(i));
-
         for (auto& port : ports) port.boot();
 
-        kernel_log(SYSTEM, "[+] DPDK boot Done! \n");
+        if (nb_cores < 2)
+            throw slankdev::exception("Susanow needs at least 2 cores");
     }
-    virtual ~System_interface() { rte_eal_mp_wait_lcore(); }
-    virtual void halt()
+    ~System()
     {
-        kernel_log(SYSTEM, "[+] System Halt ...\n");
-        rte_exit(0, "Bye...\n");
+        kernel_log("[+] System Halt ...\n");
     }
-	virtual void wait_all()   { rte_eal_mp_wait_lcore(); }
-    virtual void launch_all() { for (CPU& cpu : cpus) cpu.launch(); }
-    virtual void append_thread(ssn_thread* thread)
+    void cyclic_task()
     {
-        for (CPU& cpu : cpus) {
-            if (cpu.lcore_id == 0) continue;
-
-            if (cpu.thread == nullptr) {
-                cpu.thread = thread;
-                return ;
-            }
-        }
-        throw slankdev::exception("No such lcore to append thread");
-    }
-    virtual void cyclic_task()
-    {
-        for (PORT& port : ports) {
+        for (Port& port : ports) {
             port.stats.update();
         }
     }

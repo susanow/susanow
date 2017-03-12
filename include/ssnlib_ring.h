@@ -111,12 +111,12 @@ public:
             throw slankdev::exception(errstr);
         }
 
-        kernel_log(SYSTEM, "Construct ring %s \n", ring_->name);
+        kernel_log("Construct ring %s \n", ring_->name);
     }
     virtual ~Ring_dpdk()
     {
         if (ring_) {
-            kernel_log(SYSTEM, "Destruct ring %s \n", ring_->name);
+            kernel_log("Destruct ring %s \n", ring_->name);
             rte_ring_free(ring_);
         }
     }

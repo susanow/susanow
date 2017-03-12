@@ -4,6 +4,7 @@ SSN := /home/slank/git/susanow
 include $(SSN)/mk/vars.mk
 CXXFLAGS += -Wno-format-security -g -fsanitize=address
 CXXFLAGS += -I./slanklib
+CXXFLAGS += -I./include
 
 
 TARGET = a.out

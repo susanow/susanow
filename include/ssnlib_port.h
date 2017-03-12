@@ -42,81 +42,81 @@
 namespace ssnlib {
 
 
-template <class RXQ, class TXQ>
-class Port_interface {
+using Rxq    = Rxq_interface<Ring_dpdk>;
+using Txq    = Txq_interface<Ring_dpdk>;
+class Port {
 public:
-    static size_t nb_rx_rings;
-    static size_t nb_tx_rings;
-    static size_t rx_ring_size;
-    static size_t tx_ring_size;
-
-public:
-    const uint8_t     id;
-    const std::string name;
+    size_t nb_rx_rings;
+    size_t nb_tx_rings;
+    size_t rx_ring_size;
+    size_t tx_ring_size;
     ether_addr        addr;
-
     port_conf         conf;
     port_stats        stats;
     link_stats        link;
     dev_info          info;
+    const uint8_t     id;
+    const std::string name;
 
-    std::vector<RXQ> rxq;
-    std::vector<TXQ> txq;
+    std::vector<Rxq> rxq;
+    std::vector<Txq> txq;
 
 public:
-    Port_interface(size_t port_id) :
+    Port(size_t port_id) :
+        nb_rx_rings (1),
+        nb_tx_rings (1),
+        rx_ring_size(128),
+        tx_ring_size(512),
+        addr     (port_id),
+        conf     (port_id),
+        stats    (port_id),
+        link     (port_id),
+        info     (port_id),
         id       (port_id),
-        name     ("port" + std::to_string(id)),
-        addr     (id),
-        conf     (id),
-        stats    (id),
-        link     (id),
-        info     (id)
+        name     ("port" + std::to_string(id))
     {
-        if (id >= rte_eth_dev_count()) {
+        if (id >= rte_eth_dev_count())
             throw slankdev::exception("invalid port id");
-        }
 
-
-        kernel_log(SYSTEM, "boot port%u ... \n", id);
+        kernel_log("Construct %s\n", name.c_str());
         rte_eth_macaddr_get(id, &addr);
         info.get();
-
-        kernel_log(SYSTEM, "%s address=%s \n", name.c_str(), addr.toString().c_str());
-
-        if (id >= rte_eth_dev_count())
-            throw slankdev::exception("port is not exist");
+        kernel_log("%s address=%s \n", name.c_str(), addr.toString().c_str());
     }
-    virtual void boot()
+    ~Port()
+    {
+        kernel_log("Destruct %s\n", name.c_str());
+    }
+    void boot()
     {
         configure();
         start();
         promiscuous_set(true);
-        kernel_log(SYSTEM, "%s configure ... done\n", name.c_str());
+        kernel_log("%s configure ... done\n", name.c_str());
     }
-    virtual void linkup  ()
+    void linkup  ()
     {
         int ret = rte_eth_dev_set_link_up  (id);
         if (ret < 0) {
             throw slankdev::exception("rte_eth_dev_link_up: failed");
         }
     }
-    virtual void linkdown() { rte_eth_dev_set_link_down(id); }
-    virtual void start()
+    void linkdown() { rte_eth_dev_set_link_down(id); }
+    void start()
     {
         int ret = rte_eth_dev_start(id);
         if (ret < 0) {
             throw slankdev::exception("rte_eth_dev_start: failed");
         }
     }
-    virtual void stop () { rte_eth_dev_stop (id); }
-    virtual void promiscuous_set(bool on)
+    void stop () { rte_eth_dev_stop (id); }
+    void promiscuous_set(bool on)
     {
         if (on) rte_eth_promiscuous_enable(id);
         else    rte_eth_promiscuous_disable(id);
     }
-    virtual bool is_promiscuous() { return rte_eth_promiscuous_get(id)==1; }
-    virtual void configure()
+    bool is_promiscuous() { return rte_eth_promiscuous_get(id)==1; }
+    void configure()
     {
 
         conf.raw.rxmode.mq_mode = ETH_MQ_RX_RSS;
@@ -138,15 +138,11 @@ public:
             txq.emplace_back(id, qid, tx_ring_size);
         }
 
-        kernel_log(SYSTEM, "%s configure \n", name.c_str());
-        kernel_log(SYSTEM, "  nb_rx_rings=%zd size=%zd\n", nb_rx_rings, rx_ring_size);
-        kernel_log(SYSTEM, "  nb_tx_rings=%zd size=%zd\n", nb_tx_rings, tx_ring_size);
+        kernel_log("%s configure \n", name.c_str());
+        kernel_log("  nb_rx_rings=%zd size=%zd\n", nb_rx_rings, rx_ring_size);
+        kernel_log("  nb_tx_rings=%zd size=%zd\n", nb_tx_rings, tx_ring_size);
     }
 };
-template <class CPU, class PORT> size_t Port_interface<CPU, PORT>::nb_rx_rings    = 1;
-template <class CPU, class PORT> size_t Port_interface<CPU, PORT>::nb_tx_rings    = 1;
-template <class CPU, class PORT> size_t Port_interface<CPU, PORT>::rx_ring_size   = 128;
-template <class CPU, class PORT> size_t Port_interface<CPU, PORT>::tx_ring_size   = 512;
 
 
 
