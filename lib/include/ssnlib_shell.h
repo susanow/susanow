@@ -47,43 +47,42 @@
 #include <slankdev/util.h>
 #include <ssnlib_sys.h>
 #include <ssnlib_thread.h>
-#include <ssnlib_cmd.h>
 
 
 namespace ssnlib {
 
 
 
-struct Shell : public ssn_thread {
-    struct ::cmdline* ctx_cmdline_;
-    std::string p;
-    std::vector<Command*> cmds;
-    std::vector<cmdline_parse_ctx_t> ctx;
-
-public:
-
-    Shell(const char* prompt) : ssn_thread("shell"), p(prompt) {}
-    ~Shell()
-    {
-        cmdline_stdin_exit(ctx_cmdline_);
-        slankdev::vec_delete_all_ptr_elements<Command>(cmds);
-    }
-    void add_cmd(Command* cmd)
-    {
-        cmds.push_back(cmd);
-        ctx.push_back(cmd->raw);
-    }
-    void fin() { ctx.push_back(nullptr); }
-    void interact()
-    {
-        ctx_cmdline_ = cmdline_stdin_new(ctx.data(), p.c_str());
-        cmdline_interact(ctx_cmdline_);
-    }
-    void operator()()
-    {
-        interact();
-    }
-};
+// struct Shell : public ssn_thread {
+//     struct ::cmdline* ctx_cmdline_;
+//     std::string p;
+//     std::vector<Command*> cmds;
+//     std::vector<cmdline_parse_ctx_t> ctx;
+//
+// public:
+//
+//     Shell(const char* prompt) : ssn_thread("shell"), p(prompt) {}
+//     ~Shell()
+//     {
+//         cmdline_stdin_exit(ctx_cmdline_);
+//         slankdev::vec_delete_all_ptr_elements<Command>(cmds);
+//     }
+//     void add_cmd(Command* cmd)
+//     {
+//         cmds.push_back(cmd);
+//         ctx.push_back(cmd->raw);
+//     }
+//     void fin() { ctx.push_back(nullptr); }
+//     void interact()
+//     {
+//         ctx_cmdline_ = cmdline_stdin_new(ctx.data(), p.c_str());
+//         cmdline_interact(ctx_cmdline_);
+//     }
+//     void operator()()
+//     {
+//         interact();
+//     }
+// };
 
 
 } /* namespace ssnlib */

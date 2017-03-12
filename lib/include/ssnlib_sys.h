@@ -67,7 +67,6 @@
 #include <string>
 
 #include <ssnlib_thread.h>
-#include <ssnlib_cmd.h>
 #include <ssnlib_cpu.h>
 #include <ssnlib_port.h>
 #include <ssnlib_misc.h>
