@@ -9,11 +9,12 @@ CXXFLAGS += -I./slanklib
 TARGET = a.out
 SRCS   = main.cc
 OBJS   = $(SRCS:.cc=.o)
-# include $(SSN)/mk/rules.mk
+include $(SSN)/mk/rules.mk
 
 
-all:
-	$(CXX) $(CXXFLAGS) $(SRCS) $(LDFLAGS)
+all: $(OBJS)
+	@echo LD a.out
+	@$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 
 clean:

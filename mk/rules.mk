@@ -10,8 +10,8 @@
 	@echo "CC $@"
 	@$(CC) $(CFLAGS) -c $< -o $@
 
-$(TARGET): $(CXXOBJS) $(COBJS)
-	@echo "LD $@"
-	@$(CXX) $(CXXFLAGS) -o $(TARGET) $(CXXOBJS) $(COBJS) $(LDFLAGS)
+# $(TARGET): $(CXXOBJS) $(COBJS)
+# 	@echo "LD $@"
+# 	@$(CXX) $(CXXFLAGS) -o $(TARGET) $(CXXOBJS) $(COBJS) $(LDFLAGS)
 
 
