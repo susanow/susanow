@@ -1,4 +1,5 @@
 
+#include <slankdev/system.h>
 #include <slankdev/vty.h>
 #include "commands.h"
 
@@ -20,10 +21,13 @@ char str[] = "\r\n"
 
 int main()
 {
+    slankdev::daemon();
+
     slankdev::vty vty0(9999, str);
 
     vty0.add_command(new Cmd_show);
     vty0.add_command(new Cmd_quit);
     vty0.add_command(new halt);
+    vty0.add_command(new clear);
     vty0.dispatch();
 }

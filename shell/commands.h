@@ -5,7 +5,7 @@
 using slankdev::vty;
 
 
-struct Cmd_show : public slankdev::vty::cmd_node {
+class Cmd_show : public slankdev::vty::cmd_node {
     struct author : public cmd_node {
         author() : cmd_node("author") {}
         void function(vty::shell* sh)
@@ -36,12 +36,21 @@ struct Cmd_show : public slankdev::vty::cmd_node {
         port() : cmd_node("port") {}
         void function(vty::shell* sh) { sh->Printf("show port \r\n"); }
     };
+    struct cpu : public cmd_node {
+        cpu() : cmd_node("cpu") {}
+        void function(vty::shell* sh)
+        {
+            sh->Printf("show cpu \r\n");
+        }
+    };
+public:
     Cmd_show() : cmd_node("show")
     {
         commands.push_back(new author);
         commands.push_back(new version);
         commands.push_back(new thread_info);
         commands.push_back(new port);
+        commands.push_back(new cpu);
     }
     void function(vty::shell* sh) { sh->Printf("show\r\n"); }
 };
@@ -54,5 +63,12 @@ struct halt : public slankdev::vty::cmd_node {
     void function(vty::shell* sh)
     {
         sh->root_vty->halt();
+    }
+};
+struct clear : public slankdev::vty::cmd_node {
+    clear() : cmd_node("clear") {}
+    void function(vty::shell* sh)
+    {
+        sh->Printf("\033[2J\r\n");
     }
 };
