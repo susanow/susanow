@@ -66,7 +66,6 @@
 extern "C" {
 #endif
 
-
 #include "lthread_int.h"
 #include "lthread_queue.h"
 #include "lthread_objcache.h"
@@ -90,7 +89,7 @@ _ready_queue_insert(struct lthread_sched *sched, struct lthread *lt)
  */
 static inline struct lthread *_ready_queue_remove(struct lthread_queue *q)
 {
-	return (struct lthread *)_lthread_queue_remove(q);
+	return _lthread_queue_remove(q);
 }
 
 /**
@@ -155,7 +154,7 @@ void _sched_shutdown(__rte_unused void *arg);
 
 
 #ifdef __cplusplus
-} // extern C
+} /* extern C */
 #endif
 
 #endif				/* LTHREAD_SCHED_H_ */

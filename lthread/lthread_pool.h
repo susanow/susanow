@@ -137,19 +137,19 @@ struct qnode_pool {
 static inline struct qnode_pool *
 _qnode_pool_create(const char *name, int prealloc_size) {
 
-	struct qnode_pool *p = (struct qnode_pool*)rte_malloc_socket(NULL,
+	struct qnode_pool *p = rte_malloc_socket(NULL,
 					sizeof(struct qnode_pool),
 					RTE_CACHE_LINE_SIZE,
 					rte_socket_id());
 
-	LTHREAD_ASSERT(p);
+	RTE_ASSERT(p);
 
-	p->stub = (struct qnode*)rte_malloc_socket(NULL,
+	p->stub = rte_malloc_socket(NULL,
 				sizeof(struct qnode),
 				RTE_CACHE_LINE_SIZE,
 				rte_socket_id());
 
-	LTHREAD_ASSERT(p->stub);
+	RTE_ASSERT(p->stub);
 
 	if (name != NULL)
 		strncpy(p->name, name, LT_MAX_NAME_SIZE);
@@ -278,7 +278,7 @@ _qnode_alloc(void)
 	if (unlikely(n == NULL)) {
 		DIAG_COUNT_INC(p, prealloc);
 		for (i = 0; i < prealloc_size; i++) {
-			n = (struct qnode*)rte_malloc_socket(NULL,
+			n = rte_malloc_socket(NULL,
 					sizeof(struct qnode),
 					RTE_CACHE_LINE_SIZE,
 					rte_socket_id());
@@ -331,7 +331,6 @@ _qnode_pool_destroy(struct qnode_pool *p)
 	rte_free(p);
 	return 0;
 }
-
 
 #ifdef __cplusplus
 } /* extern C */

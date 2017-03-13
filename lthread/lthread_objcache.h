@@ -73,7 +73,7 @@ lthread_objcache *_lthread_objcache_create(const char *name,
 					int prealloc_size)
 {
 	struct lthread_objcache *c =
-	    (struct lthread_objcache *)rte_malloc_socket(NULL, sizeof(struct lthread_objcache),
+	    rte_malloc_socket(NULL, sizeof(struct lthread_objcache),
 				RTE_CACHE_LINE_SIZE,
 				rte_socket_id());
 	if (c == NULL)
@@ -157,7 +157,6 @@ _lthread_objcache_free(struct lthread_objcache *c, void *obj)
 	DIAG_COUNT_INC(c, available);
 	_lthread_queue_insert_mp(c->q, obj);
 }
-
 
 
 #ifdef __cplusplus

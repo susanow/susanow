@@ -104,5 +104,4 @@ void _lthread_set_stack(struct lthread *lt, void *stack, size_t stack_size);
 } /* extern C */
 #endif
 
-
 #endif				/* LTHREAD_H_ */

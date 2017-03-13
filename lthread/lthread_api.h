@@ -124,11 +124,9 @@
 #ifndef LTHREAD_H
 #define LTHREAD_H
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 #include <stdint.h>
 #include <sys/socket.h>
@@ -835,8 +833,8 @@ int lthread_cond_signal(struct lthread_cond *c);
   */
 int lthread_cond_broadcast(struct lthread_cond *c);
 
-#endif				/* LTHREAD_H */
-
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
+
+#endif				/* LTHREAD_H */

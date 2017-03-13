@@ -73,7 +73,6 @@
 extern "C" {
 #endif
 
-
 #include <string.h>
 
 #include <rte_prefetch.h>
@@ -126,7 +125,7 @@ _lthread_queue_create(const char *name)
 	struct qnode *stub;
 	struct lthread_queue *new_queue;
 
-	new_queue = (struct lthread_queue*)rte_malloc_socket(NULL, sizeof(struct lthread_queue),
+	new_queue = rte_malloc_socket(NULL, sizeof(struct lthread_queue),
 					RTE_CACHE_LINE_SIZE,
 					rte_socket_id());
 	if (new_queue == NULL)
@@ -134,7 +133,7 @@ _lthread_queue_create(const char *name)
 
 	/* allocated stub node */
 	stub = _qnode_alloc();
-	LTHREAD_ASSERT(stub);
+	RTE_ASSERT(stub);
 
 	if (name != NULL)
 		strncpy(new_queue->name, name, sizeof(new_queue->name));
@@ -305,7 +304,7 @@ _lthread_queue_remove(struct lthread_queue *q)
 
 
 #ifdef __cplusplus
-} // extern C
+} /* extern C */
 #endif
 
 #endif				/* LTHREAD_QUEUE_H_ */

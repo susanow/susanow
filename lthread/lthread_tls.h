@@ -38,6 +38,7 @@
 extern "C" {
 #endif
 
+
 #include "lthread_api.h"
 
 #define RTE_PER_LTHREAD_SECTION_SIZE \
@@ -57,9 +58,8 @@ void _lthread_tls_destroy(struct lthread *lt);
 void _lthread_key_pool_init(void);
 void _lthread_tls_alloc(struct lthread *lt);
 
-
 #ifdef __cplusplus
-} // extern C
+} /* extern C */
 #endif
 
 #endif				/* LTHREAD_TLS_H_ */

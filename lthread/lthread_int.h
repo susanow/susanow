@@ -58,9 +58,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-
-
 #ifndef LTHREAD_INT_H
 #include <lthread_api.h>
 #define LTHREAD_INT_H
@@ -68,7 +65,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 #include <stdint.h>
 #include <sys/time.h>
@@ -204,18 +200,6 @@ struct lthread {
 	char funcname[MAX_LTHREAD_NAME_SIZE];	/* thread func name */
 	uint64_t diag_ref;			/* ref to user diag data */
 } __rte_cache_aligned;
-
-/*
- * Assert
- */
-#if LTHREAD_DIAG
-#define LTHREAD_ASSERT(expr) do {					\
-	if (!(expr))							\
-		rte_panic("line%d\tassert \"" #expr "\" failed\n", __LINE__);\
-} while (0)
-#else
-#define LTHREAD_ASSERT(expr) do {} while (0)
-#endif
 
 #ifdef __cplusplus
 } /* extern C */

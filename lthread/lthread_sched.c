@@ -94,9 +94,6 @@
 #include "lthread_tls.h"
 #include "lthread_diag.h"
 
-#include <stdbool.h>
-extern bool force_quit;
-
 /*
  * This file implements the lthread scheduler
  * The scheduler is the function lthread_run()
@@ -271,7 +268,7 @@ struct lthread_sched *_lthread_sched_create(size_t stack_size)
 	struct lthread_sched *new_sched;
 	unsigned lcoreid = rte_lcore_id();
 
-	LTHREAD_ASSERT(stack_size <= LTHREAD_MAX_STACK_SIZE);
+	RTE_ASSERT(stack_size <= LTHREAD_MAX_STACK_SIZE);
 
 	if (stack_size == 0)
 		stack_size = LTHREAD_MAX_STACK_SIZE;
@@ -536,7 +533,7 @@ void lthread_run(void)
 	 *
 	 * and resume lthreads ad infinitum.
 	 */
-	while (!_lthread_sched_isdone(sched) && !force_quit) {
+	while (!_lthread_sched_isdone(sched)) {
 
 		rte_timer_manage();
 

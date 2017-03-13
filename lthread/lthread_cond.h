@@ -66,7 +66,6 @@
 extern "C" {
 #endif
 
-
 #include "lthread_queue.h"
 
 #define MAX_COND_NAME_SIZE 64
@@ -80,8 +79,7 @@ struct lthread_cond {
 } __rte_cache_aligned;
 
 #ifdef __cplusplus
-} /* extern "C" */
+} /* extern C */
 #endif
-
 
 #endif				/* LTHREAD_COND_H_ */

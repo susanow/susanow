@@ -39,8 +39,6 @@
 extern "C" {
 #endif
 
-
-
 /*
  * CPU context registers
  */
@@ -56,10 +54,11 @@ struct ctx {
 };
 
 
-void ctx_switch(struct ctx *new_ctx, struct ctx *curr_ctx);
+void
+ctx_switch(struct ctx *new_ctx, struct ctx *curr_ctx);
 
 #ifdef __cplusplus
-} /* extern "C" */
+} /* extern C */
 #endif
 
 #endif /* RTE_CTX_H_ */
