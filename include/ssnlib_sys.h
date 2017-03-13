@@ -125,13 +125,13 @@ public:
             port.stats.update();
         }
     }
-    void dispatch()
-    {
-        rte_eal_remote_launch(_thread_launch, threads[0], 1);
-        rte_eal_remote_launch(_thread_launch, threads[1], 2);
-        rte_eal_remote_launch(_thread_launch, threads[2], 3);
-        rte_eal_mp_wait_lcore();
-    }
+    // void dispatch()
+    // {
+        // rte_eal_remote_launch(_thread_launch, threads[0], 1);
+        // // rte_eal_remote_launch(_thread_launch, threads[1], 2);
+        // // rte_eal_remote_launch(_thread_launch, threads[2], 3);
+        // rte_eal_mp_wait_lcore();
+    // }
 };
 
 

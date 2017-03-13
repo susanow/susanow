@@ -7,10 +7,23 @@ CXXFLAGS += -Wno-format-security -g
 CXXFLAGS += -I./slanklib
 CXXFLAGS += -I./include
 
+CFLAGS += -I./lthread -I./lthread/arch/x86
 
+
+CSRCS = \
+	lthread/lthread.c       \
+	lthread/lthread_sched.c \
+	lthread/lthread_cond.c  \
+	lthread/lthread_tls.c   \
+	lthread/lthread_mutex.c \
+	lthread/lthread_diag.c  \
+	lthread/arch/x86/ctx.c
+COBJS = $(CSRCS:.c=.o)
+CXXSRCS   = main.cc
+CXXOBJS   = $(CXXSRCS:.cc=.o)
+OBJS = $(CXXOBJS) $(COBJS)
 TARGET = a.out
-SRCS   = main.cc
-OBJS   = $(SRCS:.cc=.o)
+
 include $(SSN)/mk/rules.mk
 
 
