@@ -142,12 +142,18 @@ public:
     lthread_sched(Lthread_pool& p) : Thread("lthread_sched"), slowthreads(p) {}
     void impl()
     {
-        printf("%zd threads\n", slowthreads.size());
-        struct lthread *lt[slowthreads.size()];
-        lthread_create (&lt[0], -1, lthread_sched::lthread_start, slowthreads.get_thread(0));
-        lthread_create (&lt[1], -1, lthread_sched::lthread_start, slowthreads.get_thread(1));
+        size_t nb_threads = slowthreads.size();
+        printf("Lthread: Launch %zd threads...\n", nb_threads);
+        struct lthread *lt[nb_threads];
+        for (size_t i=0; i<nb_threads; i++) {
+            lthread_create (
+                    &lt[i], -1,
+                    lthread_sched::lthread_start,
+                    slowthreads.get_thread(i)
+            );
+        }
         lthread_run();
-        printf("lthread finished \n");
+        printf("Lthread finished \n");
     }
     bool kill()
     {
