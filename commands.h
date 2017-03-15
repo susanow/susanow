@@ -59,7 +59,7 @@ class show : public slankdev::vty::cmd_node {
 
             size_t nb_threads = sys->ltsched.size();
             for (size_t i = 0; i<nb_threads; i++) {
-                const ssnlib::slow_thread* thread = sys->ltsched.get_thread(i);
+                const ssnlib::Lthread* thread = sys->ltsched.get_thread(i);
                 sh->Printf(" %-4zd %-20s %-10p \r\n",
                         i,
                         thread->name.c_str(),

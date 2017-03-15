@@ -100,9 +100,9 @@ public:
 };
 
 
-struct slow_thread {
+struct Lthread {
     const std::string name;
-    slow_thread(const char* n) : name(n) {}
+    Lthread(const char* n) : name(n) {}
     virtual void impl() = 0;
 };
 
@@ -111,14 +111,14 @@ struct slow_thread {
 class lthread_sched : public ssnlib::Thread {
     static void lthread_start(void* arg)
     {
-        slow_thread* thread = reinterpret_cast<slow_thread*>(arg);
+        Lthread* thread = reinterpret_cast<Lthread*>(arg);
         while (1) {
             thread->impl();
             lthread_yield ();
         }
         lthread_exit (NULL);
     }
-    std::vector<slow_thread*> slowthreads;
+    std::vector<Lthread*> slowthreads;
 public:
     lthread_sched() : Thread("lthread_sched") {}
     void impl()
@@ -131,8 +131,8 @@ public:
         printf("lthread finished \n");
     }
     size_t size() const { return slowthreads.size(); }
-    void add_thread(slow_thread* th) { slowthreads.push_back(th); }
-    const slow_thread* get_thread(size_t i) const { return slowthreads[i]; }
+    void add_thread(Lthread* th) { slowthreads.push_back(th); }
+    const Lthread* get_thread(size_t i) const { return slowthreads[i]; }
     bool kill()
     {
         force_quit = true;

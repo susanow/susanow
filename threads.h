@@ -5,9 +5,9 @@
 #include <slankdev/string.h>
 
 
-struct slow_thread_test : public ssnlib::slow_thread {
+struct slow_thread_test : public ssnlib::Lthread {
     int a;
-    slow_thread_test(int b) : slow_thread(
+    slow_thread_test(int b) : Lthread(
             slankdev::fs("slowthread(%d)", b).c_str()
             ), a(b) {}
     void impl()
