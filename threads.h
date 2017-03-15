@@ -36,19 +36,14 @@ struct slow_thread_test : public ssnlib::Lthread {
 };
 
 
-// TODO: fix thread/lthread/tthread interface
-class txrxwk : public ssnlib::Lthread {
+class txrxwk : public ssnlib::Fthread {
     ssnlib::System* sys;
-    // bool running;
 public:
-    txrxwk(ssnlib::System* s) : Lthread("txrxwk"), sys(s) {}
+    txrxwk(ssnlib::System* s) : Fthread("txrxwk"), sys(s) {}
     void impl()
     {
-        printf("txrxwk\n");
-        sleep(1);
         const uint8_t nb_ports = sys->ports.size();
-        // running = true;
-        // while (running) {
+        while (true) {
             for (uint8_t pid = 0; pid < nb_ports; pid++) {
                 uint8_t nb_rxq = sys->ports[pid].rxq.size();
                 uint8_t nb_txq = sys->ports[pid].txq.size();
@@ -68,11 +63,8 @@ public:
                     out_port.txq[qid].burst_bulk();
                 }
             }
-        //     printf("txrxwk\n");
-        //     sleep(1);
-        // }
+        }
     }
-    // bool kill() { running=false; return true; }
 };
 
 

@@ -20,12 +20,16 @@ int main(int argc, char** argv)
     sys.vty.install_command(new halt);
     sys.vty.install_command(new show);
     sys.vty.install_command(new launch);
-    sys.vty.install_command(new kill);
 
     sys.tthreadpool.add_thread(new timertest(&sys));
+
     sys.lthreadpool.add_thread(new slow_thread_test(0));
     sys.lthreadpool.add_thread(new slow_thread_test(1));
-    sys.lthreadpool.add_thread(new txrxwk(&sys));
+    sys.lthreadpool.add_thread(new slow_thread_test(2));
+    sys.lthreadpool.add_thread(new slow_thread_test(3));
+    sys.lthreadpool.add_thread(new slow_thread_test(4));
+
+    sys.fthreadpool.add_thread(new txrxwk(&sys));
 
     size_t nb_ports = sys.ports.size();
     for (size_t i=0; i<nb_ports; i++) {

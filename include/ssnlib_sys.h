@@ -82,8 +82,8 @@ namespace ssnlib {
 int _thread_launch(void* arg)
 {
     Fthread* thread = reinterpret_cast<Fthread*>(arg);
-    uint8_t lcore_id = rte_lcore_id();
-    printf("launch to lcore%u \n", lcore_id);
+    uint32_t lcoreid = rte_lcore_id();
+    printf("Launch thread \"%s\" to lcoreid=%u \n", thread->name.c_str(), lcoreid);
     thread->impl();
     return 0;
 }
@@ -97,8 +97,7 @@ void _timer_launch(struct rte_timer *, void *arg)
 
 
 enum {
-    VTY_LCOREID    = 1,
-    LTHRED_LCOREID = 2,
+    LTHRED_LCOREID = 1,
 };
 
 
@@ -161,8 +160,34 @@ public:
     void dispatch()
     {
         timerinit();
-        rte_eal_remote_launch(_thread_launch, &vty    , VTY_LCOREID   );
+        launch_Lthread();
+        launch_Fthread(&vty);
+    }
+
+    void launch_Lthread()
+    {
+        cpus[LTHRED_LCOREID].thread = &ltsched;
         rte_eal_remote_launch(_thread_launch, &ltsched, LTHRED_LCOREID);
+    }
+
+    void launch_Fthread(Fthread* thread)
+    {
+        const size_t nb_cpus = cpus.size();
+        for (size_t i=2; i<nb_cpus; i++) {
+            if (cpus[i].thread == thread) {
+                printf("Thread \"%s\" was already launched lcore%zd\n",
+                                                thread->name.c_str(), i);
+                return;
+            }
+
+            rte_lcore_state_t s = rte_eal_get_lcore_state(i);
+            if (s == WAIT) {
+                cpus[i].thread = thread;
+                rte_eal_remote_launch(_thread_launch, thread, i);
+                return ;
+            }
+        }
+        printf("Can't launch Fthread: reason=no wait cpus \n");
     }
 };
 

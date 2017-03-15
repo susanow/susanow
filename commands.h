@@ -2,6 +2,7 @@
 #pragma once
 #include <slankdev/vty.h>
 #include <slankdev/dpdk_struct.h>
+#include <ssnlib_thread.h>
 
 
 
@@ -33,30 +34,10 @@ class launch : public slankdev::vty::cmd_node {
             UNUSED(sys);
         }
     };
-    struct lthread : public cmd_node {
-        lthread() : cmd_node("lthread") {}
-        void function(slankdev::vty::shell* sh)
-        {
-            ssnlib::System* sys = get_sys(sh);
-            sh->Printf("launch Lthread\r\n");
-            UNUSED(sys);
-        }
-    };
-    struct tthread : public cmd_node {
-        tthread() : cmd_node("tthread") {}
-        void function(slankdev::vty::shell* sh)
-        {
-            ssnlib::System* sys = get_sys(sh);
-            sh->Printf("launch Tthread\r\n");
-            UNUSED(sys);
-        }
-    };
 public:
     launch() : cmd_node("launch")
     {
         commands.push_back(new fthread);
-        commands.push_back(new lthread);
-        commands.push_back(new tthread);
     }
     void function(slankdev::vty::shell* sh)
     {
@@ -65,6 +46,7 @@ public:
     }
 };
 
+#if 0
 class kill : public slankdev::vty::cmd_node {
     struct fthread : public cmd_node {
         fthread() : cmd_node("fthread") {}
@@ -106,6 +88,7 @@ public:
         UNUSED(sys);
     }
 };
+#endif
 
 
 /*
@@ -133,43 +116,60 @@ class show : public slankdev::vty::cmd_node {
     };
     struct thread_info : public cmd_node {
         thread_info() : cmd_node("thread-pool") {}
+        std::string get_launch_state(ssnlib::System* sys, const ssnlib::Fthread* thread)
+        {
+            const size_t nb_cpus = sys->cpus.size();
+            for (size_t i=1; i<nb_cpus; i++) {
+                if (sys->cpus[i].thread == thread) {
+                    return "lcore" + std::to_string(i);
+                }
+            }
+            return "none";
+        }
         void function(slankdev::vty::shell* sh)
         {
             const ssnlib::Fthread* thread;
             size_t nb_threads;
+            std::string state;
             ssnlib::System* sys = get_sys(sh);
-            sh->Printf("Fthreads\r\n");
-            sh->Printf(" %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
+            sh->Printf(" Fthreads\r\n");
+            sh->Printf("   %-4s %-20s %-20s %-10s\r\n", "No.", "Name", "Ptr", "State");
             thread = &sys->vty;
-            sh->Printf(" %-4s %-20s %-10p \r\n", "N/A", thread->name.c_str(), thread);
+            state = get_launch_state(sys, thread);
+            sh->Printf("   %-4s %-20s %-20p %-10s\r\n",
+                    "N/A", thread->name.c_str(), thread, state.c_str());
             thread = &sys->ltsched;
-            sh->Printf(" %-4s %-20s %-10p \r\n", "N/A", thread->name.c_str(), thread);
+            state = get_launch_state(sys, thread);
+            sh->Printf("   %-4s %-20s %-20p %-10s\r\n",
+                    "N/A", thread->name.c_str(), thread, state.c_str());
             nb_threads = sys->fthreadpool.size();
             for (size_t i=0; i<nb_threads; i++) {
                 thread = sys->fthreadpool.get_thread(i);
-                sh->Printf(" %-4zd %-20s %-10p \r\n",
+                state = get_launch_state(sys, thread);
+                sh->Printf("   %-4zd %-20s %-20p %-10s\r\n",
                         i,
                         thread->name.c_str(),
-                        thread);
+                        thread,
+                        state.c_str());
             }
 
-            sh->Printf("Lthreads\r\n");
-            sh->Printf(" %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
+            sh->Printf(" Lthreads\r\n");
+            sh->Printf("   %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
             nb_threads = sys->lthreadpool.size();
             for (size_t i = 0; i<nb_threads; i++) {
                 const ssnlib::Lthread* thread = sys->lthreadpool.get_thread(i);
-                sh->Printf(" %-4zd %-20s %-10p \r\n",
+                sh->Printf("   %-4zd %-20s %-10p \r\n",
                         i,
                         thread->name.c_str(),
                         thread);
             }
 
-            sh->Printf("Tthreads\r\n");
-            sh->Printf(" %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
+            sh->Printf(" Tthreads\r\n");
+            sh->Printf("   %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
             nb_threads = sys->tthreadpool.size();
             for (size_t i = 0; i<nb_threads; i++) {
                 const ssnlib::Tthread* thread = sys->tthreadpool.get_thread(i);
-                sh->Printf(" %-4zd %-20s %-10p \r\n",
+                sh->Printf("   %-4zd %-20s %-10p \r\n",
                         i,
                         thread->name.c_str(),
                         thread);
@@ -216,11 +216,13 @@ class show : public slankdev::vty::cmd_node {
         cpu() : cmd_node("cpu") {}
         void function(slankdev::vty::shell* sh)
         {
-            sh->Printf(" %-4s %-20s \r\n", "ID", "State");
+            sh->Printf(" %-4s %-10s %-20s %-20s\r\n", "ID", "State", "Thread", "Name");
             ssnlib::System* sys = get_sys(sh);
             for (size_t i=0; i<sys->cpus.size(); i++) {
                 std::string state = get_cpustate(i);
-                sh->Printf(" %-4zd %-20s \r\n", i, state.c_str());
+                ssnlib::Fthread* thread = sys->cpus[i].thread;
+                sh->Printf(" %-4zd %-10s %-20p %-20s\r\n", i, state.c_str(),
+                        thread, thread?thread->name.c_str():"none");
             }
         }
     };

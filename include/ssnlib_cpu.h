@@ -46,10 +46,12 @@ class Cpu {
 public:
 	const uint8_t lcore_id;
     const std::string name;
+    Fthread* thread;
 
 	Cpu(size_t lid) :
         lcore_id(lid),
-        name("lcore" + std::to_string(lcore_id))
+        name("lcore" + std::to_string(lcore_id)),
+        thread(nullptr)
     {
         if (lid >= rte_lcore_count()) {
             throw slankdev::exception("invalid lcore id");
