@@ -169,7 +169,6 @@ bool pointer_singleton<T>::inited = false;
 
 
 /*
- * TODO
  * This class is unsafe..
  * I couldn't implement cleverly.
  */

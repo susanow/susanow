@@ -132,7 +132,7 @@ public:
     }
     size_t size() const { return slowthreads.size(); }
     void add_thread(slow_thread* th) { slowthreads.push_back(th); }
-    const slow_thread* get(size_t i) const { return slowthreads[i]; }
+    const slow_thread* get_thread(size_t i) const { return slowthreads[i]; }
     bool kill()
     {
         force_quit = true;

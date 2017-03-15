@@ -38,13 +38,15 @@ class show : public slankdev::vty::cmd_node {
         thread_info() : cmd_node("thread-info") {}
         void function(slankdev::vty::shell* sh)
         {
-            sh->Printf("show thread-info\r\n");
-            using namespace ssnlib;
+            sh->Printf(" %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
             ssnlib::System* sys = get_sys(sh);
             size_t nb_threads = sys->threadpool.size();
             for (size_t i=0; i<nb_threads; i++) {
-                sh->Printf("thread[%d]: %s \r\n", i,
-                        sys->threadpool.get_thread(i)->name.c_str());
+                const ssnlib::Thread* thread = sys->threadpool.get_thread(i);
+                sh->Printf(" %-4zd %-20s %-10p \r\n",
+                        i,
+                        thread->name.c_str(),
+                        thread);
             }
         }
     };
@@ -52,15 +54,16 @@ class show : public slankdev::vty::cmd_node {
         lthread_info() : cmd_node("lthread-info") {}
         void function(slankdev::vty::shell* sh)
         {
-            sh->Printf("lthread info \r\n");
+            sh->Printf(" %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
             ssnlib::System* sys = get_sys(sh);
 
             size_t nb_threads = sys->ltsched.size();
             for (size_t i = 0; i<nb_threads; i++) {
-                sh->Printf("slow_threads[%zd]: %p %s \r\n",
+                const ssnlib::slow_thread* thread = sys->ltsched.get_thread(i);
+                sh->Printf(" %-4zd %-20s %-10p \r\n",
                         i,
-                        sys->ltsched.get(i),
-                        sys->ltsched.get(i)->name.c_str());
+                        thread->name.c_str(),
+                        thread);
             }
         }
     };
