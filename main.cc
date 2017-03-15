@@ -1,5 +1,6 @@
 
 
+volatile bool force_quit;
 #include <stdio.h>
 #include <string>
 #include <ssnlib_sys.h>
@@ -8,40 +9,34 @@
 #include <slankdev/system.h>
 #include <slankdev/filelogger.h>
 
-volatile bool force_quit;
 #include "commands.h"
 #include "threads.h"
 
 
-int ff(void*)
-{
-    for (int i=0; i<5; i++) {
-        sleep(1);
-        printf("sleep %d \n", i);
-        fflush(stdout);
+struct tt : public ssnlib::Thread {
+    tt() : Thread("tt") {}
+    void impl()
+    {
+        while (1) {
+            printf("tests\n");
+            sleep(1);
+        }
     }
-    force_quit = true;
-    for (int i=0; i<5; i++) {
-        sleep(1);
-        printf("sleep %d \n", i);
-        fflush(stdout);
-    }
-    return 0;
-}
-
+};
 
 std::string slankdev::filelogger::path = "syslog.out";
 int main(int argc, char** argv)
 {
     ssnlib::System sys(argc, argv);
-    sys.threads.push_back(new vty_thread);
-    sys.threads.push_back(new lthread_sched);
+    sys.vty.install_command(new halt);
+    sys.vty.install_command(new show);
 
-    rte_eal_remote_launch(ssnlib::_thread_launch, sys.threads[0], 1);
-    rte_eal_remote_launch(ssnlib::_thread_launch, sys.threads[1], 2);
-    rte_eal_remote_launch(ff, NULL, 3);
+    sys.ltsched.add_thread(new slow_thread_test(0));
+    sys.ltsched.add_thread(new slow_thread_test(1));
+    sys.threadpool.add_thread(new tt);
+
+    sys.dispatch();
     rte_eal_mp_wait_lcore();
 }
-
 
 

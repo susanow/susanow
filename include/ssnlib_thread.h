@@ -34,6 +34,8 @@
 #include <string>
 #include <slankdev/exception.h>
 #include <ssnlib_log.h>
+#include <slankdev/vty.h>
+#include <lthread_api.h>
 
 namespace ssnlib {
 
@@ -49,5 +51,94 @@ public:
         throw slankdev::exception("kill() is not implemented yet.");
     }
 };
+
+
+
+
+const char* str = "\r\n"
+    "Hello, this is Susanow (version 0.00.00.0).\r\n"
+    "Copyright 2017-2020 Hiroki SHIROKURA.\r\n"
+    "\r\n"
+    " .d8888b.                                                             \r\n"
+    "d88P  Y88b                                                            \r\n"
+    "Y88b.                                                                 \r\n"
+    " \"Y888b.   888  888 .d8888b   8888b.  88888b.   .d88b.  888  888  888 \r\n"
+    "    \"Y88b. 888  888 88K          \"88b 888 \"88b d88\"\"88b 888  888  888 \r\n"
+    "      \"888 888  888 \"Y8888b. .d888888 888  888 888  888 888  888  888 \r\n"
+    "Y88b  d88P Y88b 888      X88 888  888 888  888 Y88..88P Y88b 888 d88P \r\n"
+    " \"Y8888P\"   \"Y88888  88888P\' \"Y888888 888  888  \"Y88P\"   \"Y8888888P\"  \r\n"
+    "\r\n";
+class vty_thread : public ssnlib::Thread {
+    slankdev::vty vty_;
+    struct quit : public slankdev::vty::cmd_node {
+        quit() : cmd_node("quit") {}
+        void function(slankdev::vty::shell* sh) { sh->close(); }
+    };
+    struct clear : public slankdev::vty::cmd_node {
+        clear() : cmd_node("clear") {}
+        void function(slankdev::vty::shell* sh)
+        {
+            sh->Printf("\033[2J\r\n");
+        }
+    };
+public:
+    vty_thread(void* userptr) : Thread("vty_thread"), vty_(9999, str)
+    {
+        vty_.user_ptr = userptr;
+        install_command(new quit );
+        install_command(new clear);
+    }
+    void install_command(slankdev::vty::cmd_node* cmd)
+    {
+        vty_.add_command(cmd);
+    }
+    void impl()
+    {
+        vty_.dispatch();
+    }
+    bool kill() { vty_.halt(); return true; }
+};
+
+
+struct slow_thread {
+    const std::string name;
+    slow_thread(const char* n) : name(n) {}
+    virtual void impl() = 0;
+};
+
+
+
+class lthread_sched : public ssnlib::Thread {
+    static void lthread_start(void* arg)
+    {
+        slow_thread* thread = reinterpret_cast<slow_thread*>(arg);
+        while (1) {
+            thread->impl();
+            lthread_yield ();
+        }
+        lthread_exit (NULL);
+    }
+    std::vector<slow_thread*> slowthreads;
+public:
+    lthread_sched() : Thread("lthread_sched") {}
+    void impl()
+    {
+        printf("%zd threads\n", slowthreads.size());
+        struct lthread *lt[slowthreads.size()];
+        lthread_create (&lt[0], -1, lthread_sched::lthread_start, slowthreads[0]);
+        lthread_create (&lt[1], -1, lthread_sched::lthread_start, slowthreads[1]);
+        lthread_run();
+        printf("lthread finished \n");
+    }
+    size_t size() const { return slowthreads.size(); }
+    void add_thread(slow_thread* th) { slowthreads.push_back(th); }
+    const slow_thread* get(size_t i) const { return slowthreads[i]; }
+    bool kill()
+    {
+        force_quit = true;
+        return true;
+    }
+};
+
 
 } /* namespace ssnlib */

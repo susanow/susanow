@@ -19,9 +19,9 @@
 #include <slankdev/util.h>
 #include <slankdev/string.h>
 #include <slankdev/socketfd.h>
-#include <slankdev/exception.h>
 #include <slankdev/asciicode.h>
 #include <slankdev/telnet.h>
+#include <slankdev/exception.h>
 
 
 

@@ -88,14 +88,25 @@ int _thread_launch(void* arg)
 }
 
 
+class Thread_pool {
+    std::vector<Thread*> threads;
+public:
+    virtual ~Thread_pool() { for (Thread* t: threads) delete t; }
+    void add_thread(Thread* t) { threads.push_back(t); }
+    size_t size() const { return threads.size(); }
+    const Thread* get_thread(size_t i) { return threads[i]; }
+};
+
 
 class System {
 public:
 	std::vector<Cpu>  cpus;
 	std::vector<Port> ports;
-    std::vector<Thread*> threads;
+    Thread_pool threadpool;
+    vty_thread    vty;
+    lthread_sched ltsched;
 
-	System(int argc, char** argv)
+	System(int argc, char** argv) : vty(this)
     {
         kernel_log("[+] System Boot...\n");
         int ret = rte_eal_init(argc, argv);
@@ -125,13 +136,11 @@ public:
             port.stats.update();
         }
     }
-    // void dispatch()
-    // {
-        // rte_eal_remote_launch(_thread_launch, threads[0], 1);
-        // // rte_eal_remote_launch(_thread_launch, threads[1], 2);
-        // // rte_eal_remote_launch(_thread_launch, threads[2], 3);
-        // rte_eal_mp_wait_lcore();
-    // }
+    void dispatch()
+    {
+        rte_eal_remote_launch(_thread_launch, &vty    , 1);
+        rte_eal_remote_launch(_thread_launch, &ltsched, 2);
+    }
 };
 
 

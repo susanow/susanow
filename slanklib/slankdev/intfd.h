@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include <slankdev/exception.h>
 
 #include <stdio.h>
 #include <stdint.h>
@@ -10,10 +9,10 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
+#include <slankdev/exception.h>
 
 
 namespace slankdev {
-
 
 
 class safe_intfd {

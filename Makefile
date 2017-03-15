@@ -35,7 +35,7 @@ all: $(OBJS)
 clean:
 	$(RM) $(TARGET) $(OBJS)
 
-runcpu:
+r:
 	sudo ./a.out --vdev=eth_null0 --vdev=eth_null1
 
 
