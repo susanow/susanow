@@ -2,7 +2,7 @@
 
 
 
-run: run_native
+run: run_dummy
 
 run_native:
 	sudo ./a.out
@@ -21,7 +21,9 @@ re: clean all
 
 gdb:
 	sudo gdb \
-		--args a.out
+		--args a.out  \
+		--vdev=eth_null0 \
+		--vdev=eth_null1
 
 		# --vdev=eth_null0  \
 		# --vdev=eth_null1

@@ -36,8 +36,7 @@
 #include <slankdev/util.h>
 
 
-namespace ssnlib {
-namespace util {
+namespace slankdev {
 
 #define DEPTHSTR "    "
 #define for_i(begin, end) for(size_t i=begin; i<end; i++)
@@ -882,8 +881,22 @@ inline void print(const struct rte_eth_fc_conf* raw, const char* name="", size_t
 }
 
 
-} /* namespace util */
-} /* namespace ssnlib */
+inline void print(const struct rte_eth_link* raw, const char* name="", size_t depth=0)
+{
+    printf_depth(depth, "rte_eth_link %s {\n", name);
+
+    depth++;
+    printf_depth(depth, "link_speed   : %u \n", raw->link_speed  );
+    printf_depth(depth, "link_duplex  : %u \n", raw->link_duplex );
+    printf_depth(depth, "link_autoneg : %u \n", raw->link_autoneg);
+    printf_depth(depth, "link_status  : %u \n", raw->link_status );
+    depth--;
+
+    printf_depth(depth, "}\n");
+}
+
+
+} /* namespace slankdev */
 
 
 // inline void print(const struct SLANKDEV* raw, const char* name="", size_t depth=0)
