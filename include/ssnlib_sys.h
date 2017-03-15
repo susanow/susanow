@@ -123,6 +123,14 @@ public:
     {
         kernel_log("[+] System Halt ...\n");
     }
+
+
+    /*
+     * Timer Function Interface
+     * TODO: SLANKDEV
+     */
+    void add_timerfunc() {}
+
     void cyclic_task()
     {
         for (Port& port : ports) {
