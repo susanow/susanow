@@ -39,19 +39,36 @@
 
 namespace ssnlib {
 
-class Thread {
-public:
+struct Thread {
     const std::string name;
     Thread(const char* n) : name(n)
     { kernel_log("Construct thread %s\n", name.c_str()); }
     virtual ~Thread() { kernel_log("Destruct thread %s \n", name.c_str()); }
-    virtual void impl() { printf("not set thread \n"); }
-    virtual bool kill()
-    {
-        throw slankdev::exception("kill() is not implemented yet.");
-    }
+    virtual void impl() = 0;
 };
 
+struct Lthread {
+    const std::string name;
+    Lthread(const char* n) : name(n)
+    { kernel_log("Construct lthread %s\n", name.c_str()); }
+    virtual ~Lthread() { kernel_log("Destruct lthread %s \n", name.c_str()); }
+    virtual void impl() = 0;
+};
+
+
+template <class T>
+struct Thread_pool_TMP {
+    std::vector<T*> threads;
+public:
+    virtual ~Thread_pool_TMP() { for (T* t : threads) delete t; }
+    void add_thread(T* t) { threads.push_back(t); }
+    size_t size() const { return threads.size(); }
+    const T* get_thread(size_t i) const { return threads[i]; }
+    T* get_thread(size_t i) { return threads[i]; }
+};
+
+using Thread_pool  = Thread_pool_TMP<Thread>;
+using Lthread_pool = Thread_pool_TMP<Lthread>;
 
 
 
@@ -100,13 +117,6 @@ public:
 };
 
 
-struct Lthread {
-    const std::string name;
-    Lthread(const char* n) : name(n) {}
-    virtual void impl() = 0;
-};
-
-
 
 class lthread_sched : public ssnlib::Thread {
     static void lthread_start(void* arg)
@@ -118,21 +128,18 @@ class lthread_sched : public ssnlib::Thread {
         }
         lthread_exit (NULL);
     }
-    std::vector<Lthread*> slowthreads;
+    Lthread_pool& slowthreads;
 public:
-    lthread_sched() : Thread("lthread_sched") {}
+    lthread_sched(Lthread_pool& p) : Thread("lthread_sched"), slowthreads(p) {}
     void impl()
     {
         printf("%zd threads\n", slowthreads.size());
         struct lthread *lt[slowthreads.size()];
-        lthread_create (&lt[0], -1, lthread_sched::lthread_start, slowthreads[0]);
-        lthread_create (&lt[1], -1, lthread_sched::lthread_start, slowthreads[1]);
+        lthread_create (&lt[0], -1, lthread_sched::lthread_start, slowthreads.get_thread(0));
+        lthread_create (&lt[1], -1, lthread_sched::lthread_start, slowthreads.get_thread(1));
         lthread_run();
         printf("lthread finished \n");
     }
-    size_t size() const { return slowthreads.size(); }
-    void add_thread(Lthread* th) { slowthreads.push_back(th); }
-    const Lthread* get_thread(size_t i) const { return slowthreads[i]; }
     bool kill()
     {
         force_quit = true;

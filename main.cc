@@ -31,8 +31,8 @@ int main(int argc, char** argv)
     sys.vty.install_command(new halt);
     sys.vty.install_command(new show);
 
-    sys.ltsched.add_thread(new slow_thread_test(0));
-    sys.ltsched.add_thread(new slow_thread_test(1));
+    sys.lthreadpool.add_thread(new slow_thread_test(0));
+    sys.lthreadpool.add_thread(new slow_thread_test(1));
     sys.threadpool.add_thread(new tt);
 
     sys.dispatch();

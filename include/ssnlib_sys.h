@@ -88,25 +88,18 @@ int _thread_launch(void* arg)
 }
 
 
-class Thread_pool {
-    std::vector<Thread*> threads;
-public:
-    virtual ~Thread_pool() { for (Thread* t: threads) delete t; }
-    void add_thread(Thread* t) { threads.push_back(t); }
-    size_t size() const { return threads.size(); }
-    const Thread* get_thread(size_t i) { return threads[i]; }
-};
 
 
 class System {
 public:
 	std::vector<Cpu>  cpus;
 	std::vector<Port> ports;
-    Thread_pool threadpool;
+    Thread_pool  threadpool;
+    Lthread_pool lthreadpool;
     vty_thread    vty;
     lthread_sched ltsched;
 
-	System(int argc, char** argv) : vty(this)
+	System(int argc, char** argv) : vty(this), ltsched(lthreadpool)
     {
         kernel_log("[+] System Boot...\n");
         int ret = rte_eal_init(argc, argv);
