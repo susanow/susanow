@@ -13,30 +13,6 @@ volatile bool force_quit;
 #include "threads.h"
 
 
-struct tt : public ssnlib::Thread {
-    tt() : Thread("tt") {}
-    void impl()
-    {
-        while (1) {
-            printf("tests\n");
-            sleep(1);
-        }
-    }
-};
-
-class timertest : public ssnlib::Tthread {
-    ssnlib::System* sys;
-public:
-    timertest(ssnlib::System* s) : Tthread("timertest"), sys(s) {}
-    void impl()
-    {
-        for (ssnlib::Port& port : sys->ports) {
-            port.stats.update();
-        }
-    }
-};
-
-
 std::string slankdev::filelogger::path = "syslog.out";
 int main(int argc, char** argv)
 {
@@ -47,7 +23,12 @@ int main(int argc, char** argv)
     sys.tthreadpool.add_thread(new timertest(&sys));
     sys.lthreadpool.add_thread(new slow_thread_test(0));
     sys.lthreadpool.add_thread(new slow_thread_test(1));
-    sys.threadpool.add_thread(new tt);
+    sys.threadpool.add_thread(new txrxwk(&sys));
+
+    size_t nb_ports = sys.ports.size();
+    for (size_t i=0; i<nb_ports; i++) {
+        sys.ports[i].init();
+    }
 
     sys.dispatch();
     rte_eal_mp_wait_lcore();

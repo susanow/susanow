@@ -163,6 +163,7 @@ public:
         timerinit();
         rte_eal_remote_launch(_thread_launch, &vty    , VTY_LCOREID   );
         rte_eal_remote_launch(_thread_launch, &ltsched, LTHRED_LCOREID);
+        rte_eal_remote_launch(_thread_launch, threadpool.get_thread(0), 3); // TODO: fix this
     }
 };
 

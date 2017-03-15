@@ -105,15 +105,27 @@ class show : public slankdev::vty::cmd_node {
         port() : cmd_node("port") {}
         void function(slankdev::vty::shell* sh)
         {
-            sh->Printf(" %-4s %-5s %-5s %-10s \r\n", "ID", "rxQs", "txQs", "link" );
             ssnlib::System* sys = get_sys(sh);
             for (size_t i=0; i<sys->ports.size(); i++) {
-                sh->Printf(" %-4zd %-5zd %-5zd\r\n",
-                        i,
-                        sys->ports[i].nb_rx_rings,
-                        sys->ports[i].nb_tx_rings
-                        );
-                slankdev::print(&sys->ports[i].link.raw);
+                auto& port = sys->ports.at(i);
+                sh->Printf("  Port id      : %zd\r\n", i);
+                sh->Printf("  Link speed   : %u Mbps\r\n",
+                        port.link.raw.link_speed);
+                sh->Printf("  Link duplex  : %s\r\n",
+                        port.link.raw.link_duplex==0?"Half":"Full");
+                sh->Printf("  Link autoneg : %s\r\n",
+                        port.link.raw.link_autoneg==0?"Fixed":"Autoneg");
+                sh->Printf("  Link status  : %s\r\n",
+                        port.link.raw.link_status==0?"Down":"Up");
+                sh->Printf("  NB Tx Queue  : %zd\r\n", port.nb_rx_rings);
+                sh->Printf("  Tx Queue size: %zd\r\n", port.rx_ring_size);
+                sh->Printf("  NB Rx Queue  : %zd\r\n", port.nb_tx_rings);
+                sh->Printf("  Rx Queue size: %zd\r\n", port.tx_ring_size);
+                sh->Printf("  Mbps Rx/Tx   : %zd/%zd\r\n",
+                    port.stats.rx_bps/1000000, port.stats.tx_bps/1000000);
+                sh->Printf("  Kpps Rx/Tx   : %zd/%zd \r\n",
+                    port.stats.rx_pps/1000   , port.stats.tx_pps/1000);
+                sh->Printf("\r\n");
             }
         }
     };
