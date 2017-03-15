@@ -39,11 +39,11 @@
 
 namespace ssnlib {
 
-struct Thread {
+struct Fthread {
     const std::string name;
-    Thread(const char* n) : name(n)
+    Fthread(const char* n) : name(n)
     { kernel_log("Construct thread %s\n", name.c_str()); }
-    virtual ~Thread() { kernel_log("Destruct thread %s \n", name.c_str()); }
+    virtual ~Fthread() { kernel_log("Destruct thread %s \n", name.c_str()); }
     virtual void impl() = 0;
 };
 
@@ -75,7 +75,7 @@ public:
     T* get_thread(size_t i) { return threads[i]; }
 };
 
-using Thread_pool  = Thread_pool_TMP<Thread>;
+using Fthread_pool = Thread_pool_TMP<Fthread>;
 using Lthread_pool = Thread_pool_TMP<Lthread>;
 using Tthread_pool = Thread_pool_TMP<Tthread>;
 
@@ -94,7 +94,7 @@ const char* str = "\r\n"
     "Y88b  d88P Y88b 888      X88 888  888 888  888 Y88..88P Y88b 888 d88P \r\n"
     " \"Y8888P\"   \"Y88888  88888P\' \"Y888888 888  888  \"Y88P\"   \"Y8888888P\"  \r\n"
     "\r\n";
-class vty_thread : public ssnlib::Thread {
+class vty_thread : public ssnlib::Fthread {
     slankdev::vty vty_;
     struct quit : public slankdev::vty::cmd_node {
         quit() : cmd_node("quit") {}
@@ -108,7 +108,7 @@ class vty_thread : public ssnlib::Thread {
         }
     };
 public:
-    vty_thread(void* userptr) : Thread("vty_thread"), vty_(9999, str)
+    vty_thread(void* userptr) : Fthread("vty_thread"), vty_(9999, str)
     {
         vty_.user_ptr = userptr;
         install_command(new quit );
@@ -127,7 +127,7 @@ public:
 
 
 
-class lthread_sched : public ssnlib::Thread {
+class lthread_sched : public ssnlib::Fthread {
     static void lthread_start(void* arg)
     {
         Lthread* thread = reinterpret_cast<Lthread*>(arg);
@@ -139,7 +139,7 @@ class lthread_sched : public ssnlib::Thread {
     }
     Lthread_pool& slowthreads;
 public:
-    lthread_sched(Lthread_pool& p) : Thread("lthread_sched"), slowthreads(p) {}
+    lthread_sched(Lthread_pool& p) : Fthread("lthread_sched"), slowthreads(p) {}
     void impl()
     {
         size_t nb_threads = slowthreads.size();

@@ -20,9 +20,92 @@ static inline std::string get_cpustate(uint32_t lcoreid)
         default:
             throw slankdev::exception("UNKNOWN STATE");
     }
-    return "FAAAA";
 }
 
+
+class launch : public slankdev::vty::cmd_node {
+    struct fthread : public cmd_node {
+        fthread() : cmd_node("fthread") {}
+        void function(slankdev::vty::shell* sh)
+        {
+            ssnlib::System* sys = get_sys(sh);
+            sh->Printf("launch Fthread\r\n");
+            UNUSED(sys);
+        }
+    };
+    struct lthread : public cmd_node {
+        lthread() : cmd_node("lthread") {}
+        void function(slankdev::vty::shell* sh)
+        {
+            ssnlib::System* sys = get_sys(sh);
+            sh->Printf("launch Lthread\r\n");
+            UNUSED(sys);
+        }
+    };
+    struct tthread : public cmd_node {
+        tthread() : cmd_node("tthread") {}
+        void function(slankdev::vty::shell* sh)
+        {
+            ssnlib::System* sys = get_sys(sh);
+            sh->Printf("launch Tthread\r\n");
+            UNUSED(sys);
+        }
+    };
+public:
+    launch() : cmd_node("launch")
+    {
+        commands.push_back(new fthread);
+        commands.push_back(new lthread);
+        commands.push_back(new tthread);
+    }
+    void function(slankdev::vty::shell* sh)
+    {
+        ssnlib::System* sys = get_sys(sh);
+        UNUSED(sys);
+    }
+};
+
+class kill : public slankdev::vty::cmd_node {
+    struct fthread : public cmd_node {
+        fthread() : cmd_node("fthread") {}
+        void function(slankdev::vty::shell* sh)
+        {
+            ssnlib::System* sys = get_sys(sh);
+            sh->Printf("kill Fthread\r\n");
+            UNUSED(sys);
+        }
+    };
+    struct lthread : public cmd_node {
+        lthread() : cmd_node("lthread") {}
+        void function(slankdev::vty::shell* sh)
+        {
+            ssnlib::System* sys = get_sys(sh);
+            sh->Printf("kill Lthread\r\n");
+            UNUSED(sys);
+        }
+    };
+    struct tthread : public cmd_node {
+        tthread() : cmd_node("tthread") {}
+        void function(slankdev::vty::shell* sh)
+        {
+            ssnlib::System* sys = get_sys(sh);
+            sh->Printf("kill Tthread\r\n");
+            UNUSED(sys);
+        }
+    };
+public:
+    kill() : cmd_node("kill")
+    {
+        commands.push_back(new fthread);
+        commands.push_back(new lthread);
+        commands.push_back(new tthread);
+    }
+    void function(slankdev::vty::shell* sh)
+    {
+        ssnlib::System* sys = get_sys(sh);
+        UNUSED(sys);
+    }
+};
 
 
 /*
@@ -52,18 +135,18 @@ class show : public slankdev::vty::cmd_node {
         thread_info() : cmd_node("thread-pool") {}
         void function(slankdev::vty::shell* sh)
         {
-            const ssnlib::Thread* thread;
+            const ssnlib::Fthread* thread;
             size_t nb_threads;
             ssnlib::System* sys = get_sys(sh);
-            sh->Printf("Threads\r\n");
+            sh->Printf("Fthreads\r\n");
             sh->Printf(" %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
             thread = &sys->vty;
             sh->Printf(" %-4s %-20s %-10p \r\n", "N/A", thread->name.c_str(), thread);
             thread = &sys->ltsched;
             sh->Printf(" %-4s %-20s %-10p \r\n", "N/A", thread->name.c_str(), thread);
-            nb_threads = sys->threadpool.size();
+            nb_threads = sys->fthreadpool.size();
             for (size_t i=0; i<nb_threads; i++) {
-                thread = sys->threadpool.get_thread(i);
+                thread = sys->fthreadpool.get_thread(i);
                 sh->Printf(" %-4zd %-20s %-10p \r\n",
                         i,
                         thread->name.c_str(),

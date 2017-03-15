@@ -19,6 +19,8 @@ int main(int argc, char** argv)
     ssnlib::System sys(argc, argv);
     sys.vty.install_command(new halt);
     sys.vty.install_command(new show);
+    sys.vty.install_command(new launch);
+    sys.vty.install_command(new kill);
 
     sys.tthreadpool.add_thread(new timertest(&sys));
     sys.lthreadpool.add_thread(new slow_thread_test(0));

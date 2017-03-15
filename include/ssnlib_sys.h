@@ -81,7 +81,7 @@ namespace ssnlib {
 
 int _thread_launch(void* arg)
 {
-    Thread* thread = reinterpret_cast<Thread*>(arg);
+    Fthread* thread = reinterpret_cast<Fthread*>(arg);
     uint8_t lcore_id = rte_lcore_id();
     printf("launch to lcore%u \n", lcore_id);
     thread->impl();
@@ -106,7 +106,7 @@ class System {
 public:
 	std::vector<Cpu>  cpus;
 	std::vector<Port> ports;
-    Thread_pool  threadpool;
+    Fthread_pool fthreadpool;
     Lthread_pool lthreadpool;
     Tthread_pool tthreadpool;
     vty_thread    vty;
