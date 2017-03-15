@@ -4,6 +4,24 @@
 
 
 
+static inline ssnlib::System* get_sys(slankdev::vty::shell* sh)
+{
+    return reinterpret_cast<ssnlib::System*>(sh->root_vty->user_ptr);
+}
+
+
+
+/*
+ * show: SHOW SYSTEM INFORMATION
+ *
+ * ARGUMENT:
+ * + author       : print author information
+ * + version      : print version
+ * + thread-info  : print thread information
+ * + lthread-info : print lthread information
+ * + port         : print port information
+ * + cpu          : print cpu information
+ */
 class show : public slankdev::vty::cmd_node {
     struct author : public cmd_node {
         author() : cmd_node("author") {}
@@ -16,12 +34,26 @@ class show : public slankdev::vty::cmd_node {
             sh->Printf(" E-mail  : slank.dev@gmail.com\r\n");
         }
     };
+    struct thread_info : public cmd_node {
+        thread_info() : cmd_node("thread-info") {}
+        void function(slankdev::vty::shell* sh)
+        {
+            sh->Printf("show thread-info\r\n");
+            using namespace ssnlib;
+            ssnlib::System* sys = get_sys(sh);
+            size_t nb_threads = sys->threadpool.size();
+            for (size_t i=0; i<nb_threads; i++) {
+                sh->Printf("thread[%d]: %s \r\n", i,
+                        sys->threadpool.get_thread(i)->name.c_str());
+            }
+        }
+    };
     struct lthread_info : public cmd_node {
         lthread_info() : cmd_node("lthread-info") {}
         void function(slankdev::vty::shell* sh)
         {
             sh->Printf("lthread info \r\n");
-            ssnlib::System* sys = reinterpret_cast<ssnlib::System*>(sh->root_vty->user_ptr);
+            ssnlib::System* sys = get_sys(sh);
 
             size_t nb_threads = sys->ltsched.size();
             for (size_t i = 0; i<nb_threads; i++) {
@@ -38,20 +70,6 @@ class show : public slankdev::vty::cmd_node {
         {
             sh->Printf("Susanow 0.0.0\r\n");
             sh->Printf("Copyright 2017-2020 Hiroki SHIROKURA.\r\n");
-        }
-    };
-    struct thread_info : public cmd_node {
-        thread_info() : cmd_node("thread-info") {}
-        void function(slankdev::vty::shell* sh)
-        {
-            sh->Printf("show thread-info\r\n");
-            using namespace ssnlib;
-            ssnlib::System* sys = reinterpret_cast<ssnlib::System*>(sh->root_vty->user_ptr);
-            size_t nb_threads = sys->threadpool.size();
-            for (size_t i=0; i<nb_threads; i++) {
-                sh->Printf("thread[%d]: %s \r\n", i,
-                        sys->threadpool.get_thread(i)->name.c_str());
-            }
         }
     };
     struct port : public cmd_node {
@@ -77,6 +95,13 @@ public:
     }
     void function(slankdev::vty::shell* sh) { sh->Printf("show\r\n"); }
 };
+
+
+
+/*
+ * halt: System halt Command
+ * argument: none
+ */
 struct halt : public slankdev::vty::cmd_node {
     halt() : cmd_node("halt") {}
     void function(slankdev::vty::shell* sh)
