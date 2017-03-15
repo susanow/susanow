@@ -55,6 +55,14 @@ struct Lthread {
     virtual void impl() = 0;
 };
 
+struct Tthread {
+    const std::string name;
+    Tthread(const char* n) : name(n)
+    { kernel_log("Construct tthread %s\n", name.c_str()); }
+    virtual ~Tthread() { kernel_log("Destruct tthread %s \n", name.c_str()); }
+    virtual void impl() = 0;
+};
+
 
 template <class T>
 struct Thread_pool_TMP {
@@ -69,6 +77,7 @@ public:
 
 using Thread_pool  = Thread_pool_TMP<Thread>;
 using Lthread_pool = Thread_pool_TMP<Lthread>;
+using Tthread_pool = Thread_pool_TMP<Tthread>;
 
 
 

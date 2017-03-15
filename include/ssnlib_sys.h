@@ -70,6 +70,7 @@
 #include <ssnlib_cpu.h>
 #include <ssnlib_port.h>
 
+#include <slankdev/dpdk_header.h>
 #include <slankdev/exception.h>
 
 
@@ -88,6 +89,17 @@ int _thread_launch(void* arg)
 }
 
 
+void _timer_launch(struct rte_timer *, void *arg)
+{
+    Tthread* tthread = reinterpret_cast<Tthread*>(arg);
+    tthread->impl();
+}
+
+
+enum {
+    VTY_LCOREID    = 1,
+    LTHRED_LCOREID = 2,
+};
 
 
 class System {
@@ -96,6 +108,7 @@ public:
 	std::vector<Port> ports;
     Thread_pool  threadpool;
     Lthread_pool lthreadpool;
+    Tthread_pool tthreadpool;
     vty_thread    vty;
     lthread_sched ltsched;
 
@@ -124,23 +137,32 @@ public:
         kernel_log("[+] System Halt ...\n");
     }
 
-
-    /*
-     * Timer Function Interface
-     * TODO: SLANKDEV
-     */
-    void add_timerfunc() {}
-
-    void cyclic_task()
+    void timerinit()
     {
-        for (Port& port : ports) {
-            port.stats.update();
+        rte_timer_subsystem_init();
+
+        struct rte_timer timer[tthreadpool.size()];
+        for (size_t i=0; i<tthreadpool.size(); i++) {
+            rte_timer_init(&timer[i]);
+        }
+
+        uint64_t hz = rte_get_timer_hz();
+        uint32_t lcore_id = LTHRED_LCOREID;
+        for (size_t i=0; i<tthreadpool.size(); i++) {
+            rte_timer_reset(
+                    &timer[i], hz, PERIODICAL,
+                    lcore_id,
+                    _timer_launch,
+                    tthreadpool.get_thread(i)
+            );
         }
     }
+
     void dispatch()
     {
-        rte_eal_remote_launch(_thread_launch, &vty    , 1);
-        rte_eal_remote_launch(_thread_launch, &ltsched, 2);
+        timerinit();
+        rte_eal_remote_launch(_thread_launch, &vty    , VTY_LCOREID   );
+        rte_eal_remote_launch(_thread_launch, &ltsched, LTHRED_LCOREID);
     }
 };
 

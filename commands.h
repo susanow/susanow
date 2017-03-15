@@ -81,6 +81,16 @@ class show : public slankdev::vty::cmd_node {
                         thread);
             }
 
+            sh->Printf("Tthreads\r\n");
+            sh->Printf(" %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
+            nb_threads = sys->tthreadpool.size();
+            for (size_t i = 0; i<nb_threads; i++) {
+                const ssnlib::Tthread* thread = sys->tthreadpool.get_thread(i);
+                sh->Printf(" %-4zd %-20s %-10p \r\n",
+                        i,
+                        thread->name.c_str(),
+                        thread);
+            }
         }
     };
     struct version : public cmd_node {
