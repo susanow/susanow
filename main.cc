@@ -13,13 +13,26 @@ volatile bool force_quit;
 #include "threads.h"
 
 
+
+
+
+
+
+
+
 std::string slankdev::filelogger::path = "syslog.out";
 int main(int argc, char** argv)
 {
     ssnlib::System sys(argc, argv);
-    sys.vty.install_command(new halt);
-    sys.vty.install_command(new show);
-    sys.vty.install_command(new launch);
+    sys.vty.install_command(new quit        );
+    sys.vty.install_command(new clear       );
+    sys.vty.install_command(new echo        );
+    sys.vty.install_command(new list        );
+    sys.vty.install_command(new show_author );
+    sys.vty.install_command(new show_version);
+    sys.vty.install_command(new show_cpu    );
+    sys.vty.install_command(new show_port   );
+    sys.vty.install_command(new show_thread_info);
 
     sys.tthreadpool.add_thread(new timertest(&sys));
 

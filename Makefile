@@ -3,9 +3,9 @@
 SSN := /home/slank/git/susanow
 include $(SSN)/mk/vars.mk
 CXXFLAGS += -Wno-format-security -g
-# CXXFLAGS += -fsanitize=address
-CXXFLAGS += -I./slanklib
+CXXFLAGS += -fsanitize=address
 CXXFLAGS += -I./include
+CXXFLAGS += -I/home/slank/git/libslankdev
 
 CFLAGS += -I./lthread -I./lthread/arch/x86
 
