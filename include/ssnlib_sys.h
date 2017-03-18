@@ -98,6 +98,7 @@ void _timer_launch(struct rte_timer *, void *arg)
 
 enum {
     LTHRED_LCOREID = 1,
+    MAXTIMEROBJ    = 1000,
 };
 
 
@@ -110,6 +111,7 @@ public:
     Tthread_pool tthreadpool;
     vty_thread    vty;
     lthread_sched ltsched;
+    struct rte_timer timer[MAXTIMEROBJ];
 
 	System(int argc, char** argv) : vty(this), ltsched(lthreadpool)
     {
@@ -140,17 +142,20 @@ public:
     {
         rte_timer_subsystem_init();
 
-        struct rte_timer timer[tthreadpool.size()];
+        if (tthreadpool.size() > MAXTIMEROBJ) {
+            throw slankdev::exception("Too many timer-obj");
+        }
+
         for (size_t i=0; i<tthreadpool.size(); i++) {
             rte_timer_init(&timer[i]);
         }
 
         uint64_t hz = rte_get_timer_hz();
-        uint32_t lcore_id = LTHRED_LCOREID;
         for (size_t i=0; i<tthreadpool.size(); i++) {
+            printf("Tthread reset lcore%u \"%s\"\n", LTHRED_LCOREID, tthreadpool.get_thread(i)->name.c_str());
             rte_timer_reset(
                     &timer[i], hz, PERIODICAL,
-                    lcore_id,
+                    LTHRED_LCOREID,
                     _timer_launch,
                     tthreadpool.get_thread(i)
             );
