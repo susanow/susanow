@@ -17,22 +17,21 @@ volatile bool force_quit;
 
 
 
-
-
-
 std::string slankdev::filelogger::path = "syslog.out";
 int main(int argc, char** argv)
 {
     ssnlib::System sys(argc, argv);
-    sys.vty.install_command(new quit        );
-    sys.vty.install_command(new clear       );
-    sys.vty.install_command(new echo        );
-    sys.vty.install_command(new list        );
-    sys.vty.install_command(new show_author );
-    sys.vty.install_command(new show_version);
-    sys.vty.install_command(new show_cpu    );
-    sys.vty.install_command(new show_port   );
+    sys.vty.install_command(new quit            );
+    sys.vty.install_command(new clear           );
+    sys.vty.install_command(new echo            );
+    sys.vty.install_command(new list            );
+    sys.vty.install_command(new show_author     );
+    sys.vty.install_command(new show_version    );
+    sys.vty.install_command(new show_cpu        );
+    sys.vty.install_command(new show_port       );
     sys.vty.install_command(new show_thread_info);
+    sys.vty.install_command(new launch_fthread  );
+    sys.vty.install_command(new find_fthread    );
 
     sys.tthreadpool.add_thread(new timertest(&sys));
 
@@ -44,13 +43,9 @@ int main(int argc, char** argv)
 
     sys.fthreadpool.add_thread(new txrxwk(&sys));
 
-    size_t nb_ports = sys.ports.size();
-    for (size_t i=0; i<nb_ports; i++) {
-        sys.ports[i].init();
-    }
-
     sys.dispatch();
     rte_eal_mp_wait_lcore();
 }
+
 
 

@@ -73,6 +73,13 @@ public:
     size_t size() const { return threads.size(); }
     const T* get_thread(size_t i) const { return threads[i]; }
     T* get_thread(size_t i) { return threads[i]; }
+    T* find_name2ptr(const std::string& name)
+    {
+        for (T* t : threads) {
+            if (t->name == name) return t;
+        }
+        return nullptr;
+    }
 };
 
 using Fthread_pool = Thread_pool_TMP<Fthread>;

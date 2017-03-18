@@ -42,7 +42,11 @@ public:
     txrxwk(ssnlib::System* s) : Fthread("txrxwk"), sys(s) {}
     void impl()
     {
-        const uint8_t nb_ports = sys->ports.size();
+        size_t nb_ports = sys->ports.size();
+        for (size_t i=0; i<nb_ports; i++) {
+            sys->ports[i].init();
+        }
+
         while (true) {
             for (uint8_t pid = 0; pid < nb_ports; pid++) {
                 uint8_t nb_rxq = sys->ports[pid].rxq.size();

@@ -25,27 +25,6 @@ static inline std::string get_cpustate(uint32_t lcoreid)
 
 
 
-// class launch : public slankdev::vty::cmd_node {
-//     struct fthread : public cmd_node {
-//         fthread() : cmd_node("fthread") {}
-//         void function(slankdev::vty::shell* sh)
-//         {
-//             ssnlib::System* sys = get_sys(sh);
-//             sh->Printf("launch Fthread\r\n");
-//             UNUSED(sys);
-//         }
-//     };
-// public:
-//     launch() : cmd_node("launch")
-//     {
-//         commands.push_back(new fthread);
-//     }
-//     void function(slankdev::vty::shell* sh)
-//     {
-//         ssnlib::System* sys = get_sys(sh);
-//         UNUSED(sys);
-//     }
-// };
 
 
 #if 0
@@ -91,6 +70,51 @@ public:
     }
 };
 #endif
+
+
+
+class launch_fthread : public slankdev::command {
+public:
+    launch_fthread()
+    {
+        nodes.push_back(new slankdev::node_fixedstring("launch", "Thread Launch"));
+        nodes.push_back(new slankdev::node_fixedstring("fthread", "Fast Thread running on lcore"));
+        nodes.push_back(new slankdev::node_string);
+    }
+    void func(slankdev::shell* sh)
+    {
+        ssnlib::System* sys = get_sys(sh);
+        sh->Printf("  Launch \"%s\" \r\n", nodes[2]->get().c_str());
+
+        ssnlib::Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
+        if (thread) {
+            sys->launch_Fthread(thread);
+        } else {
+            sh->Printf("  Thread Not Found \r\n");
+        }
+    }
+};
+
+struct find_fthread : public slankdev::command {
+    find_fthread()
+    {
+        nodes.push_back(new slankdev::node_fixedstring("find", "find Thread"));
+        nodes.push_back(new slankdev::node_fixedstring("fthread", "Fast Thread running on lcore"));
+        nodes.push_back(new slankdev::node_string);
+    }
+    void func(slankdev::shell* sh)
+    {
+        ssnlib::System* sys = get_sys(sh);
+        sh->Printf("  Thread Name: \"%s\" \r\n", nodes[2]->get().c_str());
+
+        ssnlib::Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
+        if (thread) {
+            sh->Printf("  Found: %p \r\n", thread);
+        } else {
+            sh->Printf("  Not Found \r\n");
+        }
+    }
+};
 
 
 struct echo : public slankdev::command {
