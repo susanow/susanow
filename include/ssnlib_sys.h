@@ -136,6 +136,7 @@ public:
     ~System()
     {
         kernel_log("[+] System Halt ...\n");
+        rte_eal_mp_wait_lcore();
     }
 
     void timerinit()
