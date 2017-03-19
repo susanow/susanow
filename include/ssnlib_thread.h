@@ -45,6 +45,7 @@ struct Fthread {
     { kernel_log("Construct thread %s\n", name.c_str()); }
     virtual ~Fthread() { kernel_log("Destruct thread %s \n", name.c_str()); }
     virtual void impl() = 0;
+    virtual void kill() = 0;
 };
 
 struct Lthread {
@@ -113,6 +114,8 @@ public:
 
     void impl()
     { vty_.dispatch(); }
+
+    void kill() override {}
 };
 
 
@@ -145,10 +148,9 @@ public:
         lthread_run();
         printf("Lthread finished \n");
     }
-    bool kill()
+    void kill()
     {
         force_quit = true;
-        return true;
     }
 };
 

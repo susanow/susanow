@@ -38,8 +38,9 @@ struct slow_thread_test : public ssnlib::Lthread {
 
 class txrxwk : public ssnlib::Fthread {
     ssnlib::System* sys;
+    bool running;
 public:
-    txrxwk(ssnlib::System* s) : Fthread("txrxwk"), sys(s) {}
+    txrxwk(ssnlib::System* s) : Fthread("txrxwk"), sys(s), running(false) {}
     void impl()
     {
         size_t nb_ports = sys->ports.size();
@@ -47,7 +48,8 @@ public:
             sys->ports[i].init();
         }
 
-        while (true) {
+        running = true;
+        while (running) {
             for (uint8_t pid = 0; pid < nb_ports; pid++) {
                 uint8_t nb_rxq = sys->ports[pid].rxq.size();
                 uint8_t nb_txq = sys->ports[pid].txq.size();
@@ -69,6 +71,7 @@ public:
             }
         }
     }
+    void kill() override { running = false; }
 };
 
 

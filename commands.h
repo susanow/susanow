@@ -27,49 +27,27 @@ static inline std::string get_cpustate(uint32_t lcoreid)
 
 
 
-#if 0
-class kill : public slankdev::vty::cmd_node {
-    struct fthread : public cmd_node {
-        fthread() : cmd_node("fthread") {}
-        void function(slankdev::vty::shell* sh)
-        {
-            ssnlib::System* sys = get_sys(sh);
-            sh->Printf("kill Fthread\r\n");
-            UNUSED(sys);
-        }
-    };
-    struct lthread : public cmd_node {
-        lthread() : cmd_node("lthread") {}
-        void function(slankdev::vty::shell* sh)
-        {
-            ssnlib::System* sys = get_sys(sh);
-            sh->Printf("kill Lthread\r\n");
-            UNUSED(sys);
-        }
-    };
-    struct tthread : public cmd_node {
-        tthread() : cmd_node("tthread") {}
-        void function(slankdev::vty::shell* sh)
-        {
-            ssnlib::System* sys = get_sys(sh);
-            sh->Printf("kill Tthread\r\n");
-            UNUSED(sys);
-        }
-    };
+class kill_fthread : public slankdev::command {
 public:
-    kill() : cmd_node("kill")
+    kill_fthread()
     {
-        commands.push_back(new fthread);
-        commands.push_back(new lthread);
-        commands.push_back(new tthread);
+        nodes.push_back(new slankdev::node_fixedstring("kill", "Thread kill"));
+        nodes.push_back(new slankdev::node_fixedstring("fthread", "Fast Thread running on lcore"));
+        nodes.push_back(new slankdev::node_string);
     }
-    void function(slankdev::vty::shell* sh)
+    void func(slankdev::shell* sh)
     {
         ssnlib::System* sys = get_sys(sh);
-        UNUSED(sys);
+        sh->Printf("  Kill \"%s\" \r\n", nodes[2]->get().c_str());
+
+        ssnlib::Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
+        if (thread) {
+            sys->kill_Fthread(thread);
+        } else {
+            sh->Printf("  Thread Not Found \r\n");
+        }
     }
 };
-#endif
 
 
 
@@ -204,10 +182,22 @@ public:
     }
     void func(slankdev::shell* sh)
     {
+        sh->Printf("\r\n");
+        sh->Printf(" CPU state\r\n");
+        sh->Printf("   %-4s %-10s %-20s %-20s\r\n", "ID", "State", "Thread", "Name");
+        ssnlib::System* sys = get_sys(sh);
+        for (size_t i=0; i<sys->cpus.size(); i++) {
+            std::string state = get_cpustate(i);
+            ssnlib::Fthread* thread = sys->cpus[i].thread;
+            sh->Printf("   %-4zd %-10s %-20p %-20s\r\n", i, state.c_str(),
+                    thread, thread?thread->name.c_str():"none");
+        }
+        sh->Printf("\r\n");
+
+
         const ssnlib::Fthread* thread;
         size_t nb_threads;
         std::string state;
-        ssnlib::System* sys = get_sys(sh);
         sh->Printf(" Fthreads\r\n");
         sh->Printf("   %-4s %-20s %-20s %-10s\r\n", "No.", "Name", "Ptr", "State");
         thread = &sys->vty;
@@ -228,6 +218,7 @@ public:
                     thread,
                     state.c_str());
         }
+        sh->Printf("\r\n");
 
         sh->Printf(" Lthreads\r\n");
         sh->Printf("   %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
@@ -239,6 +230,7 @@ public:
                     thread->name.c_str(),
                     thread);
         }
+        sh->Printf("\r\n");
 
         sh->Printf(" Tthreads\r\n");
         sh->Printf("   %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
@@ -250,6 +242,7 @@ public:
                     thread->name.c_str(),
                     thread);
         }
+        sh->Printf("\r\n");
     }
 };
 

@@ -194,6 +194,25 @@ public:
         }
         printf("Can't launch Fthread: reason=no wait cpus \n");
     }
+
+    void kill_Fthread(Fthread* thread)
+    {
+        int64_t lcore_id = -1;
+        for (Cpu& c : cpus) {
+            if (c.thread == thread) {
+                lcore_id = c.lcore_id;
+                c.thread = nullptr;
+            }
+        }
+
+        if (lcore_id == -1) {
+            printf("not found thread\n");
+            return ;
+        }
+
+        thread->kill();
+        rte_eal_wait_lcore(lcore_id);
+    }
 };
 
 

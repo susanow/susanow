@@ -30,8 +30,9 @@ int main(int argc, char** argv)
     sys.vty.install_command(new show_cpu        );
     sys.vty.install_command(new show_port       );
     sys.vty.install_command(new show_thread_info);
-    sys.vty.install_command(new launch_fthread  );
     sys.vty.install_command(new find_fthread    );
+    sys.vty.install_command(new launch_fthread  );
+    sys.vty.install_command(new kill_fthread    );
 
     sys.tthreadpool.add_thread(new timertest(&sys));
 
