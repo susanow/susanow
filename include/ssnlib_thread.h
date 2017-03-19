@@ -1,8 +1,9 @@
 
+
 /*-
  * MIT License
  *
- * Copyright (c) 2017 Susanoo G
+ * Copyright (c) 2017 Susanow
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +38,9 @@
 #include <slankdev/vty.h>
 #include <lthread_api.h>
 
+
 namespace ssnlib {
+
 
 struct Fthread {
     const std::string name;
@@ -86,10 +89,10 @@ public:
     }
 };
 
+
 using Fthread_pool = Thread_pool_TMP<Fthread>;
 using Lthread_pool = Thread_pool_TMP<Lthread>;
 using Tthread_pool = Thread_pool_TMP<Tthread>;
-
 
 
 class vty_thread : public ssnlib::Fthread {
@@ -121,3 +124,6 @@ public:
 
 
 } /* namespace ssnlib */
+
+
+
