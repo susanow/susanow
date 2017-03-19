@@ -19,7 +19,11 @@ CSRCS = \
 	lthread/lthread_diag.c  \
 	lthread/arch/x86/ctx.c
 COBJS = $(CSRCS:.c=.o)
-CXXSRCS   = main.cc
+CXXSRCS   = \
+	main.cc          \
+	ssnlib_sys.cc    \
+	ssnlib_port.cc   \
+	ssnlib_thread.cc
 CXXOBJS   = $(CXXSRCS:.cc=.o)
 OBJS = $(CXXOBJS) $(COBJS)
 TARGET = a.out
