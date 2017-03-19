@@ -39,8 +39,6 @@
 #include <ssnlib_port_impl.h>
 
 
-namespace ssnlib {
-
 
 using Rxq    = Rxq_interface<Ring_dpdk>;
 using Txq    = Txq_interface<Ring_dpdk>;
@@ -50,7 +48,7 @@ public:
     size_t nb_tx_rings;
     size_t rx_ring_size;
     size_t tx_ring_size;
-    ether_addr        addr;
+    Ether_addr        addr;
     port_conf         conf;
     port_stats        stats;
     link_stats        link;
@@ -76,10 +74,6 @@ public:
     void configure();
 };
 
-
-
-
-} /* namespace ssnlib */
 
 
 

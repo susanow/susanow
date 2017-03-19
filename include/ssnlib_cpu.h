@@ -38,8 +38,6 @@
 
 
 
-namespace ssnlib {
-
 
 
 class Cpu {
@@ -63,5 +61,4 @@ public:
 
 
 
-} /* namespace ssnlib */
 

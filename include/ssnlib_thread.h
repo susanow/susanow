@@ -39,7 +39,6 @@
 #include <lthread_api.h>
 
 
-namespace ssnlib {
 
 
 struct Fthread {
@@ -95,7 +94,7 @@ using Lthread_pool = Thread_pool_TMP<Lthread>;
 using Tthread_pool = Thread_pool_TMP<Tthread>;
 
 
-class vty_thread : public ssnlib::Fthread {
+class vty_thread : public Fthread {
     slankdev::vty vty_;
 public:
     vty_thread(void* userptr);
@@ -105,7 +104,7 @@ public:
 };
 
 
-class lthread_sched : public ssnlib::Fthread {
+class lthread_sched : public Fthread {
     static void lthread_start(void* arg)
     {
         Lthread* thread = reinterpret_cast<Lthread*>(arg);
@@ -122,8 +121,6 @@ public:
     void kill();
 };
 
-
-} /* namespace ssnlib */
 
 
 

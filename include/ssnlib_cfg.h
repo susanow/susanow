@@ -33,7 +33,6 @@
 #include <rte_cfgfile.h>
 
 
-namespace ssnlib {
 
 
 struct Entry {
@@ -118,4 +117,3 @@ public:
 
 
 
-} /* namespace ssnlib */

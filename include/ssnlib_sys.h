@@ -74,8 +74,6 @@
 #include <slankdev/exception.h>
 
 
-namespace ssnlib {
-
 
 enum {
     LTHRED_LCOREID = 1,
@@ -105,4 +103,3 @@ public:
 
 
 
-} // namespace

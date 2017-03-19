@@ -40,13 +40,13 @@
 
 
 
-class timertest : public ssnlib::Tthread {
-    ssnlib::System* sys;
+class timertest : public Tthread {
+    System* sys;
 public:
-    timertest(ssnlib::System* s) : Tthread("timertest"), sys(s) {}
+    timertest(System* s) : Tthread("timertest"), sys(s) {}
     void impl()
     {
-        for (ssnlib::Port& port : sys->ports) {
+        for (Port& port : sys->ports) {
             port.stats.update();
             port.link.update();
         }
@@ -55,7 +55,7 @@ public:
 
 
 
-struct slow_thread_test : public ssnlib::Lthread {
+struct slow_thread_test : public Lthread {
     int a;
     slow_thread_test(int b) : Lthread(
             slankdev::fs("slowthread(%d)", b).c_str()
@@ -68,11 +68,11 @@ struct slow_thread_test : public ssnlib::Lthread {
 };
 
 
-class txrxwk : public ssnlib::Fthread {
-    ssnlib::System* sys;
+class txrxwk : public Fthread {
+    System* sys;
     bool running;
 public:
-    txrxwk(ssnlib::System* s) : Fthread("txrxwk"), sys(s), running(false) {}
+    txrxwk(System* s) : Fthread("txrxwk"), sys(s), running(false) {}
     void impl()
     {
         size_t nb_ports = sys->ports.size();

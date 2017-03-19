@@ -38,9 +38,9 @@
 
 
 
-static inline ssnlib::System* get_sys(slankdev::shell* sh)
+static inline System* get_sys(slankdev::shell* sh)
 {
-    return reinterpret_cast<ssnlib::System*>(sh->user_ptr);
+    return reinterpret_cast<System*>(sh->user_ptr);
 }
 
 static inline std::string get_cpustate(uint32_t lcoreid)
@@ -69,10 +69,10 @@ public:
     }
     void func(slankdev::shell* sh)
     {
-        ssnlib::System* sys = get_sys(sh);
+        System* sys = get_sys(sh);
         sh->Printf("  Kill \"%s\" \r\n", nodes[2]->get().c_str());
 
-        ssnlib::Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
+        Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
         if (thread) {
             sys->kill_Fthread(thread);
         } else {
@@ -93,10 +93,10 @@ public:
     }
     void func(slankdev::shell* sh)
     {
-        ssnlib::System* sys = get_sys(sh);
+        System* sys = get_sys(sh);
         sh->Printf("  Launch \"%s\" \r\n", nodes[2]->get().c_str());
 
-        ssnlib::Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
+        Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
         if (thread) {
             sys->launch_Fthread(thread);
         } else {
@@ -114,10 +114,10 @@ struct find_fthread : public slankdev::command {
     }
     void func(slankdev::shell* sh)
     {
-        ssnlib::System* sys = get_sys(sh);
+        System* sys = get_sys(sh);
         sh->Printf("  Thread Name: \"%s\" \r\n", nodes[2]->get().c_str());
 
-        ssnlib::Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
+        Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
         if (thread) {
             sh->Printf("  Found: %p \r\n", thread);
         } else {
@@ -202,7 +202,7 @@ public:
         nodes.push_back(new slankdev::node_fixedstring("show", "show infos"));
         nodes.push_back(new slankdev::node_fixedstring("thread-info", "thread information"));
     }
-    std::string get_launch_state(ssnlib::System* sys, const ssnlib::Fthread* thread)
+    std::string get_launch_state(System* sys, const Fthread* thread)
     {
         const size_t nb_cpus = sys->cpus.size();
         for (size_t i=1; i<nb_cpus; i++) {
@@ -217,17 +217,17 @@ public:
         sh->Printf("\r\n");
         sh->Printf(" CPU state\r\n");
         sh->Printf("   %-4s %-10s %-20s %-20s\r\n", "ID", "State", "Thread", "Name");
-        ssnlib::System* sys = get_sys(sh);
+        System* sys = get_sys(sh);
         for (size_t i=0; i<sys->cpus.size(); i++) {
             std::string state = get_cpustate(i);
-            ssnlib::Fthread* thread = sys->cpus[i].thread;
+            Fthread* thread = sys->cpus[i].thread;
             sh->Printf("   %-4zd %-10s %-20p %-20s\r\n", i, state.c_str(),
                     thread, thread?thread->name.c_str():"none");
         }
         sh->Printf("\r\n");
 
 
-        const ssnlib::Fthread* thread;
+        const Fthread* thread;
         size_t nb_threads;
         std::string state;
         sh->Printf(" Fthreads\r\n");
@@ -256,7 +256,7 @@ public:
         sh->Printf("   %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
         nb_threads = sys->lthreadpool.size();
         for (size_t i = 0; i<nb_threads; i++) {
-            const ssnlib::Lthread* thread = sys->lthreadpool.get_thread(i);
+            const Lthread* thread = sys->lthreadpool.get_thread(i);
             sh->Printf("   %-4zd %-20s %-10p \r\n",
                     i,
                     thread->name.c_str(),
@@ -268,7 +268,7 @@ public:
         sh->Printf("   %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
         nb_threads = sys->tthreadpool.size();
         for (size_t i = 0; i<nb_threads; i++) {
-            const ssnlib::Tthread* thread = sys->tthreadpool.get_thread(i);
+            const Tthread* thread = sys->tthreadpool.get_thread(i);
             sh->Printf("   %-4zd %-20s %-10p \r\n",
                     i,
                     thread->name.c_str(),
@@ -287,7 +287,7 @@ public:
     }
     void func(slankdev::shell* sh)
     {
-        ssnlib::System* sys = get_sys(sh);
+        System* sys = get_sys(sh);
         for (size_t i=0; i<sys->ports.size(); i++) {
             auto& port = sys->ports.at(i);
             sh->Printf("  Port id      : %zd\r\n", i);
@@ -322,10 +322,10 @@ public:
     void func(slankdev::shell* sh)
     {
         sh->Printf(" %-4s %-10s %-20s %-20s\r\n", "ID", "State", "Thread", "Name");
-        ssnlib::System* sys = get_sys(sh);
+        System* sys = get_sys(sh);
         for (size_t i=0; i<sys->cpus.size(); i++) {
             std::string state = get_cpustate(i);
-            ssnlib::Fthread* thread = sys->cpus[i].thread;
+            Fthread* thread = sys->cpus[i].thread;
             sh->Printf(" %-4zd %-10s %-20p %-20s\r\n", i, state.c_str(),
                     thread, thread?thread->name.c_str():"none");
         }

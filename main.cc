@@ -42,7 +42,7 @@
 #include "threads.h"
 
 
-void install_vty_commands(ssnlib::System* sys)
+void install_vty_commands(System* sys)
 {
     sys->vty.install_command(new quit            );
     sys->vty.install_command(new clear           );
@@ -63,7 +63,7 @@ void install_vty_commands(ssnlib::System* sys)
 std::string slankdev::filelogger::path = "syslog.out";
 int main(int argc, char** argv)
 {
-    ssnlib::System sys(argc, argv);
+    System sys(argc, argv);
     install_vty_commands(&sys);
 
     sys.tthreadpool.add_thread(new timertest(&sys));

@@ -40,7 +40,6 @@
 
 
 volatile bool force_quit;
-namespace ssnlib {
 
 
 
@@ -84,7 +83,6 @@ void lthread_sched::impl()
 
 
 
-} /* namespace ssnlib */
 
 
 

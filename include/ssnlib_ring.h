@@ -38,7 +38,6 @@
 #include <queue> // for Ring_stdqueue
 #include <mutex> // lock
 
-namespace ssnlib {
 
 static inline void __attribute__((always_inline))
 rte_pktmbuf_free_bulk(struct rte_mbuf *m_list[], int16_t npkts)
@@ -256,6 +255,4 @@ public:
 };
 
 
-
-} /* namespace ssnlib */
 

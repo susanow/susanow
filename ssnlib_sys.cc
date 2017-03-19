@@ -49,7 +49,6 @@
 #include <slankdev/exception.h>
 
 
-namespace ssnlib {
 
 
 int _thread_launch(void* arg)
@@ -173,7 +172,6 @@ void System::kill_Fthread(Fthread* thread)
 }
 
 
-} // namespace
 
 
 

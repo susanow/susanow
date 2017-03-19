@@ -37,7 +37,6 @@
 #include <ssnlib_port.h>
 
 
-namespace ssnlib {
 
 
 
@@ -128,8 +127,6 @@ void Port::configure()
 
 
 
-
-} /* namespace ssnlib */
 
 
 

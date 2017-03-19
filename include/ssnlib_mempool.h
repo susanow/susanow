@@ -50,8 +50,6 @@
 #include <slankdev/exception.h>
 
 
-namespace ssnlib {
-
 
 
 class Mempool {
@@ -99,5 +97,3 @@ public:
 };
 
 
-
-} /* namespace ssnlib */

@@ -35,8 +35,6 @@
 
 
 
-namespace ssnlib {
-
 
 
 /*
@@ -122,10 +120,10 @@ public:
         rte_eth_dev_info_get(id, &raw);
     }
 };
-class ether_addr : public ::ether_addr {
+class Ether_addr : public ::ether_addr {
 public:
     const size_t id;
-    ether_addr(size_t i) : id(i) {}
+    Ether_addr(size_t i) : id(i) {}
     void print(FILE* fd) const { fprintf(fd, "%s", toString().c_str()); }
     std::string toString() const
     {
@@ -203,7 +201,5 @@ public:
 
 
 
-
-} /* namespace ssnlib */
 
 
