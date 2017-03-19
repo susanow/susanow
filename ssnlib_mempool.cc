@@ -3,7 +3,7 @@
 /*-
  * MIT License
  *
- * Copyright (c) 2017 Susanoo G
+ * Copyright (c) 2017 Hiroki SHIROKURA
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,41 +24,55 @@
  * SOFTWARE.
  */
 /**
- * @file ssnlib_cpu.h
- * @brief muluticore library
+ * @file ssnlib_mempool.h
  * @author slankdev
  */
 
-#pragma once
 
-#include <string>
 
-#include <ssnlib_log.h>
 #include <ssnlib_mempool.h>
-#include <ssnlib_thread.h>
 
+#include <rte_ring.h>
+#include <rte_config.h>
+#include <rte_version.h>
+#include <rte_eal.h>
+#include <rte_ethdev.h>
+#include <rte_ether.h>
+#include <rte_cycles.h>
+#include <rte_lcore.h>
+#include <rte_mbuf.h>
+#include <rte_hexdump.h>
+#include <rte_ip.h>
+#include <rte_ip_frag.h>
 
+#include <slankdev/exception.h>
 
+void Mempool::create(const char* name,
+        size_t nb_seg, size_t cache_siz,
+        size_t mbuf_siz, uint16_t sock_id)
+{
+    if (raw_)
+        throw slankdev::exception("already created");
 
-class Cpu {
-public:
-	const uint8_t lcore_id;
-    const std::string name;
-    Fthread* thread;
+    raw_ = rte_pktmbuf_pool_create(name,
+                    nb_seg, cache_siz, 0,
+                    mbuf_siz, sock_id);
+    if (!raw_) {
+        fprintf(stderr, "name     : %s  \n", name     );
+        fprintf(stderr, "nb_seg   : %zd \n", nb_seg   );
+        fprintf(stderr, "cache_siz: %zd \n", cache_siz);
+        fprintf(stderr, "mbuf_siz : %zd \n", mbuf_siz );
+        fprintf(stderr, "sock_id  : %u  \n", sock_id  );
 
-	Cpu(size_t lid) :
-        lcore_id(lid),
-        name("lcore" + std::to_string(lcore_id)),
-        thread(nullptr)
-    {
-        if (lid >= rte_lcore_count()) {
-            throw slankdev::exception("invalid lcore id");
-        }
-        kernel_log("Construct %s\n", name.c_str());
+        throw slankdev::exception("can not create pool");
     }
-    ~Cpu() { kernel_log("Dustruct %s\n", name.c_str()); }
-};
+}
 
 
-
-
+void Mempool::free()
+{
+    if (raw_) {
+        rte_mempool_free(raw_);
+        raw_ = nullptr;
+    }
+}

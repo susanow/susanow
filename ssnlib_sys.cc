@@ -30,6 +30,8 @@
  */
 
 
+#include <ssnlib_sys.h>
+
 #include <stdio.h>
 #include <assert.h>
 #include <stdint.h>
@@ -40,13 +42,13 @@
 #include <vector>
 #include <string>
 
-#include <ssnlib_sys.h>
+#include <slankdev/dpdk_header.h>
+#include <slankdev/exception.h>
+
 #include <ssnlib_cpu.h>
 #include <ssnlib_port.h>
 #include <ssnlib_thread.h>
 
-#include <slankdev/dpdk_header.h>
-#include <slankdev/exception.h>
 
 
 

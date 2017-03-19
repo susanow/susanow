@@ -40,8 +40,8 @@
 
 
 
-using Rxq    = Rxq_interface<Ring_dpdk>;
-using Txq    = Txq_interface<Ring_dpdk>;
+using Rxq    = Rxq_interface;
+using Txq    = Txq_interface;
 class Port {
 public:
     size_t nb_rx_rings;

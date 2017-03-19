@@ -20,10 +20,13 @@ CSRCS = \
 	lthread/arch/x86/ctx.c
 COBJS = $(CSRCS:.c=.o)
 CXXSRCS   = \
-	main.cc          \
-	ssnlib_sys.cc    \
-	ssnlib_port.cc   \
-	ssnlib_thread.cc
+	main.cc             \
+	ssnlib_sys.cc       \
+	ssnlib_port.cc      \
+	ssnlib_thread.cc    \
+	ssnlib_mempool.cc   \
+	ssnlib_ring.cc      \
+	ssnlib_port_impl.cc
 CXXOBJS   = $(CXXSRCS:.cc=.o)
 OBJS = $(CXXOBJS) $(COBJS)
 TARGET = a.out
@@ -38,9 +41,6 @@ all: $(OBJS)
 
 clean:
 	$(RM) $(TARGET) $(OBJS)
-
-r:
-	sudo ./a.out --vdev=eth_null0 --vdev=eth_null1
 
 
 include $(SSN)/mk/runenv.mk

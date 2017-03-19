@@ -28,13 +28,16 @@
  * @author slankdev
  */
 
+#include <ssnlib_port.h>
+
 #include <unistd.h>
+
+#include <slankdev/exception.h>
 
 #include <ssnlib_mempool.h>
 #include <ssnlib_ring.h>
 #include <ssnlib_log.h>
 #include <ssnlib_port_impl.h>
-#include <ssnlib_port.h>
 
 
 

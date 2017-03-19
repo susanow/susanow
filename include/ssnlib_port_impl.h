@@ -3,7 +3,7 @@
 /*-
  * MIT License
  *
- * Copyright (c) 2017 Susanoo G
+ * Copyright (c) 2017 Hiroki SHIROKURA
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,13 @@
 
 
 #pragma once
-#include <slankdev/system.h>
 
+#include <stdint.h>
+#include <stddef.h>
+
+#include <string>
+
+#include <rte_ethdev.h>
 
 
 
@@ -44,12 +49,9 @@ class port_conf {
 public:
     const size_t id;
     rte_eth_conf raw;
-    port_conf(size_t i) : id(i)
-    {
-        memset(&raw, 0x00, sizeof(raw));
-        raw.rxmode.max_rx_pkt_len = ETHER_MAX_LEN;
-    }
+    port_conf(size_t i);
 };
+
 
 /*
  * This class has dynamically informations.
@@ -73,26 +75,8 @@ public:
     port_stats(size_t i)
         : id(i), rx_pps(0), tx_pps(0), rx_bps(0), tx_bps(0),
         last_update(0) { reset(); }
-    void reset()
-    {
-        rte_eth_stats_reset(id);
-        rte_eth_stats_get(id, &init);
-        cure = init;
-        cure_prev = init;
-        last_update = slankdev::rdtsc();
-    }
-    void update()
-    {
-        rte_eth_stats_get(id, &cure);
-        uint64_t now = slankdev::rdtsc();
-        double diff_time = double(now-last_update)/rte_get_timer_hz();
-        rx_pps = (cure.ipackets - cure_prev.ipackets)/diff_time;
-        tx_pps = (cure.opackets - cure_prev.opackets)/diff_time;
-        rx_bps = (((cure.ibytes - cure_prev.ibytes) + IFO * rx_pps) << 3)/diff_time;
-        tx_bps = (((cure.obytes - cure_prev.obytes) + IFO * tx_pps) << 3)/diff_time;
-        cure_prev = cure;
-        last_update = now;
-    }
+    void reset();
+    void update();
 };
 
 
@@ -107,6 +91,7 @@ public:
     void update() { rte_eth_link_get_nowait(id, &raw); }
 };
 
+
 /*
  * This class has statically infomations.
  */
@@ -115,88 +100,20 @@ public:
     const size_t id;
     struct rte_eth_dev_info raw;
     dev_info(size_t i) : id(i) {}
-    void get()
-    {
-        rte_eth_dev_info_get(id, &raw);
-    }
+    void get() { rte_eth_dev_info_get(id, &raw); }
 };
+
+
 class Ether_addr : public ::ether_addr {
 public:
     const size_t id;
     Ether_addr(size_t i) : id(i) {}
     void print(FILE* fd) const { fprintf(fd, "%s", toString().c_str()); }
-    std::string toString() const
-    {
-        char buf[32];
-        snprintf(buf, sizeof(buf),
-                "%02" PRIx8 ":%02" PRIx8 ":%02" PRIx8
-                   ":%02" PRIx8 ":%02" PRIx8 ":%02" PRIx8,
-                addr_bytes[0], addr_bytes[1],
-                addr_bytes[2], addr_bytes[3],
-                addr_bytes[4], addr_bytes[5]);
-        return buf;
-    }
     void update() { rte_eth_macaddr_get(id, this); }
-    void set(::ether_addr* addr)
-    {
-        int ret = rte_eth_dev_default_mac_addr_set(id, addr);
-        if (ret < 0) {
-            if (ret == -ENOTSUP) {
-                throw slankdev::exception(
-                        "rte_eth_dev_default_mac_addr_set: hardware doesn't suppoer");
-            } else if (ret == -ENODEV) {
-                throw slankdev::exception(
-                        "rte_eth_dev_default_mac_addr_set: port invalid");
-            } else if (ret == -EINVAL) {
-                throw slankdev::exception(
-                        "rte_eth_dev_default_mac_addr_set: MAC address is invalid");
-            } else {
-                throw slankdev::exception(
-                        "rte_eth_dev_default_mac_addr_set: unknown error");
-            }
-        }
-        update();
-    }
-    void add(::ether_addr* addr)
-    {
-        int ret = rte_eth_dev_mac_addr_add(id, addr, 0);
-        if (ret < 0) {
-            if (ret == -ENOTSUP) {
-                throw slankdev::exception(
-                "rte_eth_dev_mac_addr_add: hardware doesn't support this feature.");
-            } else if (ret == -ENODEV) {
-                throw slankdev::exception(
-                    "rte_eth_dev_mac_addr_add: port is invalid.");
-            } else if (ret == -ENOSPC) {
-                throw slankdev::exception(
-                    "rte_eth_dev_mac_addr_add: no more MAC addresses can be added.");
-            } else if (ret == -EINVAL) {
-                throw slankdev::exception(
-                    "rte_eth_dev_mac_addr_add: MAC address is invalid.");
-            } else {
-                throw slankdev::exception("rte_eth_dev_mac_addr_add: unknown");
-            }
-        }
-        update();
-    }
-    void del(::ether_addr* addr)
-    {
-        int ret = rte_eth_dev_mac_addr_remove(id, addr);
-        if (ret < 0) {
-            if (ret == -ENOTSUP) {
-                throw slankdev::exception(
-                        "rte_eth_dev_mac_addr_remove: hardware doesn't support.");
-            } else if (ret == -ENODEV) {
-                throw slankdev::exception(
-                        "rte_eth_dev_mac_addr_remove: if port invalid.");
-            } else if (ret == -EADDRINUSE) {
-                std::string errstr = "rte_eth_dev_mac_addr_remove: ";
-                errstr += "attempting to remove the default MAC address";
-                throw slankdev::exception(errstr.c_str());
-            }
-        }
-        update();
-    }
+    void set(::ether_addr* addr);
+    void add(::ether_addr* addr);
+    void del(::ether_addr* addr);
+    std::string toString() const;
 };
 
 

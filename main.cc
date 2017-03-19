@@ -59,21 +59,24 @@ void install_vty_commands(System* sys)
 }
 
 
+void init_thread_pool(System* sys)
+{
+    sys->tthreadpool.add_thread(new timertest(sys));
+    sys->lthreadpool.add_thread(new slow_thread_test(0));
+    sys->lthreadpool.add_thread(new slow_thread_test(1));
+    sys->lthreadpool.add_thread(new slow_thread_test(2));
+    sys->lthreadpool.add_thread(new slow_thread_test(3));
+    sys->lthreadpool.add_thread(new slow_thread_test(4));
+    sys->fthreadpool.add_thread(new txrxwk(sys));
+}
+
 
 std::string slankdev::filelogger::path = "syslog.out";
 int main(int argc, char** argv)
 {
     System sys(argc, argv);
     install_vty_commands(&sys);
-
-    sys.tthreadpool.add_thread(new timertest(&sys));
-    sys.lthreadpool.add_thread(new slow_thread_test(0));
-    sys.lthreadpool.add_thread(new slow_thread_test(1));
-    sys.lthreadpool.add_thread(new slow_thread_test(2));
-    sys.lthreadpool.add_thread(new slow_thread_test(3));
-    sys.lthreadpool.add_thread(new slow_thread_test(4));
-    sys.fthreadpool.add_thread(new txrxwk(&sys));
-
+    init_thread_pool(&sys);
     sys.dispatch();
 }
 
