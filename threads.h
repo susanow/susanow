@@ -5,7 +5,7 @@
 /*-
  * MIT License
  *
- * Copyright (c) 2017 Susanow
+ * Copyright (c) 2017 Hiroki SHIROKURA
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,7 +62,7 @@ struct lthread_test : public Lthread {
     a(b) {}
   virtual void impl() override {
     printf("lthread_test(%d)\n", a);
-    sleep(1);
+    lthread_sleep(1 * 1000 * 1000 * 1000);
   }
 };
 

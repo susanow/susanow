@@ -125,7 +125,7 @@ void System::timerinit()
 void System::dispatch()
 {
   timerinit();
-  lthread_sched_kill();
+  // lthread_sched_kill();
   lthread_sched_run();
   fthread_launch(&vty);
 }
@@ -183,16 +183,14 @@ void System::lthread_kill(Lthread* thread)
 
 void System::lthread_sched_kill() {
   if (cpus[LTHRED_LCOREID].thread) cpus[LTHRED_LCOREID].thread->kill();
+  lthread_scheduler_shutdown_all();
+  printf("SLANKDEVSLANKDEV\n");
 }
 
 void System::lthread_sched_run() {
-  if (cpus[LTHRED_LCOREID].thread != nullptr) throw slankdev::exception("run only lthread sched");
-
   cpus[LTHRED_LCOREID].thread = &ltsched;
   rte_eal_remote_launch(_thread_launch, &ltsched, LTHRED_LCOREID);
 }
-
-
 
 
 

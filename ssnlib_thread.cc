@@ -42,6 +42,9 @@
 
 
 
+volatile bool force_quit;
+
+
 static void _lthread_start(void* arg)
 {
     Lthread* thread = reinterpret_cast<Lthread*>(arg);
@@ -76,7 +79,7 @@ vty_thread::vty_thread(void* userptr)
 
 void lthread_sched::kill() {
     printf("lthread_sched.kill()\n");
-    // ::force_quit = true;
+    force_quit = true;
 }
 
 
