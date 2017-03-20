@@ -42,9 +42,18 @@
 
 
 
-volatile bool force_quit;
-
-
+static void _lthread_start(void* arg)
+{
+    Lthread* thread = reinterpret_cast<Lthread*>(arg);
+    printf(" launch lthread \"%s\"\n", thread->name.c_str());
+    thread->running = true;
+    while (thread->running) {
+        thread->impl();
+        lthread_yield ();
+    }
+    printf(" lthread \"%s\" was finish\n", thread->name.c_str());
+    lthread_exit (NULL);
+}
 
 const char* str = "\r\n"
     "Hello, this is Susanow (version 0.00.00.0).\r\n"
@@ -65,7 +74,10 @@ vty_thread::vty_thread(void* userptr)
     vty_(9999, str, "Susanow> ") { vty_.user_ptr = userptr; }
 
 
-void lthread_sched::kill() { ::force_quit = true; }
+void lthread_sched::kill() {
+    printf("lthread_sched.kill()\n");
+    // ::force_quit = true;
+}
 
 
 void lthread_sched::impl()
@@ -76,12 +88,13 @@ void lthread_sched::impl()
     for (size_t i=0; i<nb_threads; i++) {
         lthread_create (
                 &lt[i], -1,
-                lthread_sched::lthread_start,
+                _lthread_start,
                 slowthreads.get_thread(i)
         );
     }
     lthread_run();
     printf("Lthread finished \n");
+    printf("SLANKDEVVVDDVDV Lthread finished \n");
 }
 
 

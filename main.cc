@@ -38,8 +38,25 @@
 #include <slankdev/system.h>
 #include <slankdev/filelogger.h>
 
-#include "commands.h"
+#include "command/misc.h"
+#include "command/thread.h"
 #include "threads.h"
+
+
+void install_vty_commands(System* sys);
+void init_thread_pool(System* sys);
+
+
+
+std::string slankdev::filelogger::path = "syslog.out";
+int main(int argc, char** argv)
+{
+    System sys(argc, argv);
+    install_vty_commands(&sys);
+    init_thread_pool(&sys);
+    sys.dispatch();
+}
+
 
 
 void install_vty_commands(System* sys)
@@ -54,31 +71,26 @@ void install_vty_commands(System* sys)
     sys->vty.install_command(new show_port       );
     sys->vty.install_command(new show_thread_info);
     sys->vty.install_command(new find_fthread    );
-    sys->vty.install_command(new launch_fthread  );
+    sys->vty.install_command(new find_lthread    );
     sys->vty.install_command(new kill_fthread    );
+    sys->vty.install_command(new kill_lthread    );
+    sys->vty.install_command(new launch_fthread  );
+    sys->vty.install_command(new launch_lthread  );
+    sys->vty.install_command(new lthread_schedule_kill);
+    sys->vty.install_command(new lthread_schedule_run );
 }
+
 
 
 void init_thread_pool(System* sys)
 {
     sys->tthreadpool.add_thread(new timertest(sys));
+
     sys->lthreadpool.add_thread(new slow_thread_test(0));
     sys->lthreadpool.add_thread(new slow_thread_test(1));
     sys->lthreadpool.add_thread(new slow_thread_test(2));
-    sys->lthreadpool.add_thread(new slow_thread_test(3));
-    sys->lthreadpool.add_thread(new slow_thread_test(4));
+
     sys->fthreadpool.add_thread(new txrxwk(sys));
 }
-
-
-std::string slankdev::filelogger::path = "syslog.out";
-int main(int argc, char** argv)
-{
-    System sys(argc, argv);
-    install_vty_commands(&sys);
-    init_thread_pool(&sys);
-    sys.dispatch();
-}
-
 
 

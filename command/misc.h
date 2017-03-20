@@ -35,96 +35,9 @@
 #include <slankdev/vty.h>
 #include <slankdev/dpdk_struct.h>
 #include <ssnlib_thread.h>
+#include <ssnlib_misc.h>
 
 
-
-static inline System* get_sys(slankdev::shell* sh)
-{
-    return reinterpret_cast<System*>(sh->user_ptr);
-}
-
-static inline std::string get_cpustate(uint32_t lcoreid)
-{
-    rte_lcore_state_t s = rte_eal_get_lcore_state(lcoreid);
-    switch (s) {
-        case WAIT    : return "WAIT    ";
-        case RUNNING : return "RUNNING ";
-        case FINISHED: return "FINISHED";
-        default:
-            throw slankdev::exception("UNKNOWN STATE");
-    }
-}
-
-
-
-
-
-class kill_fthread : public slankdev::command {
-public:
-    kill_fthread()
-    {
-        nodes.push_back(new slankdev::node_fixedstring("kill", "Thread kill"));
-        nodes.push_back(new slankdev::node_fixedstring("fthread", "Fast Thread running on lcore"));
-        nodes.push_back(new slankdev::node_string);
-    }
-    void func(slankdev::shell* sh)
-    {
-        System* sys = get_sys(sh);
-        sh->Printf("  Kill \"%s\" \r\n", nodes[2]->get().c_str());
-
-        Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
-        if (thread) {
-            sys->kill_Fthread(thread);
-        } else {
-            sh->Printf("  Thread Not Found \r\n");
-        }
-    }
-};
-
-
-
-class launch_fthread : public slankdev::command {
-public:
-    launch_fthread()
-    {
-        nodes.push_back(new slankdev::node_fixedstring("launch", "Thread Launch"));
-        nodes.push_back(new slankdev::node_fixedstring("fthread", "Fast Thread running on lcore"));
-        nodes.push_back(new slankdev::node_string);
-    }
-    void func(slankdev::shell* sh)
-    {
-        System* sys = get_sys(sh);
-        sh->Printf("  Launch \"%s\" \r\n", nodes[2]->get().c_str());
-
-        Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
-        if (thread) {
-            sys->launch_Fthread(thread);
-        } else {
-            sh->Printf("  Thread Not Found \r\n");
-        }
-    }
-};
-
-struct find_fthread : public slankdev::command {
-    find_fthread()
-    {
-        nodes.push_back(new slankdev::node_fixedstring("find", "find Thread"));
-        nodes.push_back(new slankdev::node_fixedstring("fthread", "Fast Thread running on lcore"));
-        nodes.push_back(new slankdev::node_string);
-    }
-    void func(slankdev::shell* sh)
-    {
-        System* sys = get_sys(sh);
-        sh->Printf("  Thread Name: \"%s\" \r\n", nodes[2]->get().c_str());
-
-        Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
-        if (thread) {
-            sh->Printf("  Found: %p \r\n", thread);
-        } else {
-            sh->Printf("  Not Found \r\n");
-        }
-    }
-};
 
 
 struct echo : public slankdev::command {
@@ -252,24 +165,28 @@ public:
         }
         sh->Printf("\r\n");
 
+        /*
+         * Show Lthread infos
+         */
         sh->Printf(" Lthreads\r\n");
-        sh->Printf("   %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
+        sh->Printf("   %-4s %-20s %-10s %-20s \r\n", "No.", "Name", "Ptr", "State");
         nb_threads = sys->lthreadpool.size();
         for (size_t i = 0; i<nb_threads; i++) {
             const Lthread* thread = sys->lthreadpool.get_thread(i);
-            sh->Printf("   %-4zd %-20s %-10p \r\n",
+            sh->Printf("   %-4zd %-20s %-20p %-10s\r\n",
                     i,
                     thread->name.c_str(),
-                    thread);
+                    thread,
+                    thread->running?"running":"stop");
         }
         sh->Printf("\r\n");
 
         sh->Printf(" Tthreads\r\n");
-        sh->Printf("   %-4s %-20s %-10s \r\n", "No.", "Name", "Ptr");
+        sh->Printf("   %-4s %-20s %-20s \r\n", "No.", "Name", "Ptr");
         nb_threads = sys->tthreadpool.size();
         for (size_t i = 0; i<nb_threads; i++) {
             const Tthread* thread = sys->tthreadpool.get_thread(i);
-            sh->Printf("   %-4zd %-20s %-10p \r\n",
+            sh->Printf("   %-4zd %-20s %-20p \r\n",
                     i,
                     thread->name.c_str(),
                     thread);

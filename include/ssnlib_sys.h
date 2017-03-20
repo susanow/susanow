@@ -96,9 +96,15 @@ public:
     ~System();
     void timerinit();
     void dispatch();
-    void launch_Lthread();
+
+    void lthread_sched_kill();
+    void lthread_sched_run();
+
     void launch_Fthread(Fthread* thread);
+    void launch_Lthread(Lthread* thread);
+
     void kill_Fthread(Fthread* thread);
+    void kill_Lthread(Lthread* thread);
 };
 
 

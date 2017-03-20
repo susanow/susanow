@@ -53,7 +53,8 @@ struct Fthread {
 
 struct Lthread {
     const std::string name;
-    Lthread(const char* n) : name(n)
+    bool running;
+    Lthread(const char* n) : name(n), running(false)
     { kernel_log("Construct lthread %s\n", name.c_str()); }
     virtual ~Lthread()
     { kernel_log("Destruct lthread %s \n", name.c_str()); }
@@ -105,15 +106,6 @@ public:
 
 
 class lthread_sched : public Fthread {
-    static void lthread_start(void* arg)
-    {
-        Lthread* thread = reinterpret_cast<Lthread*>(arg);
-        while (1) {
-            thread->impl();
-            lthread_yield ();
-        }
-        lthread_exit (NULL);
-    }
     Lthread_pool& slowthreads;
 public:
     lthread_sched(Lthread_pool& p) : Fthread("lthread_sched"), slowthreads(p) {}
