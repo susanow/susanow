@@ -41,12 +41,34 @@
 
 
 
+inline slankdev::node* fixed_lthread()
+{ return new slankdev::node_fixedstring("lthread", "Slow Thread running on lthreadsched"); }
+
+inline slankdev::node* fixed_fthread()
+{ return new slankdev::node_fixedstring("fthread", "Falst Thread runnig on Lcore"); }
+
+inline slankdev::node* fixed_find()
+{ return new slankdev::node_fixedstring("find", "Find Thread"); }
+
+inline slankdev::node* fixed_launch()
+{ return new slankdev::node_fixedstring("launch", "Launch Thread"); }
+
+inline slankdev::node* fixed_kill()
+{ return new slankdev::node_fixedstring("kill", "Kill Thread"); }
+
+
+
+
+/*
+ * Lthread Commands
+ */
+
 class lthread_schedule_kill : public slankdev::command {
  public:
   lthread_schedule_kill() {
-    nodes.push_back(new slankdev::node_fixedstring("lthread", "Slow Thread running on lthreadsched"));
+    nodes.push_back(fixed_lthread());
     nodes.push_back(new slankdev::node_fixedstring("schedule", "lthread scheduler"));
-    nodes.push_back(new slankdev::node_fixedstring("kill", "kill lthread scheduler"));
+    nodes.push_back(new slankdev::node_fixedstring("kill", "stop lthread scheduler"));
   }
   void func(slankdev::shell* sh) {
     System* sys = get_sys(sh);
@@ -58,7 +80,7 @@ class lthread_schedule_kill : public slankdev::command {
 class lthread_schedule_run : public slankdev::command {
  public:
   lthread_schedule_run() {
-    nodes.push_back(new slankdev::node_fixedstring("lthread", "Slow Thread running on lthreadsched"));
+    nodes.push_back(fixed_lthread());
     nodes.push_back(new slankdev::node_fixedstring("schedule", "lthread scheduler"));
     nodes.push_back(new slankdev::node_fixedstring("run", "start lthread scheduler"));
   }
@@ -70,13 +92,32 @@ class lthread_schedule_run : public slankdev::command {
 };
 
 
-
-class launch_lthread : public slankdev::command {
-public:
-    launch_lthread()
+struct lthread_find : public slankdev::command {
+    lthread_find()
     {
-        nodes.push_back(new slankdev::node_fixedstring("launch", "Thread Launch"));
-        nodes.push_back(new slankdev::node_fixedstring("lthread", "Fast Thread running on lcore"));
+        nodes.push_back(fixed_lthread());
+        nodes.push_back(fixed_find());
+        nodes.push_back(new slankdev::node_string);
+    }
+    void func(slankdev::shell* sh)
+    {
+        System* sys = get_sys(sh);
+        sh->Printf("  Thread Name: \"%s\" \r\n", nodes[2]->get().c_str());
+
+        Lthread* thread = sys->lthreadpool.find_name2ptr(nodes[2]->get());
+        if (thread) {
+            sh->Printf("  Found: %p \r\n", thread);
+        } else {
+            sh->Printf("  Not Found by %zd lthreads\r\n", sys->lthreadpool.size());
+        }
+    }
+};
+class lthread_launch : public slankdev::command {
+public:
+    lthread_launch()
+    {
+        nodes.push_back(fixed_lthread());
+        nodes.push_back(fixed_launch());
         nodes.push_back(new slankdev::node_string);
     }
     void func(slankdev::shell* sh)
@@ -84,43 +125,21 @@ public:
         System* sys = get_sys(sh);
         sh->Printf("  Launch \"%s\" \r\n", nodes[2]->get().c_str());
 
-        Lthread* thread = sys->lthreadpool.find_name2ptr(nodes[2]->get());
-        if (thread) {
-            sys->launch_Lthread(thread);
+        Lthread* lthread = sys->lthreadpool.find_name2ptr(nodes[2]->get());
+        if (lthread) {
+            sys->lthread_launch(lthread);
         } else {
             sh->Printf("  Thread Not Found \r\n");
         }
     }
 };
 
-class launch_fthread : public slankdev::command {
+class lthread_kill : public slankdev::command {
 public:
-    launch_fthread()
+    lthread_kill()
     {
-        nodes.push_back(new slankdev::node_fixedstring("launch", "Thread Launch"));
-        nodes.push_back(new slankdev::node_fixedstring("fthread", "Fast Thread running on lcore"));
-        nodes.push_back(new slankdev::node_string);
-    }
-    void func(slankdev::shell* sh)
-    {
-        System* sys = get_sys(sh);
-        sh->Printf("  Launch \"%s\" \r\n", nodes[2]->get().c_str());
-
-        Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
-        if (thread) {
-            sys->launch_Fthread(thread);
-        } else {
-            sh->Printf("  Thread Not Found \r\n");
-        }
-    }
-};
-
-class kill_fthread : public slankdev::command {
-public:
-    kill_fthread()
-    {
-        nodes.push_back(new slankdev::node_fixedstring("kill", "Thread kill"));
-        nodes.push_back(new slankdev::node_fixedstring("fthread", "Fast Thread running on lcore"));
+        nodes.push_back(fixed_lthread());
+        nodes.push_back(fixed_kill());
         nodes.push_back(new slankdev::node_string);
     }
     void func(slankdev::shell* sh)
@@ -128,31 +147,9 @@ public:
         System* sys = get_sys(sh);
         sh->Printf("  Kill \"%s\" \r\n", nodes[2]->get().c_str());
 
-        Fthread* thread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
-        if (thread) {
-            sys->kill_Fthread(thread);
-        } else {
-            sh->Printf("  Thread Not Found \r\n");
-        }
-    }
-};
-
-class kill_lthread : public slankdev::command {
-public:
-    kill_lthread()
-    {
-        nodes.push_back(new slankdev::node_fixedstring("kill", "Thread kill"));
-        nodes.push_back(new slankdev::node_fixedstring("lthread", "Slow Thread"));
-        nodes.push_back(new slankdev::node_string);
-    }
-    void func(slankdev::shell* sh)
-    {
-        System* sys = get_sys(sh);
-        sh->Printf("  Kill \"%s\" \r\n", nodes[2]->get().c_str());
-
-        Lthread* thread = sys->lthreadpool.find_name2ptr(nodes[2]->get());
-        if (thread) {
-            sys->kill_Lthread(thread);
+        Lthread* lthread = sys->lthreadpool.find_name2ptr(nodes[2]->get());
+        if (lthread) {
+            sys->lthread_kill(lthread);
         } else {
             sh->Printf("  Thread Not Found \r\n");
         }
@@ -161,11 +158,16 @@ public:
 
 
 
-struct find_fthread : public slankdev::command {
-    find_fthread()
+
+/*
+ * Fthread Commands
+ */
+
+struct fthread_find : public slankdev::command {
+    fthread_find()
     {
-        nodes.push_back(new slankdev::node_fixedstring("find", "find Thread"));
-        nodes.push_back(new slankdev::node_fixedstring("fthread", "Fast Thread running on lcore"));
+        nodes.push_back(fixed_fthread());
+        nodes.push_back(fixed_find());
         nodes.push_back(new slankdev::node_string);
     }
     void func(slankdev::shell* sh)
@@ -182,25 +184,48 @@ struct find_fthread : public slankdev::command {
     }
 };
 
-struct find_lthread : public slankdev::command {
-    find_lthread()
+
+class fthread_launch : public slankdev::command {
+public:
+    fthread_launch()
     {
-        nodes.push_back(new slankdev::node_fixedstring("find", "find Thread"));
-        nodes.push_back(new slankdev::node_fixedstring("lthread", "Slow Thread"));
+        nodes.push_back(fixed_fthread());
+        nodes.push_back(fixed_launch());
         nodes.push_back(new slankdev::node_string);
     }
     void func(slankdev::shell* sh)
     {
         System* sys = get_sys(sh);
-        sh->Printf("  Thread Name: \"%s\" \r\n", nodes[2]->get().c_str());
+        sh->Printf("  Launch \"%s\" \r\n", nodes[2]->get().c_str());
 
-        Lthread* thread = sys->lthreadpool.find_name2ptr(nodes[2]->get());
-        if (thread) {
-            sh->Printf("  Found: %p \r\n", thread);
+        Fthread* fthread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
+        if (fthread) {
+            sys->fthread_launch(fthread);
         } else {
-            sh->Printf("  Not Found by %zd lthreads\r\n", sys->lthreadpool.size());
+            sh->Printf("  Thread Not Found \r\n");
         }
     }
 };
 
+class fthread_kill : public slankdev::command {
+public:
+    fthread_kill()
+    {
+        nodes.push_back(fixed_fthread());
+        nodes.push_back(fixed_kill());
+        nodes.push_back(new slankdev::node_string);
+    }
+    void func(slankdev::shell* sh)
+    {
+        System* sys = get_sys(sh);
+        sh->Printf("  Kill \"%s\" \r\n", nodes[2]->get().c_str());
+
+        Fthread* fthread = sys->fthreadpool.find_name2ptr(nodes[2]->get());
+        if (fthread) {
+            sys->fthread_kill(fthread);
+        } else {
+            sh->Printf("  Thread Not Found \r\n");
+        }
+    }
+};
 

@@ -92,19 +92,22 @@ public:
     lthread_sched ltsched;
     struct rte_timer timer[MAXTIMEROBJ];
 
-	System(int argc, char** argv);
+	  System(int argc, char** argv);
     ~System();
     void timerinit();
     void dispatch();
 
+    /*
+     * Thread Control Interface
+     */
+    void fthread_launch(Fthread* thread);
+    void fthread_kill(Fthread* thread);
+
+    void lthread_launch(Lthread* thread);
+    void lthread_kill(Lthread* thread);
+
     void lthread_sched_kill();
     void lthread_sched_run();
-
-    void launch_Fthread(Fthread* thread);
-    void launch_Lthread(Lthread* thread);
-
-    void kill_Fthread(Fthread* thread);
-    void kill_Lthread(Lthread* thread);
 };
 
 

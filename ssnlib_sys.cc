@@ -122,32 +122,15 @@ void System::timerinit()
 }
 
 
-void System::lthread_sched_kill() {
-  if (cpus[LTHRED_LCOREID].thread) cpus[LTHRED_LCOREID].thread->kill();
-}
-
-void System::lthread_sched_run() {
-  if (cpus[LTHRED_LCOREID].thread != nullptr) throw slankdev::exception("run only lthread sched");
-
-  cpus[LTHRED_LCOREID].thread = &ltsched;
-  rte_eal_remote_launch(_thread_launch, &ltsched, LTHRED_LCOREID);
-}
-
 void System::dispatch()
 {
   timerinit();
   lthread_sched_kill();
   lthread_sched_run();
-  launch_Fthread(&vty);
+  fthread_launch(&vty);
 }
 
-void System::launch_Lthread(Lthread* thread)
-{
-    printf("Launch lthread \"%s\" \n", thread->name.c_str());
-    printf("not imple\n");
-}
-
-void System::launch_Fthread(Fthread* thread)
+void System::fthread_launch(Fthread* thread)
 {
     const size_t nb_cpus = cpus.size();
     for (size_t i=2; i<nb_cpus; i++) {
@@ -167,7 +150,7 @@ void System::launch_Fthread(Fthread* thread)
     printf("Can't launch Fthread: reason=no wait cpus \n");
 }
 
-void System::kill_Fthread(Fthread* thread)
+void System::fthread_kill(Fthread* thread)
 {
     int64_t lcore_id = -1;
     for (Cpu& c : cpus) {
@@ -186,10 +169,27 @@ void System::kill_Fthread(Fthread* thread)
     rte_eal_wait_lcore(lcore_id);
 }
 
-void System::kill_Lthread(Lthread* thread)
+void System::lthread_launch(Lthread* thread)
+{
+    printf("Launch lthread \"%s\" \n", thread->name.c_str());
+    printf("not imple\n");
+}
+
+void System::lthread_kill(Lthread* thread)
 {
     printf("Kill lthread \"%s\" \n", thread->name.c_str());
     thread->running = false;
+}
+
+void System::lthread_sched_kill() {
+  if (cpus[LTHRED_LCOREID].thread) cpus[LTHRED_LCOREID].thread->kill();
+}
+
+void System::lthread_sched_run() {
+  if (cpus[LTHRED_LCOREID].thread != nullptr) throw slankdev::exception("run only lthread sched");
+
+  cpus[LTHRED_LCOREID].thread = &ltsched;
+  rte_eal_remote_launch(_thread_launch, &ltsched, LTHRED_LCOREID);
 }
 
 

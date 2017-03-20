@@ -61,23 +61,34 @@ int main(int argc, char** argv)
 
 void install_vty_commands(System* sys)
 {
-    sys->vty.install_command(new quit            );
-    sys->vty.install_command(new clear           );
-    sys->vty.install_command(new echo            );
-    sys->vty.install_command(new list            );
-    sys->vty.install_command(new show_author     );
-    sys->vty.install_command(new show_version    );
-    sys->vty.install_command(new show_cpu        );
-    sys->vty.install_command(new show_port       );
-    sys->vty.install_command(new show_thread_info);
-    sys->vty.install_command(new find_fthread    );
-    sys->vty.install_command(new find_lthread    );
-    sys->vty.install_command(new kill_fthread    );
-    sys->vty.install_command(new kill_lthread    );
-    sys->vty.install_command(new launch_fthread  );
-    sys->vty.install_command(new launch_lthread  );
-    sys->vty.install_command(new lthread_schedule_kill);
-    sys->vty.install_command(new lthread_schedule_run );
+  /*
+   * Misc Commands
+   */
+  sys->vty.install_command(new quit            );
+  sys->vty.install_command(new clear           );
+  sys->vty.install_command(new echo            );
+  sys->vty.install_command(new list            );
+  sys->vty.install_command(new show_author     );
+  sys->vty.install_command(new show_version    );
+  sys->vty.install_command(new show_cpu        );
+  sys->vty.install_command(new show_port       );
+  sys->vty.install_command(new show_thread_info);
+
+  /*
+   * Fthread Commands
+   */
+  sys->vty.install_command(new fthread_find    );
+  sys->vty.install_command(new fthread_kill    );
+  sys->vty.install_command(new fthread_launch  );
+
+  /*
+   * Lthread Commands
+   */
+  sys->vty.install_command(new lthread_find    );
+  sys->vty.install_command(new lthread_kill    );
+  sys->vty.install_command(new lthread_launch  );
+  sys->vty.install_command(new lthread_schedule_kill);
+  sys->vty.install_command(new lthread_schedule_run );
 }
 
 
