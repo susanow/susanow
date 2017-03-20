@@ -55,19 +55,40 @@ public:
 
 
 
-struct slow_thread_test : public Lthread {
-    int a;
-    slow_thread_test(int b) : Lthread(
-            slankdev::fs("slowthread(%d)", b).c_str()
-            ), a(b) {}
-    void impl()
-    {
-        printf("impl %d\n", a);
-        sleep(1);
-    }
+struct lthread_test : public Lthread {
+  int a;
+  lthread_test(int b)
+    : Lthread(slankdev::fs("lthread_test(%d)", b).c_str()),
+    a(b) {}
+  virtual void impl() override {
+    printf("lthread_test(%d)\n", a);
+    sleep(1);
+  }
 };
 
 
+
+class fthread_test : public Fthread {
+  int a;
+  bool running;
+ public:
+  fthread_test(int b)
+    : Fthread(slankdev::fs("fthread_test(%d)", b).c_str()),
+    a(b),
+    running(false) {}
+  virtual void impl() override {
+    running = true;
+    while (running) {
+      printf("fthread_test(%d)\n", a);;
+      sleep(1);
+    }
+  }
+  virtual void kill() override { running = false; }
+};
+
+
+
+#if 0
 class txrxwk : public Fthread {
     System* sys;
     bool running;
@@ -105,6 +126,6 @@ public:
     }
     void kill() override { running = false; }
 };
-
+#endif
 
 

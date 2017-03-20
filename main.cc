@@ -97,11 +97,15 @@ void init_thread_pool(System* sys)
 {
     sys->tthreadpool.add_thread(new timertest(sys));
 
-    sys->lthreadpool.add_thread(new slow_thread_test(0));
-    sys->lthreadpool.add_thread(new slow_thread_test(1));
-    sys->lthreadpool.add_thread(new slow_thread_test(2));
+    sys->lthreadpool.add_thread(new lthread_test(0));
+    sys->lthreadpool.add_thread(new lthread_test(1));
+    sys->lthreadpool.add_thread(new lthread_test(2));
+    sys->lthreadpool.add_thread(new lthread_test(3));
 
-    sys->fthreadpool.add_thread(new txrxwk(sys));
+    sys->fthreadpool.add_thread(new fthread_test(0));
+    sys->fthreadpool.add_thread(new fthread_test(1));
+    sys->fthreadpool.add_thread(new fthread_test(2));
+    sys->fthreadpool.add_thread(new fthread_test(3));
 }
 
 
