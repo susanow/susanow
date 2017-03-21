@@ -2,23 +2,17 @@
 
 SSN := /home/slank/git/susanow
 include $(SSN)/mk/vars.mk
+
+LTHREAD_PATH := /home/slank/git/lthread
+include $(LTHREAD_PATH)/lthread.mk
+
 CXXFLAGS += -Wno-format-security -g
 CXXFLAGS += -fsanitize=address
 CXXFLAGS += -I./include
 CXXFLAGS += -I/home/slank/git/libslankdev
+CXXFLAGS += $(LTHREAD_CFLAGS)
 
-CFLAGS += -I./lthread -I./lthread/arch/x86
-
-
-CSRCS = \
-	lthread/lthread.c       \
-	lthread/lthread_sched.c \
-	lthread/lthread_cond.c  \
-	lthread/lthread_tls.c   \
-	lthread/lthread_mutex.c \
-	lthread/lthread_diag.c  \
-	lthread/arch/x86/ctx.c
-COBJS = $(CSRCS:.c=.o)
+TARGET = a.out
 CXXSRCS   = \
 	main.cc             \
 	ssnlib_sys.cc       \
@@ -28,8 +22,8 @@ CXXSRCS   = \
 	ssnlib_ring.cc      \
 	ssnlib_port_impl.cc
 CXXOBJS   = $(CXXSRCS:.cc=.o)
-OBJS = $(CXXOBJS) $(COBJS)
-TARGET = a.out
+OBJS = $(CXXOBJS) $(LTHREAD_OBJS)
+
 
 include $(SSN)/mk/rules.mk
 
@@ -38,9 +32,8 @@ all: $(OBJS)
 	@echo LD a.out
 	@$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
-
 clean:
-	$(RM) $(TARGET) $(OBJS)
+	$(RM) $(TARGET) $(CXXOBJS)
 
 
 include $(SSN)/mk/runenv.mk
