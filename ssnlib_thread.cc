@@ -101,6 +101,16 @@ void lthread_sched::impl()
 }
 
 
+struct lthread* lt;
+void lthread_sched::launch_lthread(Lthread* lthread)
+{
+  lthread_create(&lt, 1,  ::_lthread_start, lthread);
+}
+
+void lthread_sched::kill_lthread(Lthread* lthread)
+{
+  lthread->running = false;
+}
 
 
 

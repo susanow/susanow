@@ -111,6 +111,8 @@ public:
     lthread_sched(Lthread_pool& p) : Fthread("lthread_sched"), slowthreads(p) {}
     void impl();
     void kill();
+    void launch_lthread(Lthread* lthread);
+    void kill_lthread(Lthread* lthread);
 };
 
 

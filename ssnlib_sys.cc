@@ -51,8 +51,6 @@
 
 
 
-
-
 int _thread_launch(void* arg)
 {
     Fthread* thread = reinterpret_cast<Fthread*>(arg);
@@ -172,13 +170,13 @@ void System::fthread_kill(Fthread* thread)
 void System::lthread_launch(Lthread* thread)
 {
     printf("Launch lthread \"%s\" \n", thread->name.c_str());
-    printf("not imple\n");
+    ltsched.launch_lthread(thread);
 }
 
 void System::lthread_kill(Lthread* thread)
 {
     printf("Kill lthread \"%s\" \n", thread->name.c_str());
-    thread->running = false;
+    ltsched.kill_lthread(thread);
 }
 
 void System::lthread_sched_kill() {
