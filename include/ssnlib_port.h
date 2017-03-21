@@ -43,35 +43,34 @@
 using Rxq    = Rxq_interface;
 using Txq    = Txq_interface;
 class Port {
-public:
-    size_t nb_rx_rings;
-    size_t nb_tx_rings;
-    size_t rx_ring_size;
-    size_t tx_ring_size;
-    Ether_addr        addr;
-    port_conf         conf;
-    port_stats        stats;
-    link_stats        link;
-    dev_info          info;
-    const uint8_t     id;
-    const std::string name;
+ public:
+  size_t nb_rx_rings;
+  size_t nb_tx_rings;
+  size_t rx_ring_size;
+  size_t tx_ring_size;
+  Ether_addr        addr;
+  port_conf         conf;
+  port_stats        stats;
+  link_stats        link;
+  dev_info          info;
+  const uint8_t     id;
+  const std::string name;
 
-    std::vector<Rxq> rxq;
-    std::vector<Txq> txq;
+  std::vector<Rxq> rxq;
+  std::vector<Txq> txq;
 
-public:
-    Port(size_t port_id);
-    ~Port();
-    void init();
-    void fini();
-    void linkup();
-    void linkdown() { rte_eth_dev_set_link_down(id); }
-    void devstart();
-    void devstop () { rte_eth_dev_stop (id); }
-    void promisc_enable()  { rte_eth_promiscuous_enable(id);  }
-    void promisc_disable() { rte_eth_promiscuous_disable(id); }
-    bool is_promiscuous() { return rte_eth_promiscuous_get(id)==1; }
-    void configure();
+  Port(size_t port_id);
+  ~Port();
+  void init();
+  void fini();
+  void linkup();
+  void linkdown() { rte_eth_dev_set_link_down(id); }
+  void devstart();
+  void devstop () { rte_eth_dev_stop (id); }
+  void promisc_enable()  { rte_eth_promiscuous_enable(id);  }
+  void promisc_disable() { rte_eth_promiscuous_disable(id); }
+  bool is_promiscuous() { return rte_eth_promiscuous_get(id)==1; }
+  void configure();
 };
 
 

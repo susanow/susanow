@@ -42,51 +42,51 @@
 
 
 struct Fthread {
-    const std::string name;
-    Fthread(const char* n) : name(n)
-    { kernel_log("Construct thread %s\n", name.c_str()); }
-    virtual ~Fthread()
-    { kernel_log("Destruct thread %s \n", name.c_str()); }
-    virtual void impl() = 0;
-    virtual void kill() = 0;
+  const std::string name;
+  Fthread(const char* n) : name(n)
+  { kernel_log("Construct thread %s\n", name.c_str()); }
+  virtual ~Fthread()
+  { kernel_log("Destruct thread %s \n", name.c_str()); }
+  virtual void impl() = 0;
+  virtual void kill() = 0;
 };
 
 struct Lthread {
-    const std::string name;
-    bool running;
-    Lthread(const char* n) : name(n), running(false)
-    { kernel_log("Construct lthread %s\n", name.c_str()); }
-    virtual ~Lthread()
-    { kernel_log("Destruct lthread %s \n", name.c_str()); }
-    virtual void impl() = 0;
+  const std::string name;
+  bool running;
+  Lthread(const char* n) : name(n), running(false)
+  { kernel_log("Construct lthread %s\n", name.c_str()); }
+  virtual ~Lthread()
+  { kernel_log("Destruct lthread %s \n", name.c_str()); }
+  virtual void impl() = 0;
 };
 
 struct Tthread {
-    const std::string name;
-    Tthread(const char* n) : name(n)
-    { kernel_log("Construct tthread %s\n", name.c_str()); }
-    virtual ~Tthread()
-    { kernel_log("Destruct tthread %s \n", name.c_str()); }
-    virtual void impl() = 0;
+  const std::string name;
+  Tthread(const char* n) : name(n)
+  { kernel_log("Construct tthread %s\n", name.c_str()); }
+  virtual ~Tthread()
+  { kernel_log("Destruct tthread %s \n", name.c_str()); }
+  virtual void impl() = 0;
 };
 
 
 template <class T>
 struct Thread_pool_TMP {
-    std::vector<T*> threads;
-public:
-    virtual ~Thread_pool_TMP() { for (T* t : threads) delete t; }
-    void add_thread(T* t) { threads.push_back(t); }
-    size_t size() const { return threads.size(); }
-    const T* get_thread(size_t i) const { return threads[i]; }
-    T* get_thread(size_t i) { return threads[i]; }
-    T* find_name2ptr(const std::string& name)
-    {
-        for (T* t : threads) {
-            if (t->name == name) return t;
-        }
-        return nullptr;
+  std::vector<T*> threads;
+ public:
+  virtual ~Thread_pool_TMP() { for (T* t : threads) delete t; }
+  void add_thread(T* t) { threads.push_back(t); }
+  size_t size() const { return threads.size(); }
+  const T* get_thread(size_t i) const { return threads[i]; }
+  T* get_thread(size_t i) { return threads[i]; }
+  T* find_name2ptr(const std::string& name)
+  {
+    for (T* t : threads) {
+      if (t->name == name) return t;
     }
+    return nullptr;
+  }
 };
 
 
@@ -96,23 +96,23 @@ using Tthread_pool = Thread_pool_TMP<Tthread>;
 
 
 class vty_thread : public Fthread {
-    slankdev::vty vty_;
-public:
-    vty_thread(void* userptr);
-    void install_command(slankdev::command* cmd) { vty_.install_command(cmd); }
-    void impl() { vty_.dispatch(); }
-    void kill() override {}
+  slankdev::vty vty_;
+ public:
+  vty_thread(void* userptr);
+  void install_command(slankdev::command* cmd) { vty_.install_command(cmd); }
+  virtual void impl() override { vty_.dispatch(); }
+  virtual void kill() override {}
 };
 
 
 class lthread_sched : public Fthread {
-    Lthread_pool& slowthreads;
-public:
-    lthread_sched(Lthread_pool& p) : Fthread("lthread_sched"), slowthreads(p) {}
-    void impl();
-    void kill();
-    void launch_lthread(Lthread* lthread);
-    void kill_lthread(Lthread* lthread);
+  Lthread_pool& slowthreads;
+ public:
+  lthread_sched(Lthread_pool& p) : Fthread("lthread_sched"), slowthreads(p) {}
+  virtual void impl() override;
+  virtual void kill() override;
+  void launch_lthread(Lthread* lthread);
+  void kill_lthread(Lthread* lthread);
 };
 
 

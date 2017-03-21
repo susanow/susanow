@@ -76,38 +76,38 @@
 
 
 enum {
-    LTHRED_LCOREID = 1,
-    MAXTIMEROBJ    = 1000,
+  LTHRED_LCOREID = 1,
+  MAXTIMEROBJ    = 1000,
 };
 
 
 class System {
-public:
-	std::vector<Cpu>  cpus;
-	std::vector<Port> ports;
-    Fthread_pool fthreadpool;
-    Lthread_pool lthreadpool;
-    Tthread_pool tthreadpool;
-    vty_thread    vty;
-    lthread_sched ltsched;
-    struct rte_timer timer[MAXTIMEROBJ];
+ public:
+  std::vector<Cpu>  cpus;
+  std::vector<Port> ports;
+  Fthread_pool fthreadpool;
+  Lthread_pool lthreadpool;
+  Tthread_pool tthreadpool;
+  vty_thread    vty;
+  lthread_sched ltsched;
+  struct rte_timer timer[MAXTIMEROBJ];
 
-	  System(int argc, char** argv);
-    ~System();
-    void timerinit();
-    void dispatch();
+  System(int argc, char** argv);
+  ~System();
+  void timerinit();
+  void dispatch();
 
-    /*
-     * Thread Control Interface
-     */
-    void fthread_launch(Fthread* thread);
-    void fthread_kill(Fthread* thread);
+  /*
+   * Thread Control Interface
+   */
+  void fthread_launch(Fthread* thread);
+  void fthread_kill(Fthread* thread);
 
-    void lthread_launch(Lthread* thread);
-    void lthread_kill(Lthread* thread);
+  void lthread_launch(Lthread* thread);
+  void lthread_kill(Lthread* thread);
 
-    void lthread_sched_kill();
-    void lthread_sched_run();
+  void lthread_sched_kill();
+  void lthread_sched_run();
 };
 
 

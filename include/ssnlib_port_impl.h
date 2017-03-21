@@ -42,78 +42,66 @@
 
 
 
-/*
- * This class has dynamically infomations.
- */
 class port_conf {
-public:
-    const size_t id;
-    rte_eth_conf raw;
-    port_conf(size_t i);
+ public:
+  const size_t id;
+  rte_eth_conf raw;
+  port_conf(size_t i);
 };
 
 
-/*
- * This class has dynamically informations.
- */
 class port_stats {
-    static const size_t IFG = 12;  /* Inter Frame Gap [Byte] */
-    static const size_t PAM =  8;  /* Preamble        [Byte] */
-    static const size_t FCS =  4;  /* Frame Check Seq [Byte] */
-    static const size_t IFO = IFG+PAM+FCS; /* Pack Overhead  */
-public:
-    const size_t id;
-    size_t rx_pps;
-    size_t tx_pps;
-    size_t rx_bps;
-    size_t tx_bps;
-    uint64_t last_update;
-    struct rte_eth_stats init;
-    struct rte_eth_stats cure_prev;
-    struct rte_eth_stats cure;
+  static const size_t IFG = 12;  /* Inter Frame Gap [Byte] */
+  static const size_t PAM =  8;  /* Preamble        [Byte] */
+  static const size_t FCS =  4;  /* Frame Check Seq [Byte] */
+  static const size_t IFO = IFG+PAM+FCS; /* Pack Overhead  */
+ public:
+  const size_t id;
+  size_t rx_pps;
+  size_t tx_pps;
+  size_t rx_bps;
+  size_t tx_bps;
+  uint64_t last_update;
+  struct rte_eth_stats init;
+  struct rte_eth_stats cure_prev;
+  struct rte_eth_stats cure;
 
-    port_stats(size_t i)
-        : id(i), rx_pps(0), tx_pps(0), rx_bps(0), tx_bps(0),
-        last_update(0) { reset(); }
-    void reset();
-    void update();
+  port_stats(size_t i)
+    : id(i), rx_pps(0), tx_pps(0), rx_bps(0), tx_bps(0),
+    last_update(0) { reset(); }
+  void reset();
+  void update();
 };
 
 
-/*
- * This class has dynamically informations.
- */
 class link_stats {
-public:
-    const size_t id;
-    struct rte_eth_link raw;
-    link_stats(size_t i) : id(i) {}
-    void update() { rte_eth_link_get_nowait(id, &raw); }
+ public:
+  const size_t id;
+  struct rte_eth_link raw;
+  link_stats(size_t i) : id(i) {}
+  void update() { rte_eth_link_get_nowait(id, &raw); }
 };
 
 
-/*
- * This class has statically infomations.
- */
 class dev_info {
-public:
-    const size_t id;
-    struct rte_eth_dev_info raw;
-    dev_info(size_t i) : id(i) {}
-    void get() { rte_eth_dev_info_get(id, &raw); }
+ public:
+  const size_t id;
+  struct rte_eth_dev_info raw;
+  dev_info(size_t i) : id(i) {}
+  void get() { rte_eth_dev_info_get(id, &raw); }
 };
 
 
 class Ether_addr : public ::ether_addr {
-public:
-    const size_t id;
-    Ether_addr(size_t i) : id(i) {}
-    void print(FILE* fd) const { fprintf(fd, "%s", toString().c_str()); }
-    void update() { rte_eth_macaddr_get(id, this); }
-    void set(::ether_addr* addr);
-    void add(::ether_addr* addr);
-    void del(::ether_addr* addr);
-    std::string toString() const;
+ public:
+  const size_t id;
+  Ether_addr(size_t i) : id(i) {}
+  void print(FILE* fd) const { fprintf(fd, "%s", toString().c_str()); }
+  void update() { rte_eth_macaddr_get(id, this); }
+  void set(::ether_addr* addr);
+  void add(::ether_addr* addr);
+  void del(::ether_addr* addr);
+  std::string toString() const;
 };
 
 

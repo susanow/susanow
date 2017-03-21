@@ -37,17 +37,17 @@
 
 
 class Mempool {
-    rte_mempool* raw_;
-public:
-    Mempool() : raw_(nullptr) {}
-    Mempool(const char* name, size_t nb_seg, size_t cache_siz,
-            size_t mbuf_siz, uint16_t sock_id) : Mempool()
-    { create(name, nb_seg, cache_siz, mbuf_siz, sock_id); }
-    ~Mempool() { free(); }
-    void create(const char* name, size_t nb_seg,
-            size_t cache_siz, size_t mbuf_siz, uint16_t sock_id);
-    void free();
-    rte_mempool* get_raw() { return raw_; }
+  rte_mempool* raw_;
+ public:
+  Mempool() : raw_(nullptr) {}
+  Mempool(const char* name, size_t nb_seg, size_t cache_siz,
+      size_t mbuf_siz, uint16_t sock_id) : Mempool()
+  { create(name, nb_seg, cache_siz, mbuf_siz, sock_id); }
+  ~Mempool() { free(); }
+  void create(const char* name, size_t nb_seg,
+      size_t cache_siz, size_t mbuf_siz, uint16_t sock_id);
+  void free();
+  rte_mempool* get_raw() { return raw_; }
 };
 
 

@@ -5,5 +5,5 @@
 template <class... ARGS>
 inline void kernel_log(const char* fmt, ARGS... args)
 {
-    printf(fmt, args...);
+  printf(fmt, args...);
 }
