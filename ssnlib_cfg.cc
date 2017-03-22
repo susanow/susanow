@@ -52,8 +52,10 @@ void Config::load(const char* filename)
 
   for (size_t i = 0; i < nb_sections; i++) {
     sections[i].name = section_names[i];
-    const size_t nb_entries = rte_cfgfile_section_num_entries(cfg, section_names[i]);
-    rte_cfgfile_entry* ents = (rte_cfgfile_entry*)malloc(nb_entries * sizeof(rte_cfgfile_entry));
+    const size_t nb_entries
+      = rte_cfgfile_section_num_entries(cfg, section_names[i]);
+    rte_cfgfile_entry* ents
+      = (rte_cfgfile_entry*)malloc(nb_entries * sizeof(rte_cfgfile_entry));
     ret = rte_cfgfile_section_entries(cfg, section_names[i], ents, nb_entries);
     sections[i].entries.resize(nb_entries);
     if (ret < 0) throw slankdev::exception("rte_cfgfile_sections");

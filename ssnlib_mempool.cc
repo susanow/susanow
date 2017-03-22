@@ -48,31 +48,31 @@
 #include <slankdev/exception.h>
 
 void Mempool::create(const char* name,
-        size_t nb_seg, size_t cache_siz,
-        size_t mbuf_siz, uint16_t sock_id)
+    size_t nb_seg, size_t cache_siz,
+    size_t mbuf_siz, uint16_t sock_id)
 {
-    if (raw_)
-        throw slankdev::exception("already created");
+  if (raw_)
+    throw slankdev::exception("already created");
 
-    raw_ = rte_pktmbuf_pool_create(name,
-                    nb_seg, cache_siz, 0,
-                    mbuf_siz, sock_id);
-    if (!raw_) {
-        fprintf(stderr, "name     : %s  \n", name     );
-        fprintf(stderr, "nb_seg   : %zd \n", nb_seg   );
-        fprintf(stderr, "cache_siz: %zd \n", cache_siz);
-        fprintf(stderr, "mbuf_siz : %zd \n", mbuf_siz );
-        fprintf(stderr, "sock_id  : %u  \n", sock_id  );
+  raw_ = rte_pktmbuf_pool_create(name,
+      nb_seg, cache_siz, 0,
+      mbuf_siz, sock_id);
+  if (!raw_) {
+    fprintf(stderr, "name     : %s  \n", name     );
+    fprintf(stderr, "nb_seg   : %zd \n", nb_seg   );
+    fprintf(stderr, "cache_siz: %zd \n", cache_siz);
+    fprintf(stderr, "mbuf_siz : %zd \n", mbuf_siz );
+    fprintf(stderr, "sock_id  : %u  \n", sock_id  );
 
-        throw slankdev::exception("can not create pool");
-    }
+    throw slankdev::exception("can not create pool");
+  }
 }
 
 
 void Mempool::free()
 {
-    if (raw_) {
-        rte_mempool_free(raw_);
-        raw_ = nullptr;
-    }
+  if (raw_) {
+    rte_mempool_free(raw_);
+    raw_ = nullptr;
+  }
 }
