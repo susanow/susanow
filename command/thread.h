@@ -42,10 +42,19 @@
 
 
 inline slankdev::node* fixed_lthread()
-{ return new slankdev::node_fixedstring("lthread", "Slow Thread running on lthreadsched"); }
+{
+  return new slankdev::node_fixedstring(
+      "lthread", "Slow Thread running on lthreadsched");
+}
 
 inline slankdev::node* fixed_fthread()
-{ return new slankdev::node_fixedstring("fthread", "Falst Thread runnig on Lcore"); }
+{
+  return new slankdev::node_fixedstring(
+      "fthread", "Falst Thread runnig on Lcore");
+}
+
+inline slankdev::node* fixed_list()
+{ return new slankdev::node_fixedstring("list", "List emements"); }
 
 inline slankdev::node* fixed_find()
 { return new slankdev::node_fixedstring("find", "Find Thread"); }
@@ -63,6 +72,7 @@ inline slankdev::node* fixed_kill()
  * Lthread Commands
  */
 
+#if 0
 class lthread_schedule_kill : public slankdev::command {
  public:
   lthread_schedule_kill() {
@@ -90,7 +100,33 @@ class lthread_schedule_run : public slankdev::command {
     sys->lthread_sched_run();
   }
 };
+#endif
 
+
+class lthread_list : public slankdev::command {
+ public:
+  lthread_list()
+  {
+    nodes.push_back(fixed_lthread());
+    nodes.push_back(fixed_list());
+  }
+  void func(slankdev::shell* sh)
+  {
+    System* sys = get_sys(sh);
+    sh->Printf("\r\n");
+    sh->Printf("   %-4s %-20s %-10s %-20s \r\n", "No.", "Name", "Ptr", "State");
+    size_t nb_threads = sys->lthreadpool.size();
+    for (size_t i = 0; i<nb_threads; i++) {
+      const Lthread* thread = sys->lthreadpool.get_thread(i);
+      sh->Printf("   %-4zd %-20s %-20p %-10s\r\n",
+          i,
+          thread->name.c_str(),
+          thread,
+          thread->running?"running":"stop");
+    }
+    sh->Printf("\r\n");
+  }
+};
 
 class lthread_find : public slankdev::command {
  public:

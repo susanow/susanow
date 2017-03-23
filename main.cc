@@ -84,11 +84,12 @@ void install_vty_commands(System* sys)
   /*
    * Lthread Commands
    */
+  sys->vty.install_command(new lthread_list    );
   sys->vty.install_command(new lthread_find    );
   sys->vty.install_command(new lthread_kill    );
   sys->vty.install_command(new lthread_launch  );
-  sys->vty.install_command(new lthread_schedule_kill);
-  sys->vty.install_command(new lthread_schedule_run );
+  // sys->vty.install_command(new lthread_schedule_kill);
+  // sys->vty.install_command(new lthread_schedule_run );
 }
 
 
