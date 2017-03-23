@@ -6,9 +6,10 @@ include $(SSN)/mk/vars.mk
 LTHREAD_PATH := /home/slank/git/lthread
 include $(LTHREAD_PATH)/lthread.mk
 
+
 CXXFLAGS += -Wno-format-security -g
 CXXFLAGS += -fsanitize=address
-CXXFLAGS += -I./include
+CXXFLAGS += -I./include -I./
 CXXFLAGS += -I/home/slank/git/libslankdev
 CXXFLAGS += $(LTHREAD_CFLAGS)
 
@@ -31,6 +32,9 @@ include $(SSN)/mk/rules.mk
 all: $(OBJS)
 	@echo LD a.out
 	@$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
+
+# Depends
+main.o: command/thread.h command/misc.h
 
 clean:
 	$(RM) $(TARGET) $(CXXOBJS)

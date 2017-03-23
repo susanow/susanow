@@ -65,6 +65,9 @@ class lthread_test : public Lthread {
     printf("lthread_test(%d)\n", a);
     lthread_sleep(1 * 1000 * 1000 * 1000);
   }
+  virtual void kill() override {
+    running = false;
+  }
 };
 
 
@@ -89,11 +92,11 @@ class fthread_test : public Fthread {
 
 
 
-#if 0
+#if 1
 class txrxwk : public Fthread {
   System* sys;
   bool running;
-  public:
+ public:
   txrxwk(System* s) : Fthread("txrxwk"), sys(s), running(false) {}
   void impl()
   {

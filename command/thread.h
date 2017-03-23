@@ -65,42 +65,30 @@ inline slankdev::node* fixed_launch()
 inline slankdev::node* fixed_kill()
 { return new slankdev::node_fixedstring("kill", "Kill Thread"); }
 
+inline slankdev::node* fixed_scheduler()
+{ return new slankdev::node_fixedstring("scheduler", "lthread scheduler"); }
 
+inline slankdev::node* fixed_show()
+{ new slankdev::node_fixedstring("show", "show lthread scheduler"); }
 
 
 /*
  * Lthread Commands
  */
 
-#if 0
-class lthread_schedule_kill : public slankdev::command {
+class lthread_scheduler_show : public slankdev::command {
  public:
-  lthread_schedule_kill() {
+  lthread_scheduler_show() {
     nodes.push_back(fixed_lthread());
-    nodes.push_back(new slankdev::node_fixedstring("schedule", "lthread scheduler"));
-    nodes.push_back(new slankdev::node_fixedstring("kill", "stop lthread scheduler"));
+    nodes.push_back(fixed_show());
+    nodes.push_back();
   }
   void func(slankdev::shell* sh) {
     System* sys = get_sys(sh);
-    sh->Printf("  kill lthread scheduler\r\n");
-    sys->lthread_sched_kill();
+    sys->ltsched.show(sh);
   }
 };
 
-class lthread_schedule_run : public slankdev::command {
- public:
-  lthread_schedule_run() {
-    nodes.push_back(fixed_lthread());
-    nodes.push_back(new slankdev::node_fixedstring("schedule", "lthread scheduler"));
-    nodes.push_back(new slankdev::node_fixedstring("run", "start lthread scheduler"));
-  }
-  void func(slankdev::shell* sh) {
-    System* sys = get_sys(sh);
-    sh->Printf("  start lthread scheduler\r\n");
-    sys->lthread_sched_run();
-  }
-};
-#endif
 
 
 class lthread_list : public slankdev::command {
@@ -110,11 +98,11 @@ class lthread_list : public slankdev::command {
     nodes.push_back(fixed_lthread());
     nodes.push_back(fixed_list());
   }
-  void func(slankdev::shell* sh)
+  void func(slankdev::shell* sh) { lthread_list::func_impl(sh); }
+  static void func_impl(slankdev::shell* sh)
   {
     System* sys = get_sys(sh);
-    sh->Printf("\r\n");
-    sh->Printf("   %-4s %-20s %-10s %-20s \r\n", "No.", "Name", "Ptr", "State");
+    sh->Printf("   %-4s %-20s %-20s %-10s \r\n", "No.", "Name", "Ptr", "State");
     size_t nb_threads = sys->lthreadpool.size();
     for (size_t i = 0; i<nb_threads; i++) {
       const Lthread* thread = sys->lthreadpool.get_thread(i);
@@ -122,9 +110,8 @@ class lthread_list : public slankdev::command {
           i,
           thread->name.c_str(),
           thread,
-          thread->running?"running":"stop");
+          thread->is_run()?"running":"stop");
     }
-    sh->Printf("\r\n");
   }
 };
 
@@ -199,6 +186,55 @@ class lthread_kill : public slankdev::command {
 /*
  * Fthread Commands
  */
+
+
+class fthread_list : public slankdev::command {
+  static std::string get_launch_state(System* sys, const Fthread* thread)
+  {
+    const size_t nb_cpus = sys->cpus.size();
+    for (size_t i=1; i<nb_cpus; i++) {
+      if (sys->cpus[i].thread == thread) {
+        return "lcore" + std::to_string(i);
+      }
+    }
+    return "none";
+  }
+ public:
+  fthread_list()
+  {
+    nodes.push_back(fixed_fthread());
+    nodes.push_back(fixed_list());
+  }
+  void func(slankdev::shell* sh) { func_impl(sh); }
+  static void func_impl(slankdev::shell* sh)
+  {
+    System* sys = get_sys(sh);
+
+    const Fthread* thread;
+    size_t nb_threads;
+    std::string state;
+    sh->Printf("   %-4s %-20s %-20s %-10s\r\n", "No.", "Name", "Ptr", "State");
+    thread = &sys->vty;
+    state = get_launch_state(sys, thread);
+    sh->Printf("   %-4s %-20s %-20p %-10s\r\n",
+        "N/A", thread->name.c_str(), thread, state.c_str());
+    thread = &sys->ltsched;
+    state = get_launch_state(sys, thread);
+    sh->Printf("   %-4s %-20s %-20p %-10s\r\n",
+        "N/A", thread->name.c_str(), thread, state.c_str());
+    nb_threads = sys->fthreadpool.size();
+    for (size_t i=0; i<nb_threads; i++) {
+      thread = sys->fthreadpool.get_thread(i);
+      state = get_launch_state(sys, thread);
+      sh->Printf("   %-4zd %-20s %-20p %-10s\r\n",
+          i,
+          thread->name.c_str(),
+          thread,
+          state.c_str());
+    }
+  }
+};
+
 
 class fthread_find : public slankdev::command {
  public:

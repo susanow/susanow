@@ -51,22 +51,6 @@
 
 
 
-int _thread_launch(void* arg)
-{
-  Fthread* thread = reinterpret_cast<Fthread*>(arg);
-  uint32_t lcoreid = rte_lcore_id();
-  printf("Launch thread \"%s\" to lcoreid=%u \n",
-                    thread->name.c_str(), lcoreid);
-  thread->impl();
-  return 0;
-}
-
-
-void _timer_launch(struct rte_timer *, void *arg)
-{
-  Tthread* tthread = reinterpret_cast<Tthread*>(arg);
-  tthread->impl();
-}
 
 
 System::System(int argc, char** argv) : vty(this), ltsched(lthreadpool)
@@ -92,8 +76,8 @@ System::System(int argc, char** argv) : vty(this), ltsched(lthreadpool)
 
 System::~System()
 {
-  kernel_log("[+] System Halt ...\n");
   rte_eal_mp_wait_lcore();
+  kernel_log("[+] System Halt ...\n");
 }
 
 void System::timerinit()
@@ -115,7 +99,7 @@ void System::timerinit()
     rte_timer_reset(
         &timer[i], hz, PERIODICAL,
         LTHRED_LCOREID,
-        _timer_launch,
+        Tthread::spawner,
         tthreadpool.get_thread(i)
         );
   }
@@ -125,8 +109,8 @@ void System::timerinit()
 void System::dispatch()
 {
   timerinit();
-  // lthread_sched_kill();
-  lthread_sched_run();
+  cpus[LTHRED_LCOREID].thread = &ltsched;
+  rte_eal_remote_launch(Fthread::spawner, &ltsched, LTHRED_LCOREID);
   fthread_launch(&vty);
 }
 
@@ -143,7 +127,7 @@ void System::fthread_launch(Fthread* thread)
     rte_lcore_state_t s = rte_eal_get_lcore_state(i);
     if (s == WAIT) {
       cpus[i].thread = thread;
-      rte_eal_remote_launch(_thread_launch, thread, i);
+      rte_eal_remote_launch(Fthread::spawner, thread, i);
       return ;
     }
   }
@@ -179,17 +163,6 @@ void System::lthread_kill(Lthread* thread)
 {
   printf("Kill lthread \"%s\" \n", thread->name.c_str());
   ltsched.kill_lthread(thread);
-}
-
-void System::lthread_sched_kill() {
-  if (cpus[LTHRED_LCOREID].thread) cpus[LTHRED_LCOREID].thread->kill();
-  lthread_scheduler_shutdown_all();
-  printf("SLANKDEVSLANKDEV\n");
-}
-
-void System::lthread_sched_run() {
-  cpus[LTHRED_LCOREID].thread = &ltsched;
-  rte_eal_remote_launch(_thread_launch, &ltsched, LTHRED_LCOREID);
 }
 
 

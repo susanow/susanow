@@ -56,7 +56,17 @@ class Cpu {
     }
     kernel_log("Construct %s\n", name.c_str());
   }
-   ~Cpu() { kernel_log("Dustruct %s\n", name.c_str()); }
+  ~Cpu() { kernel_log("Dustruct %s\n", name.c_str()); }
+  std::string get_state() const
+  {
+    rte_lcore_state_t s = rte_eal_get_lcore_state(lcore_id);
+    switch (s) {
+      case WAIT    : return "WAIT    ";
+      case RUNNING : return "RUNNING ";
+      case FINISHED: return "FINISHED";
+      default: assert(false);
+    }
+  }
 };
 
 

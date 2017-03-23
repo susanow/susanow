@@ -42,10 +42,29 @@
 
 
 
-volatile bool force_quit;
+int Fthread::spawner(void* arg)
+{
+  Fthread* thread = reinterpret_cast<Fthread*>(arg);
+  uint32_t lcoreid = rte_lcore_id();
+  printf("Launch thread \"%s\" to lcoreid=%u \n",
+                    thread->name.c_str(), lcoreid);
+  thread->impl();
+  return 0;
+}
+
+Fthread::Fthread(const char* n) : name(n)
+{ kernel_log("Construct thread %s\n", name.c_str()); }
+Fthread::~Fthread()
+{ kernel_log("Destruct thread %s \n", name.c_str()); }
 
 
-static void _lthread_start(void* arg)
+
+Lthread::Lthread(const char* n) : running(false), name(n)
+{ kernel_log("Construct lthread %s\n", name.c_str()); }
+Lthread::~Lthread()
+{ kernel_log("Destruct lthread %s \n", name.c_str()); }
+bool Lthread::is_run() const { return running; }
+void Lthread::spawner(void* arg)
 {
   Lthread* thread = reinterpret_cast<Lthread*>(arg);
   printf(" launch lthread \"%s\"\n", thread->name.c_str());
@@ -58,6 +77,20 @@ static void _lthread_start(void* arg)
   lthread_exit (NULL);
 }
 
+
+Tthread::Tthread(const char* n) : name(n)
+{ kernel_log("Construct tthread %s\n", name.c_str()); }
+Tthread::~Tthread()
+{ kernel_log("Destruct tthread %s \n", name.c_str()); }
+
+void Tthread::spawner(struct rte_timer *, void *arg)
+{
+  Tthread* tthread = reinterpret_cast<Tthread*>(arg);
+  tthread->impl();
+}
+
+
+
 const char* str = "\r\n"
 "Hello, this is Susanow (version 0.00.00.0).\r\n"
 "Copyright 2017-2020 Hiroki SHIROKURA.\r\n"
@@ -65,11 +98,11 @@ const char* str = "\r\n"
 " .d8888b.                                                             \r\n"
 "d88P  Y88b                                                            \r\n"
 "Y88b.                                                                 \r\n"
-" \"Y888b.   888  888 .d8888b   8888b.  88888b.   .d88b.  888  888  888 \r\n"
-"    \"Y88b. 888  888 88K          \"88b 888 \"88b d88\"\"88b 888  888  888 \r\n"
+" \"Y888b.   888  888 .d8888b   8888b.  88888b.   .d88b.  888  888  888\r\n"
+"    \"Y88b. 888  888 88K          \"88b 888 \"88b d88\"\"88b 888  888  888\r\n"
 "      \"888 888  888 \"Y8888b. .d888888 888  888 888  888 888  888  888 \r\n"
 "Y88b  d88P Y88b 888      X88 888  888 888  888 Y88..88P Y88b 888 d88P \r\n"
-" \"Y8888P\"   \"Y88888  88888P\' \"Y888888 888  888  \"Y88P\"   \"Y8888888P\"  \r\n"
+" \"Y8888P\"   \"Y88888  88888P\' \"Y888888 888  888  \"Y88P\"   \"Y8888888P\"\r\n"
 "\r\n";
 
 vty_thread::vty_thread(void* userptr)
@@ -77,41 +110,45 @@ vty_thread::vty_thread(void* userptr)
   vty_(9999, str, "Susanow> ") { vty_.user_ptr = userptr; }
 
 
-  void lthread_sched::kill() {
-    printf("lthread_sched.kill()\n");
-    force_quit = true;
-  }
-
-
 void lthread_sched::impl()
 {
-  size_t nb_threads = slowthreads.size();
-  printf("Lthread: Launch %zd threads...\n", nb_threads);
-  struct lthread *lt[nb_threads];
-  for (size_t i=0; i<nb_threads; i++) {
-    lthread_create (
-        &lt[i], -1,
-        _lthread_start,
-        slowthreads.get_thread(i)
-        );
-  }
+  class startlthread : public Lthread {
+   public:
+    startlthread() : Lthread("test") {}
+    void impl() override {}
+    void kill() override {}
+  };
+
+  printf("Lthread: Launch scheduler start \n");
+
+  startlthread slth;
+  struct lthread* lt;
+  lthread_create(&lt, -1, Lthread::spawner, &slth);
+  lts.push_back(lt);
+
   lthread_run();
   printf("Lthread finished \n");
-  printf("SLANKDEVVVDDVDV Lthread finished \n");
 }
 
 
-struct lthread* lt;
 void lthread_sched::launch_lthread(Lthread* lthread)
 {
-  lthread_create(&lt, 1,  ::_lthread_start, lthread);
+  struct lthread* lt;
+  lthread_create(&lt, 1,  Lthread::spawner, lthread);
+  lts.push_back(lt);
 }
 
 void lthread_sched::kill_lthread(Lthread* lthread)
 {
-  lthread->running = false;
+  lthread->kill();
 }
 
-
+void lthread_sched::show(slankdev::shell* sh) const
+{
+  sh->Printf(" Lthread scheduler \r\n");
+  for (size_t i=0; i<lts.size(); i++) {
+    sh->Printf("  %p \r\n", lts[i]);
+  }
+}
 
 

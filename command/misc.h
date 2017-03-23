@@ -36,6 +36,7 @@
 #include <slankdev/dpdk_struct.h>
 #include <ssnlib_thread.h>
 #include <ssnlib_misc.h>
+#include <command/thread.h>
 
 
 
@@ -175,14 +176,15 @@ class show_cpu : public slankdev::command {
     nodes.push_back(new slankdev::node_fixedstring("show", "show infos"));
     nodes.push_back(new slankdev::node_fixedstring("cpu", "cpu infos"));
   }
-  void func(slankdev::shell* sh)
+  virtual void func(slankdev::shell* sh) override { show_cpu::func_impl(sh); }
+  static void func_impl(slankdev::shell* sh)
   {
-    sh->Printf(" %-4s %-10s %-20s %-20s\r\n", "ID", "State", "Thread", "Name");
+    sh->Printf("  %-4s %-10s %-20s %-20s\r\n", "ID", "State", "Thread", "Name");
     System* sys = get_sys(sh);
     for (size_t i=0; i<sys->cpus.size(); i++) {
-      std::string state = get_cpustate(i);
+      std::string state = sys->cpus[i].get_state();
       Fthread* thread = sys->cpus[i].thread;
-      sh->Printf(" %-4zd %-10s %-20p %-20s\r\n", i, state.c_str(),
+      sh->Printf("  %-4zd %-10s %-20p %-20s\r\n", i, state.c_str(),
           thread, thread?thread->name.c_str():"none");
     }
   }
@@ -191,63 +193,24 @@ class show_cpu : public slankdev::command {
 
 void show_thread_info::func(slankdev::shell* sh)
 {
+  System* sys = get_sys(sh);
+
   sh->Printf("\r\n");
   sh->Printf(" CPU state\r\n");
-  sh->Printf("   %-4s %-10s %-20s %-20s\r\n", "ID", "State", "Thread", "Name");
-  System* sys = get_sys(sh);
-  for (size_t i=0; i<sys->cpus.size(); i++) {
-    std::string state = get_cpustate(i);
-    Fthread* thread = sys->cpus[i].thread;
-    sh->Printf("   %-4zd %-10s %-20p %-20s\r\n", i, state.c_str(),
-        thread, thread?thread->name.c_str():"none");
-  }
+  show_cpu::func_impl(sh);
   sh->Printf("\r\n");
 
-
-  const Fthread* thread;
-  size_t nb_threads;
-  std::string state;
   sh->Printf(" Fthreads\r\n");
-  sh->Printf("   %-4s %-20s %-20s %-10s\r\n", "No.", "Name", "Ptr", "State");
-  thread = &sys->vty;
-  state = get_launch_state(sys, thread);
-  sh->Printf("   %-4s %-20s %-20p %-10s\r\n",
-      "N/A", thread->name.c_str(), thread, state.c_str());
-  thread = &sys->ltsched;
-  state = get_launch_state(sys, thread);
-  sh->Printf("   %-4s %-20s %-20p %-10s\r\n",
-      "N/A", thread->name.c_str(), thread, state.c_str());
-  nb_threads = sys->fthreadpool.size();
-  for (size_t i=0; i<nb_threads; i++) {
-    thread = sys->fthreadpool.get_thread(i);
-    state = get_launch_state(sys, thread);
-    sh->Printf("   %-4zd %-20s %-20p %-10s\r\n",
-        i,
-        thread->name.c_str(),
-        thread,
-        state.c_str());
-  }
+  fthread_list::func_impl(sh);
   sh->Printf("\r\n");
 
-  /*
-   * Show Lthread infos
-   */
   sh->Printf(" Lthreads\r\n");
-  sh->Printf("   %-4s %-20s %-10s %-20s \r\n", "No.", "Name", "Ptr", "State");
-  nb_threads = sys->lthreadpool.size();
-  for (size_t i = 0; i<nb_threads; i++) {
-    const Lthread* thread = sys->lthreadpool.get_thread(i);
-    sh->Printf("   %-4zd %-20s %-20p %-10s\r\n",
-        i,
-        thread->name.c_str(),
-        thread,
-        thread->running?"running":"stop");
-  }
+  lthread_list::func_impl(sh);
   sh->Printf("\r\n");
 
   sh->Printf(" Tthreads\r\n");
   sh->Printf("   %-4s %-20s %-20s \r\n", "No.", "Name", "Ptr");
-  nb_threads = sys->tthreadpool.size();
+  size_t nb_threads = sys->tthreadpool.size();
   for (size_t i = 0; i<nb_threads; i++) {
     const Tthread* thread = sys->tthreadpool.get_thread(i);
     sh->Printf("   %-4zd %-20s %-20p \r\n",
@@ -257,3 +220,5 @@ void show_thread_info::func(slankdev::shell* sh)
   }
   sh->Printf("\r\n");
 }
+
+

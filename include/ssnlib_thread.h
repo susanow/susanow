@@ -33,6 +33,7 @@
 #pragma once
 
 #include <string>
+#include <slankdev/dpdk_header.h>
 #include <slankdev/exception.h>
 #include <ssnlib_log.h>
 #include <slankdev/vty.h>
@@ -43,32 +44,34 @@
 
 struct Fthread {
   const std::string name;
-  Fthread(const char* n) : name(n)
-  { kernel_log("Construct thread %s\n", name.c_str()); }
-  virtual ~Fthread()
-  { kernel_log("Destruct thread %s \n", name.c_str()); }
+  Fthread(const char* n);
+  virtual ~Fthread();
   virtual void impl() = 0;
   virtual void kill() = 0;
+  static int spawner(void* arg);
 };
 
-struct Lthread {
-  const std::string name;
+class Lthread {
+ protected:
   bool running;
-  Lthread(const char* n) : name(n), running(false)
-  { kernel_log("Construct lthread %s\n", name.c_str()); }
-  virtual ~Lthread()
-  { kernel_log("Destruct lthread %s \n", name.c_str()); }
+ public:
+  const std::string name;
+  Lthread(const char* n);
+  virtual ~Lthread();
   virtual void impl() = 0;
+  virtual void kill() = 0;
+  bool is_run() const;
+  static void spawner(void* arg);
 };
 
 struct Tthread {
   const std::string name;
-  Tthread(const char* n) : name(n)
-  { kernel_log("Construct tthread %s\n", name.c_str()); }
-  virtual ~Tthread()
-  { kernel_log("Destruct tthread %s \n", name.c_str()); }
+  Tthread(const char* n);
+  virtual ~Tthread();
   virtual void impl() = 0;
+  static void spawner(struct rte_timer *, void *arg);
 };
+
 
 
 template <class T>
@@ -107,12 +110,14 @@ class vty_thread : public Fthread {
 
 class lthread_sched : public Fthread {
   Lthread_pool& slowthreads;
+  std::vector<struct lthread*> lts;
  public:
   lthread_sched(Lthread_pool& p) : Fthread("lthread_sched"), slowthreads(p) {}
   virtual void impl() override;
-  virtual void kill() override;
+  virtual void kill() override {}
   void launch_lthread(Lthread* lthread);
   void kill_lthread(Lthread* lthread);
+  void show(slankdev::shell* sh) const;
 };
 
 
