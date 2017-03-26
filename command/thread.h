@@ -69,7 +69,7 @@ inline slankdev::node* fixed_scheduler()
 { return new slankdev::node_fixedstring("scheduler", "lthread scheduler"); }
 
 inline slankdev::node* fixed_show()
-{ new slankdev::node_fixedstring("show", "show lthread scheduler"); }
+{ return new slankdev::node_fixedstring("show", "show lthread scheduler"); }
 
 
 /*
@@ -80,8 +80,8 @@ class lthread_scheduler_show : public slankdev::command {
  public:
   lthread_scheduler_show() {
     nodes.push_back(fixed_lthread());
+    nodes.push_back(fixed_scheduler());
     nodes.push_back(fixed_show());
-    nodes.push_back();
   }
   void func(slankdev::shell* sh) {
     System* sys = get_sys(sh);
