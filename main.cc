@@ -38,6 +38,7 @@
 #include <slankdev/system.h>
 
 #include "command/misc.h"
+#include "command/port.h"
 #include "command/thread.h"
 #include "threads.h"
 
@@ -70,6 +71,17 @@ void install_vty_commands(System* sys)
   sys->vty.install_command(new show_cpu        );
   sys->vty.install_command(new show_port       );
   sys->vty.install_command(new show_thread_info);
+
+  /*
+   * Port Commands
+   */
+  sys->vty.install_command(new port_configure  );
+  sys->vty.install_command(new port_set_nbq    );
+  sys->vty.install_command(new port_link_down  );
+  sys->vty.install_command(new port_link_up    );
+  sys->vty.install_command(new port_dev_start  );
+  sys->vty.install_command(new port_dev_stop   );
+  sys->vty.install_command(new port_rss        );
 
   /*
    * Fthread Commands

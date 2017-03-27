@@ -36,6 +36,7 @@
 #include <ssnlib_sys.h>
 #include <ssnlib_thread.h>
 #include <slankdev/string.h>
+#include <slankdev/dpdk_header.h>
 
 
 
@@ -100,12 +101,8 @@ class pcap : public Fthread {
   pcap(System* s) : Fthread("pcap"), sys(s), running(false) {}
   virtual void impl() override
   {
-    size_t nb_ports = sys->ports.size();
-    for (size_t i=0; i<nb_ports; i++) {
-      sys->ports[i].init();
-    }
-
     running = true;
+    size_t cnt = 0;
     while (running) {
       size_t nb_ports = sys->ports.size();
       for (uint8_t pid = 0; pid < nb_ports; pid++) {
@@ -119,7 +116,11 @@ class pcap : public Fthread {
           bool ret = in_port.rxq[qid].pop_bulk(pkts, burst_size);
           if (ret) {
             for (size_t i=0; i<burst_size; i++) {
-              printf("recv \n");
+              printf("%zd: recv len=%u P=%u Q=%u \n",
+                  cnt++,
+                  rte_pktmbuf_pkt_len(pkts[i]),
+                  pid, qid);
+              rte_pktmbuf_free(pkts[i]);
             }
           }
         }
