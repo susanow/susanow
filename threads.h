@@ -109,19 +109,16 @@ class pcap : public Fthread {
         uint8_t nb_rxq = sys->ports[pid].rxq.size();
         for (uint8_t qid=0; qid<nb_rxq; qid++) {
           auto& in_port  = sys->ports[pid];
-          in_port.rxq[qid].burst_bulk();
 
-          const size_t burst_size = 32;
-          rte_mbuf* pkts[burst_size];
-          bool ret = in_port.rxq[qid].pop_bulk(pkts, burst_size);
-          if (ret) {
-            for (size_t i=0; i<burst_size; i++) {
-              printf("%zd: recv len=%u P=%u Q=%u \n",
-                  cnt++,
-                  rte_pktmbuf_pkt_len(pkts[i]),
-                  pid, qid);
-              rte_pktmbuf_free(pkts[i]);
-            }
+          constexpr size_t bulk_size = 32;
+          struct rte_mbuf* pkts[bulk_size];
+          size_t nb_rcv = in_port.rxq[qid].burst(pkts, bulk_size);
+          for (size_t i=0; i<nb_rcv; i++) {
+            printf("%zd: recv len=%u P=%u Q=%u \n",
+                cnt++,
+                rte_pktmbuf_pkt_len(pkts[i]),
+                pid, qid);
+            rte_pktmbuf_free(pkts[i]);
           }
         }
       }
@@ -140,12 +137,9 @@ class txrxwk : public Fthread {
   txrxwk(System* s) : Fthread("txrxwk"), sys(s), running(false) {}
   void impl()
   {
-    size_t nb_ports = sys->ports.size();
-    for (size_t i=0; i<nb_ports; i++) {
-      sys->ports[i].init();
-    }
 
     running = true;
+    size_t nb_ports = sys->ports.size();
     while (running) {
       for (uint8_t pid = 0; pid < nb_ports; pid++) {
         uint8_t nb_rxq = sys->ports[pid].rxq.size();
@@ -156,14 +150,10 @@ class txrxwk : public Fthread {
           auto& in_port  = sys->ports[pid];
           auto& out_port = sys->ports[pid^1];
 
-          in_port.rxq[qid].burst_bulk();
-
-          const size_t burst_size = 32;
+          constexpr size_t burst_size = 32;
           rte_mbuf* pkts[burst_size];
-          bool ret = in_port.rxq[qid].pop_bulk(pkts, burst_size);
-          if (ret) out_port.txq[qid].push_bulk(pkts, burst_size);
-
-          out_port.txq[qid].burst_bulk();
+          size_t nb_rcv = in_port.rxq[qid].burst(pkts, burst_size);
+          out_port.txq[qid].burst(pkts, nb_rcv);
         }
       }
     }
