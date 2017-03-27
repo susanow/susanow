@@ -92,6 +92,45 @@ class fthread_test : public Fthread {
 
 
 
+
+class pcap : public Fthread {
+  System* sys;
+  bool running;
+ public:
+  pcap(System* s) : Fthread("pcap"), sys(s), running(false) {}
+  virtual void impl() override
+  {
+    size_t nb_ports = sys->ports.size();
+    for (size_t i=0; i<nb_ports; i++) {
+      sys->ports[i].init();
+    }
+
+    running = true;
+    while (running) {
+      size_t nb_ports = sys->ports.size();
+      for (uint8_t pid = 0; pid < nb_ports; pid++) {
+        uint8_t nb_rxq = sys->ports[pid].rxq.size();
+        for (uint8_t qid=0; qid<nb_rxq; qid++) {
+          auto& in_port  = sys->ports[pid];
+          in_port.rxq[qid].burst_bulk();
+
+          const size_t burst_size = 32;
+          rte_mbuf* pkts[burst_size];
+          bool ret = in_port.rxq[qid].pop_bulk(pkts, burst_size);
+          if (ret) {
+            for (size_t i=0; i<burst_size; i++) {
+              printf("recv \n");
+            }
+          }
+        }
+      }
+    }// while
+  }
+  virtual void kill() override { running = false; }
+};
+
+
+
 #if 1
 class txrxwk : public Fthread {
   System* sys;
