@@ -38,11 +38,12 @@
 #include <mutex> // lock
 
 #include <ssnlib_mempool.h>
+#include <ssnlib_log.h>
 
 
 
 
-
+#if 0
 class Ring_interface {
  public:
   virtual void push_bulk(rte_mbuf** obj_table, size_t n) = 0;
@@ -88,12 +89,11 @@ class Ring_dpdk : public Ring_interface {
   virtual size_t size()  const override { return ring_depth;               }
   virtual bool   empty() const override { return rte_ring_empty(ring_)==1; }
 };
-
+#endif
 
 
 
 class Rxq_interface {
-  Ring_dpdk ring_impl;
   Mempool           mempool;
   const uint16_t port_id;
   const uint16_t queue_id;
@@ -101,32 +101,26 @@ class Rxq_interface {
   Rxq_interface(uint16_t pid, uint16_t qid, size_t size);
   Rxq_interface(const Rxq_interface&) = default;
   Rxq_interface(Rxq_interface&&) = default;
-  virtual void burst_bulk();
-  void push_bulk(rte_mbuf** obj_table, size_t n) { ring_impl.push_bulk(obj_table, n); }
-  bool pop_bulk(rte_mbuf** obj_table, size_t n)  { return ring_impl.pop_bulk(obj_table, n); }
-  size_t count() const  { return ring_impl.count(); }
-  size_t size() const   { return ring_impl.size();  }
-  bool empty() const    { return ring_impl.empty(); }
+  virtual ~Rxq_interface()
+  { kernel_log("Construct Rxq %u:%u\n", port_id, queue_id); }
+
+  virtual size_t burst(struct rte_mbuf** rx_pkts, size_t bulk_size);
 };
 
 
 
 
 class Txq_interface {
-  Ring_dpdk ring_impl;
   const uint16_t port_id;
   const uint16_t queue_id;
  public:
   Txq_interface(uint16_t pid, uint16_t qid, size_t size);
   Txq_interface(const Txq_interface&) = default;
   Txq_interface(Txq_interface&&) = default;
+  virtual ~Txq_interface()
+  { kernel_log("Construct Txq %u:%u\n", port_id, queue_id); }
 
-  virtual void burst_bulk();
-  void push_bulk(rte_mbuf** obj_table, size_t n)  { ring_impl.push_bulk(obj_table, n); }
-  bool pop_bulk(rte_mbuf** obj_table, size_t n)  { return ring_impl.pop_bulk(obj_table, n); }
-  size_t count() const  { return ring_impl.count(); }
-  size_t size() const   { return ring_impl.size();  }
-  bool empty() const    { return ring_impl.empty(); }
+  virtual void burst(struct rte_mbuf** pkts, size_t bulk_size);
 };
 
 

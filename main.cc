@@ -38,6 +38,7 @@
 #include <slankdev/system.h>
 
 #include "command/misc.h"
+#include "command/port.h"
 #include "command/thread.h"
 #include "threads.h"
 
@@ -72,6 +73,18 @@ void install_vty_commands(System* sys)
   sys->vty.install_command(new show_thread_info);
 
   /*
+   * Port Commands
+   */
+  sys->vty.install_command(new port_configure  );
+  sys->vty.install_command(new port_set_nbq    );
+  sys->vty.install_command(new port_link_down  );
+  sys->vty.install_command(new port_link_up    );
+  sys->vty.install_command(new port_dev_start  );
+  sys->vty.install_command(new port_dev_stop   );
+  sys->vty.install_command(new port_rss        );
+  sys->vty.install_command(new port_rxmode_show);
+
+  /*
    * Fthread Commands
    */
   sys->vty.install_command(new fthread_list    );
@@ -95,16 +108,17 @@ void init_thread_pool(System* sys)
 {
   sys->tthreadpool.add_thread(new timertest(sys) );
 
-  sys->lthreadpool.add_thread(new lthread_test(0));
-  sys->lthreadpool.add_thread(new lthread_test(1));
-  sys->lthreadpool.add_thread(new lthread_test(2));
-  sys->lthreadpool.add_thread(new lthread_test(3));
+  // sys->lthreadpool.add_thread(new lthread_test(0));
+  // sys->lthreadpool.add_thread(new lthread_test(1));
+  // sys->lthreadpool.add_thread(new lthread_test(2));
+  // sys->lthreadpool.add_thread(new lthread_test(3));
 
-  sys->fthreadpool.add_thread(new fthread_test(0));
-  sys->fthreadpool.add_thread(new fthread_test(1));
-  sys->fthreadpool.add_thread(new fthread_test(2));
-  sys->fthreadpool.add_thread(new fthread_test(3));
+  // sys->fthreadpool.add_thread(new fthread_test(0));
+  // sys->fthreadpool.add_thread(new fthread_test(1));
+  // sys->fthreadpool.add_thread(new fthread_test(2));
+  // sys->fthreadpool.add_thread(new fthread_test(3));
   sys->fthreadpool.add_thread(new txrxwk(sys)    );
+  sys->fthreadpool.add_thread(new pcap(sys)    );
 }
 
 

@@ -60,7 +60,7 @@ rte_pktmbuf_free_bulk(struct rte_mbuf *m_list[], int16_t npkts)
 
 
 
-
+#if 0
 void Ring_stdqueue::push_bulk(rte_mbuf** obj_table, size_t n)
 {
   auto_lock lg(*m);
@@ -157,17 +157,16 @@ bool Ring_dpdk::pop_bulk(rte_mbuf** obj_table, size_t n)
   }
   return true;
 }
-
+#endif
 
 
 
 
 Rxq_interface::Rxq_interface(uint16_t pid, uint16_t qid, size_t size)
-  : ring_impl(size, pid, qid, "RX"),
-  port_id(pid),
-  queue_id(qid)
+  : port_id(pid)
+  , queue_id(qid)
 {
-
+  kernel_log("Construct Rxq %u:%u\n", pid, qid);
   std::string name = "PORT" + std::to_string(pid) + "RX" + std::to_string(qid);
 
   size_t mbuf_cache_size = 0;
@@ -186,13 +185,10 @@ Rxq_interface::Rxq_interface(uint16_t pid, uint16_t qid, size_t size)
   if (retval < 0)
     throw slankdev::exception("rte_eth_rx_queue_setup failed");
 }
-void Rxq_interface::burst_bulk()
+size_t Rxq_interface::burst(struct rte_mbuf** rx_pkts, size_t bulk_size)
 {
-  size_t bulk_size = 32;
-  struct rte_mbuf* rx_pkts[bulk_size];
   uint16_t nb_rx = rte_eth_rx_burst(port_id, queue_id, rx_pkts, bulk_size);
-  if (nb_rx == 0) return;
-  push_bulk(rx_pkts, nb_rx);
+  return nb_rx;
 }
 
 
@@ -200,25 +196,20 @@ void Rxq_interface::burst_bulk()
 
 
 Txq_interface::Txq_interface(uint16_t pid, uint16_t qid, size_t size)
-  : ring_impl(size, pid, qid, "TX"),
-  port_id(pid),
-  queue_id(qid)
+  : port_id(pid)
+  , queue_id(qid)
 {
+  kernel_log("Construct Txq %u:%u\n", pid, qid);
   int socket_id = rte_socket_id();
   int retval = rte_eth_tx_queue_setup(pid, qid, size, socket_id, NULL);
   if (retval < 0)
     throw slankdev::exception("rte_eth_rx_queue_setup failed");
 }
-void Txq_interface::burst_bulk()
+void Txq_interface::burst(struct rte_mbuf** pkts, size_t bulk_size)
 {
-  size_t bulk_size = 32;
-  struct rte_mbuf* pkts[bulk_size];
-  bool ret = pop_bulk(pkts, bulk_size);
-  if (ret == true) {
-    uint16_t nb_tx = rte_eth_tx_burst(port_id, queue_id, pkts, bulk_size);
-    if (nb_tx != bulk_size) {
-      rte_pktmbuf_free_bulk(&pkts[nb_tx], bulk_size-nb_tx);
-    }
+  uint16_t nb_tx = rte_eth_tx_burst(port_id, queue_id, pkts, bulk_size);
+  if (nb_tx != bulk_size) {
+    rte_pktmbuf_free_bulk(&pkts[nb_tx], bulk_size-nb_tx);
   }
 }
 
