@@ -70,7 +70,7 @@
 #include <ssnlib_cpu.h>
 #include <ssnlib_port.h>
 
-#include <slankdev/dpdk_header.h>
+#include <slankdev/extra/dpdk_header.h>
 #include <slankdev/exception.h>
 
 

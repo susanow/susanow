@@ -42,7 +42,7 @@
 #include <vector>
 #include <string>
 
-#include <slankdev/dpdk_header.h>
+#include <slankdev/extra/dpdk_header.h>
 #include <slankdev/exception.h>
 
 #include <ssnlib_cpu.h>
