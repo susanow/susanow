@@ -45,15 +45,31 @@
 inline void _port_statistics(slankdev::shell* sh)
 {
   System* sys = get_sys(sh);
-  // sys->ports[i].stats.
-
 
   struct rte_eth_stats st;
   size_t nb_ports = sys->ports.size();
   for (size_t i=0; i<nb_ports; i++) {
     memset(&st, 0, sizeof(st));
     rte_eth_stats_get(i, &st);
-    sh->Printf(" Port Statistics pid=%zd\r\n", i);
+
+    sh->Printf("Port%-4dRX packets:%-u errors:%-u missed:%-u \r\n",
+                          i, st.ipackets, st.ierrors, st.imissed);
+    sh->Printf("%8sTX packets:%-u errors:%-u\r\n", "", st.opackets, st.oerrors);
+    sh->Printf("%8sRX bytes:%-u TX bytes:%-u\r\n", "", st.ibytes, st.obytes);
+
+    size_t nb_rxqs = sys->ports[i].rxq.size();
+    for (size_t j=0; j<nb_rxqs; j++) {
+      sh->Printf("%8sRX:Q%zd packets:%-u bytes:%-u errors:%-u\r\n",
+          "", j, st.q_ipackets[j], st.q_ibytes[j], st.q_errors[j]);
+    }
+
+    size_t nb_txqs = sys->ports[i].txq.size();
+    for (size_t j=0; j<nb_txqs; j++) {
+      sh->Printf("%8sTX:Q%zd packets:%-u bytes:%-u \r\n",
+          "", j, st.q_opackets[j], st.q_obytes[j]);
+    }
+
+    sh->Printf("\r\n");
   }
 }
 

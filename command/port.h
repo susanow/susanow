@@ -43,7 +43,8 @@ class port_statistics : public slankdev::command {
   port_statistics()
   {
     nodes.push_back(fixed_port());
-    nodes.push_back(new slankdev::node_fixedstring("statistics", ""));
+    nodes.push_back(new slankdev::node_fixedstring("statistics",
+          "show statistics data"));
   }
   virtual void func(slankdev::shell* sh) override { _port_statistics(sh); }
 };

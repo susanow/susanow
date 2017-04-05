@@ -83,6 +83,7 @@ void install_vty_commands(System* sys)
   sys->vty.install_command(new port_dev_stop   );
   sys->vty.install_command(new port_rss        );
   sys->vty.install_command(new port_rxmode_show);
+  sys->vty.install_command(new port_statistics );
 
   /*
    * Fthread Commands
