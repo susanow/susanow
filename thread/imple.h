@@ -38,7 +38,7 @@
 inline void _pcap(System* sys, bool& running)
 {
   running = true;
-  size_t cnt = 0;
+  uint32_t cnt = 0;
   while (running) {
     size_t nb_ports = sys->ports.size();
     for (uint8_t pid = 0; pid < nb_ports; pid++) {
@@ -50,10 +50,14 @@ inline void _pcap(System* sys, bool& running)
         struct rte_mbuf* pkts[bulk_size];
         size_t nb_rcv = in_port.rxq[qid].burst(pkts, bulk_size);
         for (size_t i=0; i<nb_rcv; i++) {
-          printf("%zd: recv len=%u P=%u Q=%u hash=%u\n",
+          printf("%06x: len=%u %u:%u hash=0x%08x (%u)\n",
               cnt++,
               rte_pktmbuf_pkt_len(pkts[i]),
-              pid, qid, pkts[i]->hash.rss);
+              pid,
+              qid,
+              pkts[i]->hash.rss,
+              pkts[i]->hash.rss
+              );
           rte_pktmbuf_free(pkts[i]);
         }
       }
