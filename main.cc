@@ -40,7 +40,8 @@
 #include "command/misc.h"
 #include "command/port.h"
 #include "command/thread.h"
-#include "threads.h"
+
+#include "thread/wk.h"
 
 
 void install_vty_commands(System* sys);

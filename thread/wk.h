@@ -113,10 +113,10 @@ class pcap : public Fthread {
           struct rte_mbuf* pkts[bulk_size];
           size_t nb_rcv = in_port.rxq[qid].burst(pkts, bulk_size);
           for (size_t i=0; i<nb_rcv; i++) {
-            printf("%zd: recv len=%u P=%u Q=%u \n",
+            printf("%zd: recv len=%u P=%u Q=%u hash=%u\n",
                 cnt++,
                 rte_pktmbuf_pkt_len(pkts[i]),
-                pid, qid);
+                pid, qid, pkts[i]->hash.rss);
             rte_pktmbuf_free(pkts[i]);
           }
         }
