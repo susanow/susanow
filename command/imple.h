@@ -39,7 +39,6 @@
 #include <ssnlib_sys.h>
 #include <ssnlib_thread.h>
 
-#include <slankdev/extra/dpdk_struct.h>
 #include <slankdev/vty.h>
 
 

@@ -33,7 +33,6 @@
 #pragma once
 
 #include <string>
-#include <slankdev/extra/dpdk_header.h>
 #include <slankdev/exception.h>
 #include <ssnlib_log.h>
 #include <slankdev/vty.h>

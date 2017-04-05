@@ -36,7 +36,6 @@
 #include <ssnlib_sys.h>
 #include <ssnlib_thread.h>
 #include <slankdev/string.h>
-#include <slankdev/extra/dpdk_header.h>
 
 
 

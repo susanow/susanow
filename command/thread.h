@@ -33,7 +33,6 @@
 
 #pragma once
 #include <slankdev/vty.h>
-#include <slankdev/extra/dpdk_struct.h>
 #include <ssnlib_thread.h>
 #include <ssnlib_misc.h>
 
