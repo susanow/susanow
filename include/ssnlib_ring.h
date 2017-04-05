@@ -93,15 +93,15 @@ class Ring_dpdk : public Ring_interface {
 
 
 
-class Rxq_interface {
+class Rxq {
   Mempool           mempool;
   const uint16_t port_id;
   const uint16_t queue_id;
  public:
-  Rxq_interface(uint16_t pid, uint16_t qid, size_t size);
-  Rxq_interface(const Rxq_interface&) = default;
-  Rxq_interface(Rxq_interface&&) = default;
-  virtual ~Rxq_interface()
+  Rxq(uint16_t pid, uint16_t qid, size_t size);
+  Rxq(const Rxq&) = default;
+  Rxq(Rxq&&) = default;
+  virtual ~Rxq()
   { kernel_log("Construct Rxq %u:%u\n", port_id, queue_id); }
 
   virtual size_t burst(struct rte_mbuf** rx_pkts, size_t bulk_size);
@@ -110,14 +110,14 @@ class Rxq_interface {
 
 
 
-class Txq_interface {
+class Txq {
   const uint16_t port_id;
   const uint16_t queue_id;
  public:
-  Txq_interface(uint16_t pid, uint16_t qid, size_t size);
-  Txq_interface(const Txq_interface&) = default;
-  Txq_interface(Txq_interface&&) = default;
-  virtual ~Txq_interface()
+  Txq(uint16_t pid, uint16_t qid, size_t size);
+  Txq(const Txq&) = default;
+  Txq(Txq&&) = default;
+  virtual ~Txq()
   { kernel_log("Construct Txq %u:%u\n", port_id, queue_id); }
 
   virtual void burst(struct rte_mbuf** pkts, size_t bulk_size);

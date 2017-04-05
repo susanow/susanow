@@ -162,7 +162,7 @@ bool Ring_dpdk::pop_bulk(rte_mbuf** obj_table, size_t n)
 
 
 
-Rxq_interface::Rxq_interface(uint16_t pid, uint16_t qid, size_t size)
+Rxq::Rxq(uint16_t pid, uint16_t qid, size_t size)
   : port_id(pid)
   , queue_id(qid)
 {
@@ -185,7 +185,7 @@ Rxq_interface::Rxq_interface(uint16_t pid, uint16_t qid, size_t size)
   if (retval < 0)
     throw slankdev::exception("rte_eth_rx_queue_setup failed");
 }
-size_t Rxq_interface::burst(struct rte_mbuf** rx_pkts, size_t bulk_size)
+size_t Rxq::burst(struct rte_mbuf** rx_pkts, size_t bulk_size)
 {
   uint16_t nb_rx = rte_eth_rx_burst(port_id, queue_id, rx_pkts, bulk_size);
   return nb_rx;
@@ -195,7 +195,7 @@ size_t Rxq_interface::burst(struct rte_mbuf** rx_pkts, size_t bulk_size)
 
 
 
-Txq_interface::Txq_interface(uint16_t pid, uint16_t qid, size_t size)
+Txq::Txq(uint16_t pid, uint16_t qid, size_t size)
   : port_id(pid)
   , queue_id(qid)
 {
@@ -205,7 +205,7 @@ Txq_interface::Txq_interface(uint16_t pid, uint16_t qid, size_t size)
   if (retval < 0)
     throw slankdev::exception("rte_eth_rx_queue_setup failed");
 }
-void Txq_interface::burst(struct rte_mbuf** pkts, size_t bulk_size)
+void Txq::burst(struct rte_mbuf** pkts, size_t bulk_size)
 {
   uint16_t nb_tx = rte_eth_tx_burst(port_id, queue_id, pkts, bulk_size);
   if (nb_tx != bulk_size) {

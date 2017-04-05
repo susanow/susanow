@@ -40,8 +40,6 @@
 
 
 
-using Rxq    = Rxq_interface;
-using Txq    = Txq_interface;
 class Port {
  public:
   size_t nb_rx_rings;
