@@ -34,16 +34,28 @@
 #include <ssnlib_misc.h>
 #include <command/thread.h>
 #include <command/imple.h>
+#include <command/node.h>
 
+
+
+class port_statistics : public slankdev::command {
+ public:
+  port_statistics()
+  {
+    nodes.push_back(fixed_port());
+    nodes.push_back(new slankdev::node_fixedstring("statistics", ""));
+  }
+  virtual void func(slankdev::shell* sh) override { _port_statistics(sh); }
+};
 
 
 class port_rxmode_show : public slankdev::command {
  public:
   port_rxmode_show()
   {
-    nodes.push_back(new slankdev::node_fixedstring("port", ""));
+    nodes.push_back(fixed_port());
     nodes.push_back(new slankdev::node_fixedstring("rxmode", ""));
-    nodes.push_back(new slankdev::node_fixedstring("show", ""));
+    nodes.push_back(fixed_show());
   }
   virtual void func(slankdev::shell* sh) override { _port_rxmode_show(sh); }
 };
@@ -54,7 +66,7 @@ class port_rss : public slankdev::command {
  public:
   port_rss()
   {
-    nodes.push_back(new slankdev::node_fixedstring("port", ""));
+    nodes.push_back(fixed_port());
     nodes.push_back(new slankdev::node_fixedstring("rss", ""));
   }
   virtual void func(slankdev::shell* sh) override { _port_rss(sh); }
@@ -66,8 +78,8 @@ class port_dev_start : public slankdev::command {
  public:
   port_dev_start()
   {
-    nodes.push_back(new slankdev::node_fixedstring("port", ""));
-    nodes.push_back(new slankdev::node_fixedstring("dev", ""));
+    nodes.push_back(fixed_port());
+    nodes.push_back(fixed_dev());
     nodes.push_back(new slankdev::node_fixedstring("start", ""));
   }
   virtual void func(slankdev::shell* sh) override
@@ -82,8 +94,8 @@ class port_dev_stop : public slankdev::command {
  public:
   port_dev_stop()
   {
-    nodes.push_back(new slankdev::node_fixedstring("port", ""));
-    nodes.push_back(new slankdev::node_fixedstring("dev", ""));
+    nodes.push_back(fixed_port());
+    nodes.push_back(fixed_dev());
     nodes.push_back(new slankdev::node_fixedstring("stop", ""));
   }
   virtual void func(slankdev::shell* sh) override
@@ -99,8 +111,8 @@ class port_link_down : public slankdev::command {
  public:
   port_link_down()
   {
-    nodes.push_back(new slankdev::node_fixedstring("port", ""));
-    nodes.push_back(new slankdev::node_fixedstring("link", ""));
+    nodes.push_back(fixed_port());
+    nodes.push_back(fixed_link());
     nodes.push_back(new slankdev::node_fixedstring("down", ""));
   }
   virtual void func(slankdev::shell* sh) override
@@ -116,8 +128,8 @@ class port_link_up : public slankdev::command {
  public:
   port_link_up()
   {
-    nodes.push_back(new slankdev::node_fixedstring("port", ""));
-    nodes.push_back(new slankdev::node_fixedstring("link", ""));
+    nodes.push_back(fixed_port());
+    nodes.push_back(fixed_link());
     nodes.push_back(new slankdev::node_fixedstring("up", ""));
   }
   virtual void func(slankdev::shell* sh) override
@@ -134,7 +146,7 @@ class port_set_nbq : public slankdev::command {
  public:
   port_set_nbq()
   {
-    nodes.push_back(new slankdev::node_fixedstring("port", ""));
+    nodes.push_back(fixed_port());
     nodes.push_back(new slankdev::node_fixedstring("set", ""));
     nodes.push_back(new slankdev::node_fixedstring("nbq", ""));
     nodes.push_back(new slankdev::node_string              );
@@ -164,7 +176,7 @@ class port_configure : public slankdev::command {
  public:
   port_configure()
   {
-    nodes.push_back(new slankdev::node_fixedstring("port", ""));
+    nodes.push_back(fixed_port());
     nodes.push_back(new slankdev::node_fixedstring("configure", ""));
   }
   virtual void func(slankdev::shell* sh) override

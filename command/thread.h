@@ -36,39 +36,10 @@
 #include <ssnlib_thread.h>
 #include <ssnlib_misc.h>
 
+#include <command/node.h>
 
 
 
-
-inline slankdev::node* fixed_lthread()
-{
-  return new slankdev::node_fixedstring(
-      "lthread", "Slow Thread running on lthreadsched");
-}
-
-inline slankdev::node* fixed_fthread()
-{
-  return new slankdev::node_fixedstring(
-      "fthread", "Falst Thread runnig on Lcore");
-}
-
-inline slankdev::node* fixed_list()
-{ return new slankdev::node_fixedstring("list", "List emements"); }
-
-inline slankdev::node* fixed_find()
-{ return new slankdev::node_fixedstring("find", "Find Thread"); }
-
-inline slankdev::node* fixed_launch()
-{ return new slankdev::node_fixedstring("launch", "Launch Thread"); }
-
-inline slankdev::node* fixed_kill()
-{ return new slankdev::node_fixedstring("kill", "Kill Thread"); }
-
-inline slankdev::node* fixed_scheduler()
-{ return new slankdev::node_fixedstring("scheduler", "lthread scheduler"); }
-
-inline slankdev::node* fixed_show()
-{ return new slankdev::node_fixedstring("show", "show lthread scheduler"); }
 
 
 /*

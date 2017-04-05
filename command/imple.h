@@ -42,6 +42,22 @@
 #include <slankdev/vty.h>
 
 
+inline void _port_statistics(slankdev::shell* sh)
+{
+  System* sys = get_sys(sh);
+  // sys->ports[i].stats.
+
+
+  struct rte_eth_stats st;
+  size_t nb_ports = sys->ports.size();
+  for (size_t i=0; i<nb_ports; i++) {
+    memset(&st, 0, sizeof(st));
+    rte_eth_stats_get(i, &st);
+    sh->Printf(" Port Statistics pid=%zd\r\n", i);
+  }
+}
+
+
 inline void _port_rxmode_show(slankdev::shell* sh)
 {
   System* sys = get_sys(sh);
