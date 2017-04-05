@@ -2,6 +2,7 @@
 
 
 
+
 /*-
  * MIT License
  *
@@ -26,10 +27,9 @@
  * SOFTWARE.
  */
 /**
- * @file thread/wk.h
+ * @file thread/test.h
  * @author slankdev
  */
-
 
 #pragma once
 
@@ -37,71 +37,39 @@
 #include <ssnlib_thread.h>
 #include <slankdev/string.h>
 
-#include "thread/imple.h"
 
-
-
-
-class timertest : public Tthread {
-  System* sys;
+class lthread_test : public Lthread {
  public:
-  timertest(System* s) : Tthread("timertest"), sys(s) {}
-  void impl()
-  {
-    for (Port& port : sys->ports) {
-      port.stats.update();
-      port.link.update();
-    }
+  int a;
+  lthread_test(int b)
+    : Lthread(slankdev::fs("lthread_test(%d)", b).c_str()),
+    a(b) {}
+  virtual void impl() override {
+    printf("lthread_test(%d)\n", a);
+    lthread_sleep(1 * 1000 * 1000 * 1000);
+  }
+  virtual void kill() override {
+    running = false;
   }
 };
 
 
 
-
-
-class pcap : public Fthread {
-  System* sys;
+class fthread_test : public Fthread {
+  int a;
   bool running;
  public:
-  pcap(System* s) : Fthread("pcap"), sys(s), running(false) {}
-  virtual void impl() override
-  { _pcap(sys, running); }
+  fthread_test(int b)
+    : Fthread(slankdev::fs("fthread_test(%d)", b).c_str()),
+    a(b),
+    running(false) {}
+  virtual void impl() override {
+    running = true;
+    while (running) {
+      printf("fthread_test(%d)\n", a);;
+      sleep(1);
+    }
+  }
   virtual void kill() override { running = false; }
 };
-
-
-
-#if 1
-class txrxwk : public Fthread {
-  System* sys;
-  bool running;
- public:
-  txrxwk(System* s) : Fthread("txrxwk"), sys(s), running(false) {}
-  void impl()
-  {
-
-    running = true;
-    size_t nb_ports = sys->ports.size();
-    while (running) {
-      for (uint8_t pid = 0; pid < nb_ports; pid++) {
-        uint8_t nb_rxq = sys->ports[pid].rxq.size();
-        uint8_t nb_txq = sys->ports[pid].txq.size();
-        assert(nb_txq == nb_rxq);
-
-        for (uint8_t qid=0; qid<nb_rxq; qid++) {
-          auto& in_port  = sys->ports[pid];
-          auto& out_port = sys->ports[pid^1];
-
-          constexpr size_t burst_size = 32;
-          rte_mbuf* pkts[burst_size];
-          size_t nb_rcv = in_port.rxq[qid].burst(pkts, burst_size);
-          out_port.txq[qid].burst(pkts, nb_rcv);
-        }
-      }
-    }
-  }
-  void kill() override { running = false; }
-};
-#endif
-
 

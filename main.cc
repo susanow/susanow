@@ -41,6 +41,7 @@
 #include "command/port.h"
 #include "command/thread.h"
 
+#include "thread/test.h"
 #include "thread/wk.h"
 
 
