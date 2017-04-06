@@ -42,6 +42,16 @@
 #include <slankdev/vty.h>
 
 
+inline void _port_statistics_reset(slankdev::shell* sh)
+{
+  System* sys = get_sys(sh);
+
+  size_t nb_ports = sys->ports.size();
+  for (size_t i=0; i<nb_ports; i++) {
+    rte_eth_stats_reset(i);
+  }
+}
+
 inline void _port_statistics(slankdev::shell* sh)
 {
   System* sys = get_sys(sh);

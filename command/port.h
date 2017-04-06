@@ -38,6 +38,20 @@
 
 
 
+class port_statistics_reset : public slankdev::command {
+ public:
+  port_statistics_reset()
+  {
+    nodes.push_back(fixed_port());
+    nodes.push_back(new slankdev::node_fixedstring("statistics",
+          "show statistics data"));
+    nodes.push_back(new slankdev::node_fixedstring("reset",
+          "reset statistics data"));
+  }
+  virtual void func(slankdev::shell* sh) override
+  { _port_statistics_reset(sh); }
+};
+
 class port_statistics : public slankdev::command {
  public:
   port_statistics()
