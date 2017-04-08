@@ -33,6 +33,7 @@
 #include <ssnlib_thread.h>
 #include <slankdev/string.h>
 #include <slankdev/net_header.h>
+#include <slankdev/hexdump.h>
 
 
 inline void _pcap(System* sys, bool& running)
@@ -51,8 +52,7 @@ inline void _pcap(System* sys, bool& running)
         size_t nb_rcv = in_port.rxq[qid].burst(pkts, bulk_size);
         for (size_t i=0; i<nb_rcv; i++) {
           const uint8_t* ptr = rte_pktmbuf_mtod(pkts[i], uint8_t*);
-          ptr += sizeof(slankdev::ether);
-          const slankdev::ip* ih = reinterpret_cast<const slankdev::ip*>(ptr);
+          const slankdev::ip* ih = reinterpret_cast<const slankdev::ip*>(ptr + sizeof(slankdev::ether));
 
           printf("%06x:%u:%u hash=0x%08x src=%s dst=%s len=%u \n",
               cnt++,
@@ -63,6 +63,7 @@ inline void _pcap(System* sys, bool& running)
               ih->dst.to_string().c_str(),
               rte_pktmbuf_pkt_len(pkts[i])
           );
+          // slankdev::hexdump(stdout, ptr, rte_pktmbuf_pkt_len(pkts[i]));
 
           rte_pktmbuf_free(pkts[i]);
         }
