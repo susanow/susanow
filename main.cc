@@ -43,6 +43,7 @@
 
 #include "thread/test.h"
 #include "thread/pktfwd.h"
+#include "thread/pcap.h"
 #include "thread/wk.h"
 
 

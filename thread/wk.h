@@ -1,7 +1,4 @@
 
-
-
-
 /*-
  * MIT License
  *
@@ -53,18 +50,6 @@ class timertest : public Tthread {
       port.link.update();
     }
   }
-};
-
-
-
-class pcap : public Fthread {
-  System* sys;
-  bool running;
- public:
-  pcap(System* s) : Fthread("pcap"), sys(s), running(false) {}
-  virtual void impl() override
-  { _pcap(sys, running); }
-  virtual void kill() override { running = false; }
 };
 
 

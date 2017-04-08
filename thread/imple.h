@@ -36,40 +36,4 @@
 #include <slankdev/hexdump.h>
 
 
-inline void _pcap(System* sys, bool& running)
-{
-  running = true;
-  uint32_t cnt = 0;
-  while (running) {
-    size_t nb_ports = sys->ports.size();
-    for (uint8_t pid = 0; pid < nb_ports; pid++) {
-      uint8_t nb_rxq = sys->ports[pid].rxq.size();
-      for (uint8_t qid=0; qid<nb_rxq; qid++) {
-        auto& in_port  = sys->ports[pid];
-
-        constexpr size_t bulk_size = 32;
-        struct rte_mbuf* pkts[bulk_size];
-        size_t nb_rcv = in_port.rxq[qid].burst(pkts, bulk_size);
-        for (size_t i=0; i<nb_rcv; i++) {
-          const uint8_t* ptr = rte_pktmbuf_mtod(pkts[i], uint8_t*);
-          const slankdev::ip* ih = reinterpret_cast<const slankdev::ip*>(ptr + sizeof(slankdev::ether));
-
-          printf("%06x:%u:%u hash=0x%08x src=%s dst=%s len=%u \n",
-              cnt++,
-              pid,
-              qid,
-              pkts[i]->hash.rss,
-              ih->src.to_string().c_str(),
-              ih->dst.to_string().c_str(),
-              rte_pktmbuf_pkt_len(pkts[i])
-          );
-          // slankdev::hexdump(stdout, ptr, rte_pktmbuf_pkt_len(pkts[i]));
-
-          rte_pktmbuf_free(pkts[i]);
-        }
-      }
-    }
-  }// while
-}
-
 
