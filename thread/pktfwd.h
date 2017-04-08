@@ -39,21 +39,47 @@
 #include <slankdev/unused.h>
 
 
+inline void _pktfwd(System* sys, bool& running, uint8_t queue_id);
+
+
 class pktfwd : public Fthread {
   System* sys;
   bool running;
+  uint8_t queue_id;
  public:
-  pktfwd(System* s) : Fthread("pktfwd"), sys(s), running(false) {}
-  virtual void impl() override { _pktfwd(sys, running); }
+  pktfwd(System* s, int qid)
+    : Fthread(
+        slankdev::format("pktfwd%u", qid).c_str()
+        ), sys(s), running(false), queue_id(qid) {}
+  virtual void impl() override { _pktfwd(sys, running, queue_id); }
   virtual void kill() override { running = false; }
 };
 
 
-inline void _pktfwd(System* sys, bool& running)
+// size_t q_recv_cnt[10];
+
+inline void _pktfwd(System* sys, bool& running, uint8_t queue_id)
 {
+  // memset(q_recv_cnt, 0, sizeof(q_recv_cnt));
+
+  // size_t pid = port_id;
   running = true;
   while (running) {
-    UNUSED(sys);
-  }
+
+    size_t nb_ports = sys->ports.size();
+    for (uint8_t pid = 0; pid < nb_ports; pid++) {
+
+      uint8_t qid = queue_id;
+      auto& in_port  = sys->ports[pid];
+      auto& out_port = sys->ports[pid^1];
+
+      constexpr size_t burst_size = 32;
+      rte_mbuf* pkts[burst_size];
+      size_t nb_rcv = in_port.rxq[qid].burst(pkts, burst_size);
+
+      out_port.txq[qid].burst(pkts, nb_rcv);
+    }
+
+  } /* while */
 }
 

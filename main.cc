@@ -124,7 +124,10 @@ void init_thread_pool(System* sys)
   // sys->fthreadpool.add_thread(new fthread_test(3));
   sys->fthreadpool.add_thread(new txrxwk(sys)    );
   sys->fthreadpool.add_thread(new pcap(sys)    );
-  sys->fthreadpool.add_thread(new pktfwd(sys)    );
+  sys->fthreadpool.add_thread(new pktfwd(sys, 0));
+  sys->fthreadpool.add_thread(new pktfwd(sys, 1));
+  sys->fthreadpool.add_thread(new pktfwd(sys, 2));
+  sys->fthreadpool.add_thread(new pktfwd(sys, 3));
 }
 
 

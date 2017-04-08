@@ -7,4 +7,5 @@ main.o: \
 	command/imple.h  \
 	command/node.h   \
 	thread/wk.h      \
-	thread/imple.h
+	thread/imple.h   \
+	thread/pktfwd.h

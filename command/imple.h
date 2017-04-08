@@ -52,6 +52,8 @@ inline void _port_statistics_reset(slankdev::shell* sh)
   }
 }
 
+
+// extern size_t q_recv_cnt[10];
 inline void _port_statistics(slankdev::shell* sh)
 {
   System* sys = get_sys(sh);
@@ -80,6 +82,11 @@ inline void _port_statistics(slankdev::shell* sh)
     }
 
     sh->Printf("\r\n");
+
+    // nb_rxqs = sys->ports[i].rxq.size();
+    // for (size_t j=0; j<nb_rxqs; j++) {
+    //   sh->Printf("%8sSLANKDEV rxq[%zd]: %zd\r\n", "", j, q_recv_cnt[j]);
+    // }
   }
 }
 
