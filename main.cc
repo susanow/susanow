@@ -42,6 +42,7 @@
 #include "command/thread.h"
 
 #include "thread/test.h"
+#include "thread/pktfwd.h"
 #include "thread/wk.h"
 
 
@@ -123,6 +124,7 @@ void init_thread_pool(System* sys)
   // sys->fthreadpool.add_thread(new fthread_test(3));
   sys->fthreadpool.add_thread(new txrxwk(sys)    );
   sys->fthreadpool.add_thread(new pcap(sys)    );
+  sys->fthreadpool.add_thread(new pktfwd(sys)    );
 }
 
 

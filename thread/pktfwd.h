@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 /**
- * @file thread/wk.h
+ * @file thread/pktfwd.h
  * @author slankdev
  */
 
@@ -36,70 +36,24 @@
 #include <ssnlib_sys.h>
 #include <ssnlib_thread.h>
 #include <slankdev/string.h>
-
-#include "thread/imple.h"
-
+#include <slankdev/unused.h>
 
 
-
-class timertest : public Tthread {
-  System* sys;
- public:
-  timertest(System* s) : Tthread("timertest"), sys(s) {}
-  void impl()
-  {
-    for (Port& port : sys->ports) {
-      port.stats.update();
-      port.link.update();
-    }
-  }
-};
-
-
-
-class pcap : public Fthread {
+class pktfwd : public Fthread {
   System* sys;
   bool running;
  public:
-  pcap(System* s) : Fthread("pcap"), sys(s), running(false) {}
-  virtual void impl() override
-  { _pcap(sys, running); }
+  pktfwd(System* s) : Fthread("pktfwd"), sys(s), running(false) {}
+  virtual void impl() override { _pktfwd(sys, running); }
   virtual void kill() override { running = false; }
 };
 
 
-
-#if 1
-class txrxwk : public Fthread {
-  System* sys;
-  bool running;
- public:
-  txrxwk(System* s) : Fthread("txrxwk"), sys(s), running(false) {}
-  void impl()
-  {
-
-    running = true;
-    size_t nb_ports = sys->ports.size();
-    while (running) {
-      for (uint8_t pid = 0; pid < nb_ports; pid++) {
-        uint8_t nb_rxq = sys->ports[pid].rxq.size();
-        uint8_t nb_txq = sys->ports[pid].txq.size();
-        assert(nb_txq == nb_rxq);
-
-        for (uint8_t qid=0; qid<nb_rxq; qid++) {
-          auto& in_port  = sys->ports[pid];
-          auto& out_port = sys->ports[pid^1];
-
-          constexpr size_t burst_size = 32;
-          rte_mbuf* pkts[burst_size];
-          size_t nb_rcv = in_port.rxq[qid].burst(pkts, burst_size);
-          out_port.txq[qid].burst(pkts, nb_rcv);
-        }
-      }
-    }
+inline void _pktfwd(System* sys, bool& running)
+{
+  running = true;
+  while (running) {
+    UNUSED(sys);
   }
-  void kill() override { running = false; }
-};
-#endif
-
+}
 
