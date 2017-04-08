@@ -32,7 +32,7 @@
 #include <ssnlib_sys.h>
 #include <ssnlib_thread.h>
 #include <slankdev/string.h>
-
+#include <slankdev/net_header.h>
 
 
 inline void _pcap(System* sys, bool& running)
@@ -50,14 +50,20 @@ inline void _pcap(System* sys, bool& running)
         struct rte_mbuf* pkts[bulk_size];
         size_t nb_rcv = in_port.rxq[qid].burst(pkts, bulk_size);
         for (size_t i=0; i<nb_rcv; i++) {
-          printf("%06x: len=%u %u:%u hash=0x%08x (%u)\n",
+          const uint8_t* ptr = rte_pktmbuf_mtod(pkts[i], uint8_t*);
+          ptr += sizeof(slankdev::ether);
+          const slankdev::ip* ih = reinterpret_cast<const slankdev::ip*>(ptr);
+
+          printf("%06x:%u:%u hash=0x%08x src=%s dst=%s len=%u \n",
               cnt++,
-              rte_pktmbuf_pkt_len(pkts[i]),
               pid,
               qid,
               pkts[i]->hash.rss,
-              pkts[i]->hash.rss
-              );
+              ih->src.to_string().c_str(),
+              ih->dst.to_string().c_str(),
+              rte_pktmbuf_pkt_len(pkts[i])
+          );
+
           rte_pktmbuf_free(pkts[i]);
         }
       }
