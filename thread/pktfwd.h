@@ -65,14 +65,13 @@ inline void _pktfwd(System* sys, bool& running, uint8_t port_id, uint8_t queue_i
   running = true;
   while (running) {
 
-      auto& in_port  = sys->ports[pid];
-      auto& out_port = sys->ports[pid^1];
-
       constexpr size_t burst_size = 32;
       rte_mbuf* pkts[burst_size];
-      size_t nb_rcv = in_port.rxq[qid].burst(pkts, burst_size);
+      size_t nb_rcv = sys->ports[pid].rxq[qid].burst(pkts, burst_size);
 
-      out_port.txq[qid].burst(pkts, nb_rcv);
+      rte_delay_us_block(10);
+
+      sys->ports[pid^1].txq[qid].burst(pkts, nb_rcv);
 
   } /* while */
 }
