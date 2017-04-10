@@ -57,19 +57,13 @@ class pktfwd : public Fthread {
 };
 
 
-// size_t q_recv_cnt[10];
 
 inline void _pktfwd(System* sys, bool& running, uint8_t port_id, uint8_t queue_id)
 {
-  // memset(q_recv_cnt, 0, sizeof(q_recv_cnt));
-
   size_t pid = port_id;
   size_t qid = queue_id;
   running = true;
   while (running) {
-
-    // size_t nb_ports = sys->ports.size();
-    // for (uint8_t pid = 0; pid < nb_ports; pid++) {
 
       auto& in_port  = sys->ports[pid];
       auto& out_port = sys->ports[pid^1];
@@ -79,7 +73,6 @@ inline void _pktfwd(System* sys, bool& running, uint8_t port_id, uint8_t queue_i
       size_t nb_rcv = in_port.rxq[qid].burst(pkts, burst_size);
 
       out_port.txq[qid].burst(pkts, nb_rcv);
-    // }
 
   } /* while */
 }
