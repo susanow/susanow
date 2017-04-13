@@ -8,4 +8,5 @@ main.o: \
 	command/node.h   \
 	thread/wk.h      \
 	thread/imple.h   \
+	thread/draft.h   \
 	thread/pktfwd.h

@@ -45,6 +45,7 @@
 #include "thread/pktfwd.h"
 #include "thread/pcap.h"
 #include "thread/wk.h"
+#include "thread/draft.h"
 
 
 void install_vty_commands(System* sys);
@@ -130,6 +131,10 @@ void init_thread_pool(System* sys)
   sys->fthreadpool.add_thread(new pktfwd(sys, 0, 2));
   sys->fthreadpool.add_thread(new pktfwd(sys, 0, 3));
   sys->fthreadpool.add_thread(new pktfwd(sys, 0, 4));
+  sys->fthreadpool.add_thread(new draft0(sys));
+  sys->fthreadpool.add_thread(new draft1(sys));
+  sys->fthreadpool.add_thread(new draft2(sys));
+  sys->fthreadpool.add_thread(new draft3(sys));
 }
 
 
