@@ -24,8 +24,7 @@
 
 
 
-SSN := /home/slank/git/susanow/susanow
-include $(SSN)/mk/vars.mk
+include $(SSN_SDK)/mk/vars.mk
 
 LTHREAD_PATH := /home/slank/git/lthread
 include $(LTHREAD_PATH)/lthread.mk
@@ -57,8 +56,8 @@ clean:
 	$(RM) $(TARGET) $(CXXOBJS)
 
 
-include $(SSN)/mk/rules.mk
-include $(SSN)/mk/depends.mk
-include $(SSN)/mk/runenv.mk
+include $(SSN_SDK)/mk/rules.mk
+include $(SSN_SDK)/mk/depends.mk
+include $(SSN_SDK)/mk/runenv.mk
 
 

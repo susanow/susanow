@@ -5,7 +5,9 @@ A high Performance Networking Platform on DPDK.
 Please see https://susanow.github.io
 
 
-## Usae
+## Usage
+
+install Required libs
 
 ```
 $ git clone https://github.com/slankdev/libslankdev/git
@@ -17,28 +19,36 @@ $ git clone https://github.com/susanow/lthread/git
 $ cd lthread
 $ make
 $ cd ..
+```
 
-$ git clone https://github.com/susanow/susanow/git
+install DPDK
+
+```
+$ git clone http://github.com/susanow/dpdk.git $RTE_SDK
+$ cd $RTE_SDK
+$ make install T=$RTE_TARGET
+```
+
+clone Susanow and Build it
+
+```
+$ git clone http://github.com/susanow/susanow.git $SSN_SDK
+$ cd $SSN_SDK
 $ make
-$ make run
 ```
 
 
 ## Required Software
 
- - dpdk-16.07
+ - dpdk-16.11 (susanow/dpdk.git)
  - L-thread slankdev (susanow/lthread.git)
  - Libslankdev (slankdev/libslankdev.git)
 
 
 
-## Licence
+## Licence and Author
 
 MIT Licence, see LICENCE file
-
-
-
-## Author
 
 Hiroki SHIROKURA
 
