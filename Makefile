@@ -24,7 +24,7 @@
 
 
 
-SSN := /home/slank/git/susanow
+SSN := /home/slank/git/susanow/susanow
 include $(SSN)/mk/vars.mk
 
 LTHREAD_PATH := /home/slank/git/lthread
