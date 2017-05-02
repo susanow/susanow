@@ -29,69 +29,23 @@
  */
 
 #pragma once
-#include <slankdev/vty.h>
+
 #include <ssnlib_thread.h>
 #include <ssnlib_misc.h>
 #include <command/thread.h>
 #include <command/imple.h>
 #include <command/node.h>
 
-
-
-
-// IMPL BEGIN
 #include <slankdev/vty.h>
-#include <ssnlib_thread.h>
-#include <ssnlib_misc.h>
 #include <slankdev/unused.h>
 #include <slankdev/exception.h>
+#include <slankdev/extra/dpdk_struct.h>
+
+#include <rte_eth_ctrl.h>
 #include <rte_flow.h>
-namespace {
-
-const char* rte_fdir_mode2str(enum rte_fdir_mode e)
-{
-  switch (e) {
-    case RTE_FDIR_MODE_NONE            : return "NONE            ";
-    case RTE_FDIR_MODE_SIGNATURE       : return "SIGNATURE       ";
-    case RTE_FDIR_MODE_PERFECT         : return "PREFECT         ";
-    case RTE_FDIR_MODE_PERFECT_MAC_VLAN: return "PREFECT_MAC_VLAN";
-    case RTE_FDIR_MODE_PERFECT_TUNNEL  : return "PREFECT_TUNNEL  ";
-    default: throw slankdev::exception("unknown");
-  }
-}
-
-inline void print(const struct rte_fdir_conf* conf)
-{
-  printf("SLANKDEV\n");
-  printf("   mode: %s \n", rte_fdir_mode2str(conf->mode));
-}
+#include "csrc.h"
 
 
-inline void _confi_fd(slankdev::shell* sh)
-{
-  System* sys = get_sys(sh);
-  UNUSED(sys);
-
-  assert(sys->ports.size() != 0);
-  print(&sys->ports[0].conf.raw.fdir_conf);
-  return ;
-}
-
-} /* namespace */
-// IMPLE END
-
-
-class port_fdir : public slankdev::command {
- public:
-  port_fdir()
-  {
-    nodes.push_back(fixed_port());
-    nodes.push_back(new slankdev::node_fixedstring("fdir",
-          "flow director configuration"));
-  }
-  virtual void func(slankdev::shell* sh) override
-  { _confi_fd(sh); }
-};
 
 
 
@@ -121,6 +75,7 @@ class port_statistics : public slankdev::command {
 };
 
 
+// TODO: ERASE
 class port_rxmode_show : public slankdev::command {
  public:
   port_rxmode_show()
@@ -258,22 +213,7 @@ class port_configure : public slankdev::command {
 
 #if 1 // TEST
     for (size_t i=0; i<nb_ports; i++) {
-      struct rte_fdir_conf* conf = &sys->ports[i].conf.raw.fdir_conf;
-      // c_set_fdir_conf(conf); // SLANKDEV TODO
-
-      // .mode = RTE_FDIR_MODE_SIGNATURE,
-      // .pballoc = RTE_FDIR_PBALLOC_64K,
-      // .mask = rte_eth_fdir_masks {
-      //         .ipv4_mask = rte_eth_ipv4_flow {
-      //                 .dst_ip = 0x0,
-      //         },
-      //         .ipv6_mask = rte_eth_ipv6_flow {
-      //                 .dst_ip = { 0x0, 0x0, 0x0, 0x0 },
-      //         },
-      // },
-      // .status = RTE_FDIR_REPORT_STATUS,
-      // .drop_queue = 127,
-
+      csrc_set_rte_fdir_conf(&sys->ports[i].conf.raw.fdir_conf);
     }
 #endif
 
@@ -282,6 +222,123 @@ class port_configure : public slankdev::command {
     }
   }
 };
+
+
+
+inline void _port_show_conf(slankdev::shell* sh)
+{
+  System* sys = get_sys(sh);
+  if (sys->ports.empty()) {
+    sh->Printf("Port not found :( \r\n");
+    return ;
+  }
+
+  /*
+   * Flow Director Configuration
+   */
+  const rte_fdir_conf& fdir_conf = sys->ports[0].conf.raw.fdir_conf;
+  sh->Printf(" fdir_conf { \r\n");
+  sh->Printf("   mode:    %s \r\n", slankdev::rte_fdir_mode2str(fdir_conf.mode));
+  sh->Printf("   pballoc: %s \r\n", slankdev::rte_fdir_pballoc_type2str(fdir_conf.pballoc));
+  sh->Printf("   status:  %s \r\n", slankdev::rte_fdir_status_mode2str(fdir_conf.status));
+  sh->Printf("   mask  = {\r\n");
+  sh->Printf("     .vlan_tci_mask     = %u \r\n", fdir_conf.mask.vlan_tci_mask);
+  sh->Printf("     .ipv4_mask         = { \r\n");
+  sh->Printf("         src  :%x  \r\n", fdir_conf.mask.ipv4_mask.src_ip);
+  sh->Printf("         dst  :%x  \r\n", fdir_conf.mask.ipv4_mask.dst_ip);
+  sh->Printf("         top  :%u  \r\n", fdir_conf.mask.ipv4_mask.tos);
+  sh->Printf("         ttl  :%u  \r\n", fdir_conf.mask.ipv4_mask.ttl);
+  sh->Printf("         proto:%u  \r\n", fdir_conf.mask.ipv4_mask.proto);
+  sh->Printf("     } \r\n");
+  sh->Printf("     .ipv6_mask = { \r\n");
+  sh->Printf("         src = %x:%x:%x:%x \r\n",
+      fdir_conf.mask.ipv6_mask.src_ip[0], fdir_conf.mask.ipv6_mask.src_ip[1],
+      fdir_conf.mask.ipv6_mask.src_ip[2], fdir_conf.mask.ipv6_mask.src_ip[3]);
+  sh->Printf("         dst = %x:%x:%x:%x \r\n",
+      fdir_conf.mask.ipv6_mask.dst_ip[0], fdir_conf.mask.ipv6_mask.dst_ip[1],
+      fdir_conf.mask.ipv6_mask.dst_ip[2], fdir_conf.mask.ipv6_mask.dst_ip[3]);
+  sh->Printf("         tc  = %u \r\n"         , fdir_conf.mask.ipv6_mask.tc);
+  sh->Printf("         proto = %u      \r\n"  , fdir_conf.mask.ipv6_mask.proto);
+  sh->Printf("         hop_limits = %u \r\n"  , fdir_conf.mask.ipv6_mask.hop_limits);
+  sh->Printf("     } \r\n");
+  sh->Printf("     .src_port_mask      = %u \r\n", fdir_conf.mask.src_port_mask     );
+  sh->Printf("     .dst_port_mask      = %u \r\n", fdir_conf.mask.dst_port_mask     );
+  sh->Printf("     .mac_addr_byte_mask = %u \r\n", fdir_conf.mask.mac_addr_byte_mask);
+  sh->Printf("     .tunnel_id_mask     = %u \r\n", fdir_conf.mask.tunnel_id_mask    );
+  sh->Printf("     .tunnel_type_mask   = %u \r\n", fdir_conf.mask.tunnel_type_mask  );
+  sh->Printf("   } \r\n");
+  sh->Printf("   drop_queue = %u      \r\n", fdir_conf.drop_queue);
+  sh->Printf("   flex_conf { \r\n");
+  sh->Printf("     nb_payloads  = %u  \r\n", fdir_conf.flex_conf.nb_payloads);
+  sh->Printf("     nb_flexmasks = %u  \r\n", fdir_conf.flex_conf.nb_flexmasks);
+
+#if 1
+  sh->Printf("     flex_set : TODO\r\n");
+  sh->Printf("     flex_mask: TODO\r\n");
+#else
+  sh->Printf("     flex_set: \r\n");
+  for (size_t i=0; i<RTE_ETH_PAYLOAD_MAX; i++) {
+    sh->Printf("       [%2d]: \r\n", i);
+    sh->Printf("         type: %s \r\n",
+        slankdev::rte_eth_payload_type2str(fdir_conf.flex_conf.flex_set[i].type));
+    sh->Printf("       src_offset:\r\n");
+    for (size_t j=0; j<RTE_ETH_FDIR_MAX_FLEXLEN; j++) {
+      sh->Printf("%u, ",
+          fdir_conf.flex_conf.flex_set[i].src_offset[j]);
+    }
+    sh->Printf("\r\n");
+  }
+  sh->Printf("     flex_mask   : TODO\r\n");
+  for (size_t i=0; i<RTE_ETH_FLOW_MAX; i++) {
+    sh->Printf("       [%2d]:  \r\n", i);
+  }
+#endif
+
+  sh->Printf("   } \r\n");
+  sh->Printf(" }\r\n");
+
+  /*
+   * RxMode Configuration
+   */
+  const rte_eth_rxmode& rxmode = sys->ports[0].conf.raw.rxmode;
+  sh->Printf(" mq_mode        : ");
+  switch (rxmode.mq_mode) {
+    case ETH_MQ_RX_NONE        : sh->Printf("NONE        \r\n"); break;
+    case ETH_MQ_RX_RSS         : sh->Printf("RSS         \r\n"); break;
+    case ETH_MQ_RX_DCB         : sh->Printf("DCB         \r\n"); break;
+    case ETH_MQ_RX_DCB_RSS     : sh->Printf("DCB_RSS     \r\n"); break;
+    case ETH_MQ_RX_VMDQ_ONLY   : sh->Printf("VMDQ_ONLY   \r\n"); break;
+    case ETH_MQ_RX_VMDQ_RSS    : sh->Printf("VMDQ_RSS    \r\n"); break;
+    case ETH_MQ_RX_VMDQ_DCB    : sh->Printf("VMDQ_DCB    \r\n"); break;
+    case ETH_MQ_RX_VMDQ_DCB_RSS: sh->Printf("VMDQ_DCB_RSS\r\n"); break;
+    default: assert(false);
+  }
+  sh->Printf(" max_rx_pkt_len : %u\r\n", rxmode.max_rx_pkt_len);
+  sh->Printf(" split_hdr_size : %u\r\n", rxmode.split_hdr_size);
+  sh->Printf(" header_split   : %s\r\n", rxmode.header_split  ?"True":"False");
+  sh->Printf(" hw_ip_checksum : %s\r\n", rxmode.hw_ip_checksum?"True":"False");
+  sh->Printf(" hw_vlan_filter : %s\r\n", rxmode.hw_vlan_filter?"True":"False");
+  sh->Printf(" hw_vlan_strip  : %s\r\n", rxmode.hw_vlan_strip ?"True":"False");
+  sh->Printf(" hw_vlan_extend : %s\r\n", rxmode.hw_vlan_extend?"True":"False");
+  sh->Printf(" jumbo_frame    : %s\r\n", rxmode.jumbo_frame   ?"True":"False");
+  sh->Printf(" hw_strip_crc   : %s\r\n", rxmode.hw_strip_crc  ?"True":"False");
+  sh->Printf(" enable_scatter : %s\r\n", rxmode.enable_scatter?"True":"False");
+  sh->Printf(" enable_lro     : %s\r\n", rxmode.enable_lro    ?"True":"False");
+}
+
+
+class port_show_conf : public slankdev::command {
+ public:
+  port_show_conf()
+  {
+    nodes.push_back(fixed_port());
+    nodes.push_back(new slankdev::node_fixedstring("show", ""));
+    nodes.push_back(new slankdev::node_fixedstring("conf", ""));
+  }
+  virtual void func(slankdev::shell* sh) override { _port_show_conf(sh); }
+};
+
+
 
 
 

@@ -32,10 +32,12 @@ include $(LTHREAD_PATH)/lthread.mk
 CXXFLAGS += -Wno-format-security -g
 CXXFLAGS += -fsanitize=address
 CXXFLAGS += -I./include -I./
-CXXFLAGS += -I/home/slank/git/libslankdev
+CXXFLAGS += -I/home/slank/git/slankdev/libslankdev
 CXXFLAGS += $(LTHREAD_CFLAGS)
 
 TARGET = a.out
+CSRCS = csrc.c
+COBJS = $(CSRCS:.c=.o)
 CXXSRCS   = \
 	main.cc             \
 	ssnlib_sys.cc       \
@@ -45,7 +47,7 @@ CXXSRCS   = \
 	ssnlib_ring.cc      \
 	ssnlib_port_impl.cc
 CXXOBJS   = $(CXXSRCS:.cc=.o)
-OBJS = $(CXXOBJS) $(LTHREAD_OBJS)
+OBJS = $(COBJS) $(CXXOBJS) $(LTHREAD_OBJS)
 
 
 all: $(OBJS)
@@ -53,7 +55,7 @@ all: $(OBJS)
 	@$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 clean:
-	$(RM) $(TARGET) $(CXXOBJS)
+	$(RM) $(TARGET) $(CXXOBJS) $(COBJS)
 
 
 include $(SSN_SDK)/mk/rules.mk

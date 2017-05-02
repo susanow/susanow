@@ -90,7 +90,7 @@ void install_vty_commands(System* sys)
   sys->vty.install_command(new port_rxmode_show);
   sys->vty.install_command(new port_statistics );
   sys->vty.install_command(new port_statistics_reset);
-  sys->vty.install_command(new port_fdir);
+  sys->vty.install_command(new port_show_conf);
 
   /*
    * Fthread Commands
@@ -115,28 +115,6 @@ void install_vty_commands(System* sys)
 void init_thread_pool(System* sys)
 {
   sys->tthreadpool.add_thread(new timertest(sys) );
-
-  // sys->lthreadpool.add_thread(new lthread_test(0));
-  // sys->lthreadpool.add_thread(new lthread_test(1));
-  // sys->lthreadpool.add_thread(new lthread_test(2));
-  // sys->lthreadpool.add_thread(new lthread_test(3));
-
-  // sys->fthreadpool.add_thread(new fthread_test(0));
-  // sys->fthreadpool.add_thread(new fthread_test(1));
-  // sys->fthreadpool.add_thread(new fthread_test(2));
-  // sys->fthreadpool.add_thread(new fthread_test(3));
-  // sys->fthreadpool.add_thread(new txrxwk(sys)    );
-  // sys->fthreadpool.add_thread(new pcap(sys)    );
-  // sys->fthreadpool.add_thread(new pktfwd(sys, 0, 0));
-  // sys->fthreadpool.add_thread(new pktfwd(sys, 0, 1));
-  // sys->fthreadpool.add_thread(new pktfwd(sys, 0, 2));
-  // sys->fthreadpool.add_thread(new pktfwd(sys, 0, 3));
-  // sys->fthreadpool.add_thread(new pktfwd(sys, 0, 4));
-  // sys->fthreadpool.add_thread(new draft0(sys));
-  // sys->fthreadpool.add_thread(new draft1(sys));
-  // sys->fthreadpool.add_thread(new draft2(sys));
-  // sys->fthreadpool.add_thread(new draft3(sys));
-
   sys->fthreadpool.add_thread(new pktfwd_fd(sys));
 }
 
