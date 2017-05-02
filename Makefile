@@ -26,7 +26,7 @@
 
 include $(SSN_SDK)/mk/vars.mk
 
-LTHREAD_PATH := /home/slank/git/lthread
+LTHREAD_PATH := /home/slank/git/susanow/lthread
 include $(LTHREAD_PATH)/lthread.mk
 
 CXXFLAGS += -Wno-format-security -g

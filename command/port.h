@@ -38,6 +38,63 @@
 
 
 
+
+// IMPL BEGIN
+#include <slankdev/vty.h>
+#include <ssnlib_thread.h>
+#include <ssnlib_misc.h>
+#include <slankdev/unused.h>
+#include <slankdev/exception.h>
+#include <rte_flow.h>
+namespace {
+
+const char* rte_fdir_mode2str(enum rte_fdir_mode e)
+{
+  switch (e) {
+    case RTE_FDIR_MODE_NONE            : return "NONE            ";
+    case RTE_FDIR_MODE_SIGNATURE       : return "SIGNATURE       ";
+    case RTE_FDIR_MODE_PERFECT         : return "PREFECT         ";
+    case RTE_FDIR_MODE_PERFECT_MAC_VLAN: return "PREFECT_MAC_VLAN";
+    case RTE_FDIR_MODE_PERFECT_TUNNEL  : return "PREFECT_TUNNEL  ";
+    default: throw slankdev::exception("unknown");
+  }
+}
+
+inline void print(const struct rte_fdir_conf* conf)
+{
+  printf("SLANKDEV\n");
+  printf("   mode: %s \n", rte_fdir_mode2str(conf->mode));
+}
+
+
+inline void _confi_fd(slankdev::shell* sh)
+{
+  System* sys = get_sys(sh);
+  UNUSED(sys);
+
+  assert(sys->ports.size() != 0);
+  print(&sys->ports[0].conf.raw.fdir_conf);
+  return ;
+}
+
+} /* namespace */
+// IMPLE END
+
+
+class port_fdir : public slankdev::command {
+ public:
+  port_fdir()
+  {
+    nodes.push_back(fixed_port());
+    nodes.push_back(new slankdev::node_fixedstring("fdir",
+          "flow director configuration"));
+  }
+  virtual void func(slankdev::shell* sh) override
+  { _confi_fd(sh); }
+};
+
+
+
 class port_statistics_reset : public slankdev::command {
  public:
   port_statistics_reset()
@@ -198,6 +255,28 @@ class port_configure : public slankdev::command {
   {
     System* sys = get_sys(sh);
     size_t nb_ports = sys->ports.size();
+
+#if 1 // TEST
+    for (size_t i=0; i<nb_ports; i++) {
+      struct rte_fdir_conf* conf = &sys->ports[i].conf.raw.fdir_conf;
+      // c_set_fdir_conf(conf); // SLANKDEV TODO
+
+      // .mode = RTE_FDIR_MODE_SIGNATURE,
+      // .pballoc = RTE_FDIR_PBALLOC_64K,
+      // .mask = rte_eth_fdir_masks {
+      //         .ipv4_mask = rte_eth_ipv4_flow {
+      //                 .dst_ip = 0x0,
+      //         },
+      //         .ipv6_mask = rte_eth_ipv6_flow {
+      //                 .dst_ip = { 0x0, 0x0, 0x0, 0x0 },
+      //         },
+      // },
+      // .status = RTE_FDIR_REPORT_STATUS,
+      // .drop_queue = 127,
+
+    }
+#endif
+
     for (size_t i=0; i<nb_ports; i++) {
       sys->ports[i].init();
     }

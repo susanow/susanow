@@ -76,3 +76,53 @@ inline void _pktfwd(System* sys, bool& running, uint8_t port_id, uint8_t queue_i
   } /* while */
 }
 
+
+#include <ssnlib_sys.h>
+#include <ssnlib_thread.h>
+#include <slankdev/string.h>
+#include <slankdev/unused.h>
+
+
+inline void _pktfwd_fd(System* sys, bool& running);
+
+
+class pktfwd_fd : public Fthread {
+  System* sys;
+  bool running;
+  uint8_t port_id;
+  uint8_t queue_id;
+ public:
+  pktfwd_fd(System* s)
+    : Fthread(slankdev::format("pktfwd").c_str()),
+    sys(s), running(false) {}
+  virtual void impl() override { _pktfwd_fd(sys, running); }
+  virtual void kill() override { running = false; }
+};
+
+
+
+inline void _pktfwd_fd(System* sys, bool& running)
+{
+  running = true;
+  while (running) {
+
+      size_t nb_ports = sys->ports.size();
+      for (size_t pid=0; pid<nb_ports; pid++) {
+        size_t nb_rxqs = sys->ports[pid].rxq.size();
+        for (size_t qid=0; qid<nb_rxqs; qid++) {
+
+          constexpr size_t burst_size = 32;
+          rte_mbuf* pkts[burst_size];
+          size_t nb_rcv = sys->ports[pid].rxq[qid].burst(pkts, burst_size);
+
+          if (nb_rcv != 0) {
+          printf("recv %zd:%zd \n", pid, qid);
+          sys->ports[pid^1].txq[qid].burst(pkts, nb_rcv);
+          }
+
+        }
+      }
+
+  } /* while */
+}
+
