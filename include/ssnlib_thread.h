@@ -36,7 +36,7 @@
 #include <slankdev/exception.h>
 #include <ssnlib_log.h>
 #include <slankdev/vty.h>
-#include <lthread_api.h>
+#include <lthread.h>
 
 
 
