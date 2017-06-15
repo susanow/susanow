@@ -1,6 +1,5 @@
 
 
-DPDK_PATH   := $(RTE_SDK)/$(RTE_TARGET)
 include mk/dpdk.mk
 
 CFLAGS  += $(DPDK_CFLAGS)
@@ -13,7 +12,6 @@ CFLAGS += -Weverything
 endif
 CFLAGS += -m64 -pthread -march=native
 CFLAGS += -Wno-format-security
-
 
 CXXFLAGS += $(CFLAGS)
 CXXFLAGS += -std=c++11

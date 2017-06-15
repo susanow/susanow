@@ -15,6 +15,7 @@ SRC = ssn_lthread.cc
 OBJ = $(SRC:.cc=.o)
 
 def: $(OBJ)
+	ar rcs libssn_thread.a $(OBJ)
 
 clean:
 	rm -rf *.o *.out

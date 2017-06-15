@@ -2,6 +2,8 @@
 
 # DPDK_PATH := ???
 
+DPDK_PATH   := $(RTE_SDK)/$(RTE_TARGET)
+
 DPDK_CFLAGS = \
 	 -I$(DPDK_PATH)/include \
 	 -include $(DPDK_PATH)/include/rte_config.h

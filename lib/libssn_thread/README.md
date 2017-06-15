@@ -29,3 +29,14 @@ int main(int argc, char** argv)
   rte_eal_mp_wait_lcore();
 }
 ```
+
+## libssnのリンクの仕方　
+
+```
+include $(SSN_SDK)/mk/lib.mk
+CXXFLAGS += $(SSN_CXXFLAGS)
+LDFLAGS  += $(SSN_LDFLAGS)
+
+def:
+	$(CXX) $(CXXFLAGS) main.cc $(LDFLAGS)
+```
