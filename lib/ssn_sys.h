@@ -108,10 +108,10 @@ inline bool is_lthread()
   size_t lid = rte_lcore_id();
   return (sys.cpu.lcores[lid].lt_sched);
 }
-inline void ssn_sleep(size_t sec)
+inline void ssn_sleep(size_t msec)
 {
-  if (is_lthread()) lthread_sleep(sec * 1000);
-  else sleep(sec);
+  if (is_lthread()) lthread_sleep(msec);
+  else usleep(msec * 1000);
 }
 inline void ssn_init(int argc, char** argv)
 { sys.init(argc, argv); }

@@ -24,35 +24,33 @@
  * SOFTWARE.
  */
 /**
- * @file ssnlib_cfg.h
+ * @file ssn_config.h
  * @brief wrap rte_cfgfile.h
- * @author slankdev
+ * @author Hiroki SHIROKURA
  */
 
 #pragma once
+#include <vector>
+#include <string>
 #include <rte_cfgfile.h>
 
-
-
-
-struct Entry {
+struct ssn_config_entry {
   std::string name;
   std::string value;
 };
 
-struct Section {
+struct ssn_config_section {
   std::string name;
-  std::vector<Entry> entries;
+  std::vector<ssn_config_entry> entries;
 };
 
-
-class Config {
+class ssn_config {
   rte_cfgfile* cfg;
  public:
-  std::vector<Section> sections;
+  std::vector<ssn_config_section> sections;
 
-  Config() : cfg(nullptr) {}
-  ~Config() { close(); }
+  ssn_config() : cfg(nullptr) {}
+  ~ssn_config() { close(); }
   void load(const char* filename);
   bool has_section(const char* sec_name);
   bool has_entry(const char* sec_name, const char* ent_name);

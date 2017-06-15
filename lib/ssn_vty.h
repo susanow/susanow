@@ -212,6 +212,7 @@ class shell {
 
   template <class... ARGS> void Printf(const char* fmt, ARGS... args)
   { slankdev::fdprintf(fd, fmt, args...); }
+  int get_fd() const { return fd; }
 
   shell(int d, const char* bootmsg, const char* prmpt,
       const std::vector<command*>* cmds,
@@ -386,13 +387,23 @@ struct show_version : public command {
   }
 };
 
-struct show : public command {
-  show()
+struct show_cpu : public command {
+  show_cpu()
   {
     nodes.push_back(new node_fixedstring("show", ""));
+    nodes.push_back(new node_fixedstring("cpu", ""));
   }
-  void func(shell* sh) { sh->Printf("show\r\n"); }
+  void func(shell* sh)
+  {
+    sh->Printf("show cpu\r\n");
+    int fd = sh->get_fd();
+    FILE* fp = fdopen(sh->get_fd(), "w");
+    ssn_sys* sys = ssn_get_sys();
+    sys->cpu.debug_dump(fp);
+    fflush(fp);
+  }
 };
+
 
 struct quit : public command {
   quit() { nodes.push_back(new node_fixedstring("quit", "")); }
@@ -422,4 +433,3 @@ struct list : public command {
 
 } /* namespace ssn_cmd */
 
-void ssn_vty_thread(void*);

@@ -70,15 +70,15 @@ void ssn_lthread_sched::launch(ssn_function_t f, void* a) { launch_queue.push({f
 ssn_lthread_sched::ssn_lthread_sched() : running(false) {}
 void ssn_lthread_sched::debug_dump(FILE* fp)
 {
-  fprintf(fp, "ltsched: %p  \n", this);
-  fprintf(fp, "%5s: %20s %20s(%30s) %20s\n", "idx", "lt", "f", "name", "arg");
+  fprintf(fp, "ltsched: %p  \r\n", this);
+  fprintf(fp, "%5s: %20s %20s(%30s) %20s\r\n", "idx", "lt", "f", "name", "arg");
   fprintf(fp, "-----------------------------------------------------------");
-  fprintf(fp, "-------------------------------------------------\n");
+  fprintf(fp, "-------------------------------------------------\r\n");
   for (size_t i=0; i<threads.size(); i++) {
     Dl_info dli;
     dladdr((void*)threads[i].f, &dli);
 
-    fprintf(fp, "[%3zd]: %20p %20p(%30s) %20p\n", i,
+    fprintf(fp, "[%3zd]: %20p %20p(%30s) %20p\r\n", i,
         threads[i].lt, threads[i].f, dli.dli_sname, threads[i].arg);
   }
 }
@@ -94,7 +94,7 @@ void ssn_lcore::init(size_t i, ssn_lcore_state s)
 void ssn_lcore::debug_dump(FILE* fp) const
 {
   rte_lcore_state_t s = rte_eal_get_lcore_state(id);
-  fprintf(fp, "lcore%zd: ssn_state=%s rte_state=%s\n",
+  fprintf(fp, "lcore%zd: ssn_state=%s rte_state=%s\r\n",
       id, ssn_lcore_state2str(state),
       slankdev::rte_lcore_state_t2str(s));
   if (lt_sched) {
@@ -140,7 +140,7 @@ void ssn_lcore::wait()
 
 void ssn_cpu::debug_dump(FILE* fp) const
 {
-  fprintf(fp, "nb_lcores: %zd \n", lcores.size());
+  fprintf(fp, "nb_lcores: %zd \r\n", lcores.size());
   for (size_t i=0; i<lcores.size(); i++) {
     lcores[i].debug_dump(fp);
   }

@@ -11,7 +11,7 @@ LDFLAGS  += $(DPDK_LDFLAGS) -llthread
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 	@echo CXX $@
 
-SRC = ssn_sys.cc ssn_vty.cc
+SRC = ssn_sys.cc ssn_vty.cc ssn_config.cc
 OBJ = $(SRC:.cc=.o)
 
 def: $(OBJ)
