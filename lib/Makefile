@@ -1,9 +1,9 @@
 
 
-LIBSLANKDEV := /home/slank/git/slankdev/libslankdev
+LIBSLANKDEV := $(HOME)/git/slankdev/libslankdev
 CXXFLAGS += -I$(LIBSLANKDEV) -std=c++11 -Wno-format-security
 
-include /home/slank/git/slankdev/libslankdev/mk/dpdk.mk
+include $(HOME)/git/slankdev/libslankdev/mk/dpdk.mk
 CXXFLAGS += $(DPDK_CFLAGS) -I. -fsanitize=address -fsanitize=leak
 LDFLAGS  += $(DPDK_LDFLAGS) -llthread
 
