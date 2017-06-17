@@ -11,8 +11,7 @@
 ```
 $ git clone http://github.com/susanow/susanow
 $ cd susanow
-$ ./configure
-
+$ git submodule init
 ```
 
 ## Connect/Use Susanow
