@@ -12,6 +12,7 @@ $ export SSN_SDK=/path/to/susanow_src
 $ git clone http://github.com/susanow/susanow.git $SSN_SDK
 $ cd $SSN_SDK
 $ ./setup.sh
+$ make -C lib
 $ make
 ```
 
@@ -33,22 +34,5 @@ Hiroki SHIROKURA
  - Github  slankdev
  - Facebook hiroki.shirokura
 
-
-## Memo
-
-```
-# for Lthread
-LTHREAD_PATH = ./lthread
--I$(LTHREAD_PATH)/src
--L$(LTHREAD_PATH) -llthread
-
-# for DPDK
--I$(RTE_SDK)/$(RTE_TARGET)/include
--L$(RTE_SDK)/$(RTE_TARGET)/lib
-
-# for libslankdev
-LIBSLANKDEV_PATH = ./libslankdev
--I$(LIBSLANKDEV_PATH)
-```
 
 
