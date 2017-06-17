@@ -7,7 +7,6 @@
 /*-------------------------------------------*/
 
 size_t one=1,two=2,three=3;
-bool quit = false;
 
 void func(void* arg)
 {
@@ -71,8 +70,11 @@ int main(int argc, char** argv)
 
   ssn_launch(func              , &str[0], 1);
   ssn_launch(func              , &str[1], 1);
-  ssn_launch(ssn_vty_thread    , nullptr, 1);
-  ssn_launch(ssn_waiter_thread , nullptr, 1);
+  // ssn_launch(ssn_vty_thread    , nullptr, 1);
+  // ssn_launch(ssn_waiter_thread , nullptr, 1);
+  sleep(15);
+  ssn_ltsched_unregister(1);
+
 
   rte_eal_mp_wait_lcore();
 }

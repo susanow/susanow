@@ -1,5 +1,7 @@
 
-include $(SSN_SDK)/mk/dpdk.mk
+DPDK_CFLAGS = -I$(RTE_SDK)/$(RTE_TARGET)/include
+DPDK_LDFLAGS = -L$(RTE_SDK)/$(RTE_TARGET)/lib -ldpdk -lpthread -ldl -lrt
+
 SSN_CXXFLAGS += $(DPDK_CFLAGS) -std=c++11
 SSN_LDFLAGS  += $(DPDK_LDFLAGS) -llthread
 
