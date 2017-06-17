@@ -1,3 +1,9 @@
 [submodule "lthread"]
 	path = lthread
 	url = https://github.com/susanow/lthread.git
+[submodule "dpdk"]
+	path = dpdk
+	url = https://github.com/susanow/dpdk
+[submodule "libslankdev"]
+	path = libslankdev
+	url = https://github.com/slankdev/libslankdev
