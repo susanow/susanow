@@ -44,7 +44,7 @@ void lthread_ctrl(void* arg)
       launch_info ci = sched->launch_queue.front();
       sched->launch_queue.pop();
       lthread* th;
-      lthread_create_and_setdata(&th, ci.f, ci.arg, sched);
+      lthread_create(&th, ci.f, ci.arg);
       sched->threads.push_back({th, ci.f, ci.arg});
     }
     lthread_sleep(1);
