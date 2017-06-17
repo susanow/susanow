@@ -1,7 +1,5 @@
 
 
-
-
 /*-
  * MIT License
  *
@@ -26,22 +24,39 @@
  * SOFTWARE.
  */
 /**
- * @file csrc.h
- * @author slankdev
+ * @file ssn_config.h
+ * @brief wrap rte_cfgfile.h
+ * @author Hiroki SHIROKURA
  */
 
 #pragma once
+#include <vector>
+#include <string>
+#include <rte_cfgfile.h>
 
+struct ssn_config_entry {
+  std::string name;
+  std::string value;
+};
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct ssn_config_section {
+  std::string name;
+  std::vector<ssn_config_entry> entries;
+};
 
-struct rte_fdir_conf;
-void csrc_set_rte_fdir_conf(struct rte_fdir_conf* conf);
+class ssn_config {
+  rte_cfgfile* cfg;
+ public:
+  std::vector<ssn_config_section> sections;
 
-#ifdef __cplusplus
-}
-#endif
+  ssn_config() : cfg(nullptr) {}
+  ~ssn_config() { close(); }
+  void load(const char* filename);
+  bool has_section(const char* sec_name);
+  bool has_entry(const char* sec_name, const char* ent_name);
+  std::string get_entry(const char* sec_name, const char* ent_name);
+  void close();
+};
+
 
 

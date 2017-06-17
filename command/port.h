@@ -43,7 +43,6 @@
 
 #include <rte_eth_ctrl.h>
 #include <rte_flow.h>
-#include "csrc.h"
 
 
 
@@ -211,7 +210,7 @@ class port_configure : public slankdev::command {
     System* sys = get_sys(sh);
     size_t nb_ports = sys->ports.size();
 
-#if 1 // TEST
+#if 0 // TEST
     for (size_t i=0; i<nb_ports; i++) {
       csrc_set_rte_fdir_conf(&sys->ports[i].conf.raw.fdir_conf);
     }

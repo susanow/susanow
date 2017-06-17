@@ -33,7 +33,7 @@
 #include <ssnlib_thread.h>
 
 #include <string>
-#include <lthread_api.h>
+#include <lthread.h>
 
 #include <slankdev/vty.h>
 #include <slankdev/exception.h>
@@ -72,7 +72,7 @@ void Lthread::spawner(void* arg)
   thread->running = true;
   while (thread->running) {
     thread->impl();
-    lthread_yield ();
+    // lthread_yield ();
   }
   printf(" lthread \"%s\" was finish\n", thread->name.c_str());
   lthread_exit (NULL);
@@ -124,7 +124,7 @@ void lthread_sched::impl()
 
   startlthread slth;
   struct lthread* lt;
-  lthread_create(&lt, -1, Lthread::spawner, &slth);
+  // lthread_create(&lt, -1, Lthread::spawner, &slth);
   lts.push_back(lt);
 
   lthread_run();
@@ -135,7 +135,7 @@ void lthread_sched::impl()
 void lthread_sched::launch_lthread(Lthread* lthread)
 {
   struct lthread* lt;
-  lthread_create(&lt, 1,  Lthread::spawner, lthread);
+  // lthread_create(&lt, 1,  Lthread::spawner, lthread);
   lts.push_back(lt);
 }
 

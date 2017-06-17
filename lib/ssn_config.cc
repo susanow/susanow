@@ -24,14 +24,16 @@
  * SOFTWARE.
  */
 /**
- * @file ssnlib_cfg.cc
- * @author slankdev
+ * @file ssn_config.cc
+ * @author Hiroki SHIROKURA
  */
 
-#include <ssnlib_cfg.h>
+#include <string.h>
+#include <ssn_config.h>
+#include <slankdev/exception.h>
 
 
-void Config::load(const char* filename)
+void ssn_config::load(const char* filename)
 {
   if (cfg) throw slankdev::exception("already load config");
 
@@ -72,30 +74,29 @@ void Config::load(const char* filename)
 
 
 
-bool Config::has_section(const char* sec_name)
+bool ssn_config::has_section(const char* sec_name)
 {
   int ret = rte_cfgfile_has_section(cfg, sec_name);
   return ret != 0;
 }
-bool Config::has_entry(const char* sec_name, const char* ent_name)
+bool ssn_config::has_entry(const char* sec_name, const char* ent_name)
 {
   int ret = rte_cfgfile_has_entry(cfg, sec_name, ent_name);
   return ret != 0;
 }
-std::string Config::get_entry(const char* sec_name, const char* ent_name)
+std::string ssn_config::get_entry(const char* sec_name, const char* ent_name)
 {
   const char* str = rte_cfgfile_get_entry(cfg, sec_name, ent_name);
   if (!str) throw slankdev::exception("rte_cfgfile_get_entry");
   return str;
 
 }
-void Config::close()
+void ssn_config::close()
 {
   if (cfg) {
     rte_cfgfile_close(cfg);
     cfg = nullptr;
   }
 }
-
 
 
