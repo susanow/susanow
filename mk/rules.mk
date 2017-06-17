@@ -1,13 +1,17 @@
 
 
 
-.SUFFIXES: .out .c .cc .o .h
+.SUFFIXES: .out .c .cc .o .hS
 .cc.o:
 	@echo "CXX $@"
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(TARGET): $(OBJS)
-	@echo "LD $@"
-	@$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
+.c.o:
+	@echo "CC $@"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+# $(TARGET): $(CXXOBJS) $(COBJS)
+# 	@echo "LD $@"
+# 	@$(CXX) $(CXXFLAGS) -o $(TARGET) $(CXXOBJS) $(COBJS) $(LDFLAGS)
 
 

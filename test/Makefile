@@ -1,23 +1,15 @@
 
+SLANKLIB =  $(HOME)/git/slankdev/libslankdev
 
-SSN := /home/slank/git/susanow
-include $(SSN)/mk/vars.mk
-CXXFLAGS += -Wno-format-security -g -fsanitize=address
+include $(SSN_SDK)/mk/ssn.vars.mk
+CXXFLAGS += $(SSN_CXXFLAGS)
+LDFLAGS  += $(SSN_LDFLAGS)
 
+CXXFLAGS +=  -Wno-format-security -I. -g -O0 -I$(SLANKLIB)
+CXXFLAGS += -fsanitize=address
 
-TARGET = a.out
-SRCS   = main.cc
-OBJS   = $(SRCS:.cc=.o)
-include $(SSN)/mk/rules.mk
+def:
+	$(CXX) $(CXXFLAGS) main.cc $(LDFLAGS)
 
-
-all: $(TARGET)
 clean:
-	$(RM) $(TARGET) $(OBJS)
-
-runcpu:
-	sudo ./a.out --vdev=eth_null0 --vdev=eth_null1
-
-
-include $(SSN)/mk/runenv.mk
-
+	rm -rf *.out *.o
