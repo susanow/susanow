@@ -1,5 +1,6 @@
 #!/bin/sh
 
+git submodule update
 
 echo "Build lthread"
 cd lthread
