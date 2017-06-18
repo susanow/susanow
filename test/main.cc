@@ -8,15 +8,6 @@
 
 size_t one=1,two=2,three=3;
 
-void func(void* arg)
-{
-  std::string* id = (std::string*)arg;
-  for (size_t i=0; i<13; i++) {
-    printf("%u %s\n", rte_lcore_id(), id->c_str());
-    ssn_sleep(1000);
-  }
-}
-
 void ssn_waiter_thread(void*)
 {
   size_t nb_lcores = sys.cpu.lcores.size();
@@ -59,21 +50,18 @@ void ssn_vty_thread(void*)
 
 /*-----------------------------------------------------------*/
 
+void timer_test_func(void*) { printf("timer test func\n"); }
+
+
 int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
   ssn_ltsched_register(1);
+  ssn_timersched_register(2);
 
-  std::string str[2];
-  str[0] = "test0";
-  str[1] = "test1";
-
-  ssn_launch(func              , &str[0], 1);
-  ssn_launch(func              , &str[1], 1);
   ssn_launch(ssn_vty_thread    , nullptr, 1);
   ssn_launch(ssn_waiter_thread , nullptr, 1);
-  // sleep(15);
-  // ssn_ltsched_unregister(1);
+  // ssn_timer_func_set(timer_test_func, 2, 1000);
 
   rte_eal_mp_wait_lcore();
 }

@@ -126,6 +126,10 @@ inline void ssn_ltsched_register(size_t lcore_id)
 inline void ssn_ltsched_unregister(size_t lcore_id)
 { sys.cpu.lcores[lcore_id].lthread_sched_unregister(); }
 
+inline void ssn_timersched_register(size_t lcore_id)
+{ return ; }
+inline void ssn_timersched_unregister(size_t lcore_id)
+{ return ; }
 
 
 
