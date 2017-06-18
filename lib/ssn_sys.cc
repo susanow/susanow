@@ -72,7 +72,7 @@ void ssn_lthread_sched::debug_dump(FILE* fp)
 {
   fprintf(fp, "ltsched: %p  \r\n", this);
   fprintf(fp, "%5s: %20s %20s(%30s) %20s\r\n", "idx", "lt", "f", "name", "arg");
-  fprintf(fp, "-----------------------------------------------------------");
+  fprintf(fp, "---------------------------------------------------");
   fprintf(fp, "-------------------------------------------------\r\n");
   for (size_t i=0; i<threads.size(); i++) {
     Dl_info dli;
@@ -100,7 +100,94 @@ void ssn_lcore::debug_dump(FILE* fp) const
   if (lt_sched) {
     lt_sched->debug_dump(fp);
   }
+#if 0
+  if (tm_sched) {
+    tm_sched->debug_dump(fp);
+  }
+#endif
 }
+
+#if 0
+void timer_thread(void*)
+{
+  while (true) {
+    rte_timer_manage();
+  }
+}
+
+void ssn_lcore::timer_sched_register()
+{
+  printf("%s", __func__);
+  if (tm_sched) throw slankdev::exception("alreadly registered");
+
+  rte_timer_subsystem_init();
+
+  tm_sched =  new ssn_timer_sched(id);
+  if (!tm_sched) throw slankdev::exception("new ssn_timer_sched");
+  state = SSN_LS_RUNNING_NATIVE;
+  launch(timer_thread, nullptr);
+}
+
+void ssn_lcore::timer_sched_unregister()
+{
+  printf("%s", __func__);
+  delete tm_sched;
+}
+
+struct _timer_launcher_arg {
+  ssn_function_t f;
+  void* arg;
+};
+void _timer_launcher(struct rte_timer *tim, void *arg)
+{
+  _timer_launcher_arg* t = reinterpret_cast<_timer_launcher_arg*>(arg);
+  t->f(t->arg);
+}
+void ssn_lcore::timer_sched_add(rte_timer* tim, ssn_function_t f, void* arg)
+{
+  if (tm_sched == nullptr) throw slankdev::exception("lcore isn't timer core");
+  tm_sched->add(tim, f, arg);
+}
+void ssn_timer_sched::debug_dump(FILE* fp)
+{
+  fprintf(fp, "tmsched: %p \r\n", this);
+  fprintf(fp, "%5s: %20s %20s(%30s) %20s\r\n", "idx", "tim", "f", "name", "arg");
+  fprintf(fp, "---------------------------------------------------");
+  fprintf(fp, "-------------------------------------------------\r\n");
+  for (size_t i=0; i<tims.size(); i++) {
+    Dl_info dli;
+    dladdr((void*)tims[i]->f, &dli);
+
+    fprintf(fp, "[%3zd]: %20p %20p(%30s) %20p\r\n", i,
+        tims[i], tims[i]->f, dli.dli_sname, tims[i]->arg);
+  }
+}
+void ssn_timer_sched::add(rte_timer* tim, ssn_function_t f, void* arg)
+{
+	rte_timer_init(tim);
+	uint64_t hz = rte_get_timer_hz();
+  _timer_launcher_arg ta = {f, arg};
+	rte_timer_reset(tim, hz, PERIODICAL, lcore_id, _timer_launcher, &ta);
+  tims.push_back(tim);
+}
+void ssn_timer_sched::del(rte_timer* tim)
+{
+  printf("start\n");
+  rte_timer_stop_sync(tim);
+  for (size_t i=0; i<tims.size(); i++) {
+    if (tims[i] == tim) {
+      tims.erase(tims.begin() + i);
+      return ;
+    }
+  }
+  throw slankdev::exception("tim not found");
+}
+void ssn_lcore::timer_sched_del(rte_timer* tim)
+{
+  if (tm_sched == nullptr) throw slankdev::exception("lcore isn't timer core");
+  tm_sched->del(tim);
+}
+#endif
 
 void ssn_lcore::lthread_sched_register()
 {
