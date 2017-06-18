@@ -1,121 +1,79 @@
 
-
-
-/*-
- * MIT License
- *
- * Copyright (c) 2017 Hiroki SHIROKURA
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-/**
- * @file main.cc
- * @author slankdev
- */
-
-
 #include <stdio.h>
-#include <string>
-#include <ssnlib_sys.h>
-#include <ssnlib_thread.h>
-#include <ssnlib_log.h>
-#include <slankdev/system.h>
+#include <unistd.h>
+#include <ssn_sys.h>
+#include <ssn_vty.h>
 
-#include "command/misc.h"
-#include "command/port.h"
-#include "command/thread.h"
+/*-------------------------------------------*/
 
-#include "thread/test.h"
-#include "thread/pktfwd.h"
-#include "thread/pcap.h"
-#include "thread/wk.h"
-#include "thread/draft.h"
+size_t one=1,two=2,three=3;
 
+void func(void* arg)
+{
+  std::string* id = (std::string*)arg;
+  for (size_t i=0; i<13; i++) {
+    printf("%u %s\n", rte_lcore_id(), id->c_str());
+    ssn_sleep(1000);
+  }
+}
 
-void install_vty_commands(System* sys);
-void init_thread_pool(System* sys);
+void ssn_waiter_thread(void*)
+{
+  size_t nb_lcores = sys.cpu.lcores.size();
+  while (true) {
+    for (size_t i=0; i<nb_lcores; i++) {
+      ssn_wait(i);
+      ssn_sleep(1);
+    }
+  }
+}
 
+struct slank : public command {
+  slank() { nodes.push_back(new node_fixedstring("slank", "")); }
+  void func(shell* sh)
+  {
+    sh->Printf("slankdev\r\n");
+  }
+};
+
+void ssn_vty_thread(void*)
+{
+  char str[] = "\r\n"
+      "Hello, this is Susanow (version 0.00.00.0).\r\n"
+      "Copyright 2017-2020 Hiroki SHIROKURA.\r\n"
+      "\r\n"
+      " .d8888b.                                                             \r\n"
+      "d88P  Y88b                                                            \r\n"
+      "Y88b.                                                                 \r\n"
+      " \"Y888b.   888  888 .d8888b   8888b.  88888b.   .d88b.  888  888  888 \r\n"
+      "    \"Y88b. 888  888 88K          \"88b 888 \"88b d88\"\"88b 888  888  888 \r\n"
+      "      \"888 888  888 \"Y8888b. .d888888 888  888 888  888 888  888  888 \r\n"
+      "Y88b  d88P Y88b 888      X88 888  888 888  888 Y88..88P Y88b 888 d88P \r\n"
+      " \"Y8888P\"   \"Y88888  88888P\' \"Y888888 888  888  \"Y88P\"   \"Y8888888P\"  \r\n"
+      "\r\n";
+
+  vty vty0(9999, str, "Susanow> ");
+  vty0.install_command(new slank);
+  vty0.dispatch();
+}
+
+/*-----------------------------------------------------------*/
 
 int main(int argc, char** argv)
 {
-  System sys(argc, argv);
-  install_vty_commands(&sys);
-  init_thread_pool(&sys);
-  sys.dispatch();
+  ssn_init(argc, argv);
+  ssn_ltsched_register(1);
+
+  std::string str[2];
+  str[0] = "test0";
+  str[1] = "test1";
+
+  ssn_launch(func              , &str[0], 1);
+  ssn_launch(func              , &str[1], 1);
+  ssn_launch(ssn_vty_thread    , nullptr, 1);
+  ssn_launch(ssn_waiter_thread , nullptr, 1);
+  // sleep(15);
+  // ssn_ltsched_unregister(1);
+
+  rte_eal_mp_wait_lcore();
 }
-
-
-
-void install_vty_commands(System* sys)
-{
-  /*
-   * Misc Commands
-   */
-  sys->vty.install_command(new quit            );
-  sys->vty.install_command(new clear           );
-  sys->vty.install_command(new echo            );
-  sys->vty.install_command(new list            );
-  sys->vty.install_command(new show_author     );
-  sys->vty.install_command(new show_version    );
-  sys->vty.install_command(new show_cpu        );
-  sys->vty.install_command(new show_port       );
-  sys->vty.install_command(new show_thread_info);
-
-  /*
-   * Port Commands
-   */
-  sys->vty.install_command(new port_configure  );
-  sys->vty.install_command(new port_set_nbq    );
-  sys->vty.install_command(new port_link_down  );
-  sys->vty.install_command(new port_link_up    );
-  sys->vty.install_command(new port_dev_start  );
-  sys->vty.install_command(new port_dev_stop   );
-  sys->vty.install_command(new port_rss        );
-  sys->vty.install_command(new port_rxmode_show);
-  sys->vty.install_command(new port_statistics );
-  sys->vty.install_command(new port_statistics_reset);
-  sys->vty.install_command(new port_show_conf);
-
-  /*
-   * Fthread Commands
-   */
-  sys->vty.install_command(new fthread_list    );
-  sys->vty.install_command(new fthread_find    );
-  sys->vty.install_command(new fthread_kill    );
-  sys->vty.install_command(new fthread_launch  );
-
-  /*
-   * Lthread Commands
-   */
-  sys->vty.install_command(new lthread_list    );
-  sys->vty.install_command(new lthread_find    );
-  sys->vty.install_command(new lthread_kill    );
-  sys->vty.install_command(new lthread_launch  );
-  sys->vty.install_command(new lthread_scheduler_show);
-}
-
-
-
-void init_thread_pool(System* sys)
-{
-  sys->tthreadpool.add_thread(new timertest(sys) );
-  sys->fthreadpool.add_thread(new pktfwd_fd(sys));
-}
-
-
