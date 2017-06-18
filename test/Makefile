@@ -1,11 +1,9 @@
 
-SLANKLIB =  $(HOME)/git/slankdev/libslankdev
-
 include $(SSN_SDK)/mk/ssn.vars.mk
 CXXFLAGS += $(SSN_CXXFLAGS)
 LDFLAGS  += $(SSN_LDFLAGS)
 
-CXXFLAGS +=  -Wno-format-security -I. -g -O0 -I$(SLANKLIB)
+CXXFLAGS += -Wno-format-security -I. -g -O0 -std=c++11
 CXXFLAGS += -fsanitize=address
 
 def:
