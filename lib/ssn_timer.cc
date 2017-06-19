@@ -1,4 +1,5 @@
 
+#include <susanow.h>
 #include <ssn_sys.h>
 #include <ssn_timer.h>
 

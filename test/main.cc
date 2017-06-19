@@ -1,9 +1,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <ssn_sys.h>
-#include <ssn_vty.h>
-#include <ssn_timer.h>
+#include <susanow.h>
 
 /*-----------------------------------------------------------*/
 size_t one=1;
@@ -25,6 +23,14 @@ void Slankdev1(void*)
 { printf("slankdev1 lcore%u \n", rte_lcore_id()); }
 /*-----------------------------------------------------------*/
 
+void test(void*)
+{
+  while (1) {
+    printf("test\n");
+    ssn_sleep(1000);
+  }
+}
+
 
 int main(int argc, char** argv)
 {
@@ -33,6 +39,7 @@ int main(int argc, char** argv)
   ssn_ltsched_register(1);
   ssn_launch(ssn_vty_thread    , nullptr, 1);
   ssn_launch(ssn_waiter_thread , nullptr, 1);
+  ssn_launch(test, nullptr, 6);
 #endif
   ssn_tmsched_register(2);
   ssn_tmsched_register(5);
@@ -47,7 +54,6 @@ int main(int argc, char** argv)
 
   ssn_cpu_debug_dump(stdout);
   ssn_timer_debug_dump(stdout);
-  // return 0;
 
   sleep(3);
   sleep(1); ssn_timer_del(tim1); ssn_timer_free(tim1);

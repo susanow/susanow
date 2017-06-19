@@ -15,8 +15,6 @@ class ssn_timer {
     : f(_f), arg(_arg), hz(_hz), lcore_id(id) {}
   virtual ~ssn_timer() {}
 };
-extern bool running;
-extern std::vector<ssn_timer*> tims;
 
 void ssn_tmsched_register(size_t lcore_id);
 void ssn_tmsched_unregister(size_t lcore_id);
