@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <ssn_sys.h>
+#include <ssn_vty.h>
 #include <ssn_timer.h>
 
 /*-----------------------------------------------------------*/
@@ -28,7 +29,7 @@ void Slankdev1(void*)
 int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
-#if 0
+#if 1
   ssn_ltsched_register(1);
   ssn_launch(ssn_vty_thread    , nullptr, 1);
   ssn_launch(ssn_waiter_thread , nullptr, 1);
@@ -46,14 +47,16 @@ int main(int argc, char** argv)
 
   ssn_cpu_debug_dump(stdout);
   ssn_timer_debug_dump(stdout);
-  return 0;
+  // return 0;
 
   sleep(3);
   sleep(1); ssn_timer_del(tim1); ssn_timer_free(tim1);
   sleep(1); ssn_timer_del(tim2); ssn_timer_free(tim2);
   sleep(4); ssn_timer_del(tim3);
+  sleep(5);
   ssn_tmsched_unregister(2);
   ssn_tmsched_unregister(5);
+  ssn_ltsched_unregister(1);
   rte_eal_mp_wait_lcore();
 }
 
