@@ -21,7 +21,6 @@ int _fthread_launcher(void* arg)
   return 0;
 }
 
-
 void ssn_lcore::init(size_t i, ssn_lcore_state s)
 {
   id = i;
@@ -34,33 +33,13 @@ void ssn_lcore::debug_dump(FILE* fp) const
   fprintf(fp, "lcore%zd: ssn_state=%s rte_state=%s\r\n",
       id, ssn_lcore_state2str(state),
       slankdev::rte_lcore_state_t2str(s));
-  if (lt_sched) {
-    lt_sched->debug_dump(fp);
-  }
-}
-
-void ssn_lcore::lthread_sched_register()
-{
-  lt_sched =  new ssn_lthread_sched;
-  if (!lt_sched) throw slankdev::exception("new ssn_lthread_sched");
-  state = SSN_LS_RUNNING_LTHREAD;
-  lt_sched->start_scheduler(id);
-}
-
-void ssn_lcore::lthread_sched_unregister()
-{
-  lt_sched->stop_scheduler();
 }
 
 void ssn_lcore::launch(ssn_function_t _f, void* _arg)
 {
-  if (lt_sched) {
-    lt_sched->launch(_f, _arg);
-  } else {
-    f =  _f;
-    arg = _arg;
-    rte_eal_remote_launch(_fthread_launcher, this, id);
-  }
+  f =  _f;
+  arg = _arg;
+  rte_eal_remote_launch(_fthread_launcher, this, id);
 }
 
 void ssn_lcore::wait()

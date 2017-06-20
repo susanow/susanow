@@ -4,7 +4,7 @@
 #include <ssn_timer.h>
 
 
-bool timer_running[RTE_MAX_LCORE];
+bool timer_running[RTE_MAX_LCORE] = {false};
 std::vector<ssn_timer*> tims;
 
 static void timer_thread(void*)

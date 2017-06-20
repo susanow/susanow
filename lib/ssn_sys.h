@@ -16,7 +16,6 @@
 
 class ssn_sys;
 extern ssn_sys sys;
-class ssn_lthread_sched;
 void ssn_waiter_thread(void*);
 
 
@@ -28,19 +27,14 @@ class ssn_lcore {
   void*          arg;
  public:
   ssn_lcore_state state;
-  ssn_lthread_sched* lt_sched;
 
-  ssn_lcore() : id(0), state(SSN_LS_WAIT), lt_sched(nullptr) {}
-
+  ssn_lcore() : id(0), state(SSN_LS_WAIT) {}
   ~ssn_lcore() {}
 
   void init(size_t i, ssn_lcore_state s);
   void debug_dump(FILE* fp) const;
   void launch(ssn_function_t _f, void* _arg);
   void wait();
-
-  void lthread_sched_register();
-  void lthread_sched_unregister();
 };
 
 class ssn_cpu {
