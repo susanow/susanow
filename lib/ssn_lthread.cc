@@ -137,8 +137,8 @@ void ssn_lthread_manager::debug_dump(FILE* fp)
 }
 void ssn_lthread_manager::sched_register()
 {
-  sys.cpu.lcores[lcore_id].state = SSN_LS_RUNNING_LTHREAD;
   ssn_launch(_lthread_start, this, lcore_id);
+  sys.cpu.lcores[lcore_id].state = SSN_LS_RUNNING_LTHREAD;
 }
 void ssn_lthread_manager::sched_unregister()
 {
