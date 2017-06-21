@@ -1,18 +1,10 @@
 
 #pragma once
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <lthread.h>
-#include <dlfcn.h>
-
-#include <vector>
-#include <queue>
-
-#include <ssn_sys.h>
 #include <ssn_types.h>
-#include <ssn_api.h>
-#include <slankdev/extra/dpdk.h>
 
 
 void ssn_lthread_init();

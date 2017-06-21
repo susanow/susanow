@@ -1,17 +1,11 @@
 
 #pragma once
 #include <vector>
-#include <stdint.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <stdint.h>
 #include <stddef.h>
-#include <slankdev/exception.h>
-#include <slankdev/extra/dpdk.h>
-#include <slankdev/extra/dpdk_struct.h>
-#include <lthread.h>
-#include <slankdev/extra/dpdk.h>
-#include <queue>
 #include <ssn_types.h>
+
 
 class ssn_sys;
 extern ssn_sys sys;

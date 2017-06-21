@@ -1,6 +1,15 @@
 
 
+#include <susanow.h>
 #include <ssn_lthread.h>
+#include <ssn_sys.h>
+#include <ssn_types.h>
+
+#include <lthread.h>
+#include <dlfcn.h>
+#include <vector>
+#include <queue>
+#include <slankdev/extra/dpdk.h>
 
 class ssn_lthread_manager;
 ssn_lthread_manager* slm[RTE_MAX_LCORE];
@@ -63,6 +72,7 @@ void _lthread_control(void* arg)
   std::queue<ssn_lthread*>&  pllts = mgr->pre_launch_lthreads;
   std::vector<ssn_lthread*>& lts   = mgr->lthreads;
 
+  mgr->lthread_running = true;
   while (mgr->lthread_running) {
     /*
      * Check and Launch
@@ -129,7 +139,6 @@ void ssn_lthread_manager::sched_register()
 {
   sys.cpu.lcores[lcore_id].state = SSN_LS_RUNNING_LTHREAD;
   ssn_launch(_lthread_start, this, lcore_id);
-  lthread_running = true;
 }
 void ssn_lthread_manager::sched_unregister()
 {

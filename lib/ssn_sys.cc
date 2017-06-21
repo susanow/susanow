@@ -1,5 +1,4 @@
 
-#include <queue>
 #include <dlfcn.h>
 #include <unistd.h>
 #include <lthread.h>
@@ -8,6 +7,13 @@
 #include <slankdev/hexdump.h>
 #include <ssn_sys.h>
 #include <susanow.h>
+#include <unistd.h>
+#include <slankdev/exception.h>
+#include <slankdev/extra/dpdk.h>
+#include <slankdev/extra/dpdk_struct.h>
+#include <slankdev/extra/dpdk.h>
+#include <lthread.h>
+
 
 
 ssn_sys sys;

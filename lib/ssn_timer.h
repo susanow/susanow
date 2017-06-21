@@ -2,7 +2,7 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
-#include <ssn_sys.h>
+#include <ssn_types.h>
 
 class ssn_timer;
 

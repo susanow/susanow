@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <susanow.h>
+#include <slankdev/extra/dpdk.h>
 
 size_t num0=0;
 size_t num1=1;
