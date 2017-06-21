@@ -96,7 +96,7 @@ void ssn_waiter_thread(void*)
 }
 
 ssn_sys* ssn_get_sys() { return &sys; }
-void ssn_init(int argc, char** argv) { sys.init(argc, argv); }
+void ssn_sys_init(int argc, char** argv) { sys.init(argc, argv); }
 void ssn_launch(ssn_function_t f, void* arg, size_t lcore_id)
 { sys.cpu.lcores[lcore_id].launch(f, arg); }
 void ssn_wait(size_t lcore_id) { sys.cpu.lcores[lcore_id].wait(); }

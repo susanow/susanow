@@ -15,11 +15,8 @@
 #include <slankdev/extra/dpdk.h>
 
 
-class ssn_lthread;
-extern bool lthread_running[RTE_MAX_LCORE];
-extern std::vector<ssn_lthread*> lthreads[RTE_MAX_LCORE];
-extern std::queue<ssn_lthread*>  pre_launch_lthreads[RTE_MAX_LCORE];
-
+void ssn_lthread_init();
+void ssn_lthread_fin();
 
 void ssn_lthread_sched_register(size_t lcore_id);
 void ssn_lthread_sched_unregister(size_t lcore_id);

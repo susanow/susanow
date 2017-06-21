@@ -28,7 +28,9 @@ int main(int argc, char** argv)
   ssn_lthread_launch(test, nullptr, 1);
   sleep(5);
   ssn_lthread_sched_unregister(1);
-  rte_eal_mp_wait_lcore();
+
+  ssn_fin();
 }
+
 
 

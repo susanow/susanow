@@ -9,3 +9,7 @@
 #include <ssn_lthread.h>
 #include <ssn_api.h>
 
+void ssn_init(int argc, char** argv);
+void ssn_fin();
+
+
