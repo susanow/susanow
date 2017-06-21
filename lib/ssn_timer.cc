@@ -5,7 +5,36 @@
 
 
 bool timer_running[RTE_MAX_LCORE] = {false};
-std::vector<ssn_timer*> tims;
+std::vector<ssn_timer*> tims[RTE_MAX_LCORE];
+
+#if 0
+class ssn_timer_manager {
+ private:
+  size_t lcore_id;
+  bool timer_running;
+  std::vector<ssn_timer*> tims;
+ public:
+  ssn_timer_manager(size_t i) : lcore_id(i), timer_running(false) {}
+  virtual ~ssn_timer_manager() {}
+
+  void timer_add(ssn_timer* tim)
+  {
+    size_t lcore_id = tim->lcore_id;
+    if (!is_tthread(lcore_id)) {
+      ssn_lcore_state s = ssn_get_lcore_state(lcore_id);
+      std::string e;
+      e += "ssn_timer_add: ";
+      e += slankdev::format("lcore%zd is not timer thread", lcore_id);
+      e += slankdev::format(" (current: %s)", ssn_lcore_state2str(s));
+      throw slankdev::exception(e.c_str());
+    }
+    rte_timer_reset(&tim->tim, tim->hz, PERIODICAL, tim->lcore_id, _SSN_TIMER_LAUNCHER, tim);
+  }
+
+};
+#endif
+
+
 
 static void timer_thread(void*)
 {
@@ -59,15 +88,15 @@ ssn_timer* ssn_timer_alloc(ssn_function_t f, void* arg,
   }
   ssn_timer* t = new ssn_timer(f, arg, hz, lcore_id);
   rte_timer_init(&t->tim);
-  tims.push_back(t);
+  tims[lcore_id].push_back(t);
   return t;
 }
 
-void ssn_timer_free(ssn_timer* st)
+void ssn_timer_free(ssn_timer* st, size_t lcore_id)
 {
-  for (size_t i=0; i<tims.size(); i++) {
-    if (tims[i] == st) {
-      tims.erase(tims.begin() + i);
+  for (size_t i=0; i<tims[lcore_id].size(); i++) {
+    if (tims[lcore_id][i] == st) {
+      tims[lcore_id].erase(tims[lcore_id].begin() + i);
       delete st ;
       return ;
     }
@@ -103,17 +132,28 @@ void ssn_timer_del(ssn_timer* st)
   rte_timer_stop(&st->tim);
 }
 
-void ssn_timer_debug_dump(FILE* fp)
+void ssn_timer_debug_dump(FILE* fp, size_t lcore_id)
 {
   fprintf(fp, "ssn_timer\r\n");
   fprintf(fp, "%5s: %-15s %-15s %-15s %-10s\r\n", "idx", "rte_timer", "funcptr", "arg", "lcore");
   fprintf(fp, "--------------------------------------");
   fprintf(fp, "-----------------------------------\r\n");
-  for (size_t i=0; i<tims.size(); i++) {
-    fprintf(fp, "[%3zd]: %-15p %-15p %-15p %-10zd \r\n", i, &tims[i]->tim, tims[i]->f, tims[i]->arg, tims[i]->lcore_id);
+  for (size_t i=0; i<tims[lcore_id].size(); i++) {
+    fprintf(fp, "[%3zd]: %-15p %-15p %-15p %-10zd \r\n", i,
+        &tims[lcore_id][i]->tim,
+         tims[lcore_id][i]->f,
+         tims[lcore_id][i]->arg,
+         tims[lcore_id][i]->lcore_id);
   }
 }
 
+void ssn_timer_debug_dump(FILE* fp)
+{
+  size_t nb_lcores = rte_lcore_count();
+  for (size_t i=0; i<nb_lcores; i++) {
+    ssn_timer_debug_dump(fp, i);
+  }
+}
 
 
 
