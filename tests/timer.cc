@@ -36,9 +36,9 @@ int main(int argc, char** argv)
   ssn_timer_debug_dump(stdout);
 
   sleep(3);
-  sleep(1); ssn_timer_del(tim1); ssn_timer_free(tim1);
-  sleep(1); ssn_timer_del(tim2); ssn_timer_free(tim2);
-  sleep(4); ssn_timer_del(tim3); ssn_timer_free(tim3);
+  sleep(1); ssn_timer_del(tim1); ssn_timer_free(tim1, 2);
+  sleep(1); ssn_timer_del(tim2); ssn_timer_free(tim2, 2);
+  sleep(4); ssn_timer_del(tim3); ssn_timer_free(tim3, 5);
   ssn_tmsched_unregister(2);
   ssn_tmsched_unregister(5);
   rte_eal_mp_wait_lcore();
