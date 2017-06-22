@@ -13,6 +13,7 @@ SRC = \
 			ssn_config.cc  \
 			ssn_port.cc    \
 			ssn_timer.cc   \
+			ssn_lthread.cc \
 			susanow.cc
 OBJ = $(SRC:.cc=.o)
 
@@ -23,5 +24,3 @@ $(TARGET): $(OBJ)
 clean:
 	rm -rf *.o *.out *.a
 
-def:
-			ssn_lthread.cc \
