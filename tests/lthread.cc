@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <susanow.h>
+#include <ssn_lthread2.h>
 
 size_t num0=0;
 size_t num1=1;
@@ -12,6 +13,27 @@ size_t num5=5;
 
 inline void _sleep() { printf("."); fflush(stdout); sleep(1); }
 
+int main(int argc, char** argv)
+{
+  ssn_init(argc, argv);
+  printf("init done\n");
+  ssn_lthread_init2();
+
+  ssn_lthread_sched_register2(1);
+  printf("register finished\n");
+  printf("call unregister\n");
+  ssn_lthread_sched_unregister2(1);
+  printf("unregister finished\n");
+
+  ssn_lthread_fin2();
+
+  printf("before ssn_fin\n");
+  ssn_fin();
+  printf("fin main\n");
+}
+
+
+#if 0
 void test(void* arg)
 {
   size_t* n = (size_t*)arg;
@@ -22,19 +44,8 @@ void test(void* arg)
   }
   printf("test: fin\n");
 }
-
-int main(int argc, char** argv)
 {
-  ssn_init(argc, argv);
-
-  ssn_lthread_sched_register(1);
-  // ssn_lthread_launch(test, &num0, 1);
-  // ssn_lthread_launch(test, &num1, 1);
-  _sleep();
-  ssn_lthread_sched_unregister(1);
-
-  ssn_fin();
+  ssn_lthread_launch(test, &num0, 1);
+  ssn_lthread_launch(test, &num1, 1);
 }
-
-
-
+#endif
