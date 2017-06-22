@@ -11,41 +11,55 @@ size_t num3=3;
 size_t num4=4;
 size_t num5=5;
 
-inline void _sleep() { printf("."); fflush(stdout); sleep(1); }
+
+void Slankdev(void* arg)
+{
+  size_t* n = (size_t*)arg;
+  for (size_t i=0; i<15; i++) {
+    printf("slankdev arg=%zd lcore=%u\n", n?*n:-1, rte_lcore_id());
+    lthread_sleep(1000000000);
+    lthread_yield();
+  }
+  printf("%s ret\n", __func__);
+}
+void Slankdev4(void* arg)
+{
+  size_t* n = (size_t*)arg;
+  for (size_t i=0; i<4; i++) {
+    printf("slankdev4 arg=%zd lcore=%u\n", n?*n:-1, rte_lcore_id());
+    lthread_sleep(1000000000);
+    lthread_yield();
+  }
+  printf("%s ret\n", __func__);
+}
+
+bool run = true;
+void test(void*)
+{
+  sleep(2);
+  while (run) {
+    ssn_lthread_debug_dump(stdout, 4);
+    sleep(1);
+  }
+}
+
 
 int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
-  printf("init done\n");
-  ssn_lthread_init2();
+  ssn_lthread_init();
+  ssn_launch(test, nullptr, 2);
 
-  ssn_lthread_sched_register2(1);
-  printf("register finished\n");
-  printf("call unregister\n");
-  ssn_lthread_sched_unregister2(1);
-  printf("unregister finished\n");
+  ssn_lthread_sched_register(4);
+  ssn_lthread_launch(Slankdev4, &num2, 4);
+  sleep(3);
+  sleep(3);
+  ssn_lthread_launch(Slankdev4, &num5, 4);
 
-  ssn_lthread_fin2();
-
-  printf("before ssn_fin\n");
+  sleep(6);
+  // run = false;
+  // ssn_lthread_sched_unregister(4);
   ssn_fin();
-  printf("fin main\n");
 }
 
 
-#if 0
-void test(void* arg)
-{
-  size_t* n = (size_t*)arg;
-  printf("test: start\n");
-  for (size_t i=0; i<3; i++) {
-    printf("test arg=%zd \n", *n);
-    ssn_sleep(1000);
-  }
-  printf("test: fin\n");
-}
-{
-  ssn_lthread_launch(test, &num0, 1);
-  ssn_lthread_launch(test, &num1, 1);
-}
-#endif
