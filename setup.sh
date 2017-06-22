@@ -12,5 +12,7 @@ make install T=$RTE_TARGET
 cd ..
 
 make -C lthread_dpdk
+make -C lib
+make -C tests all
 
 echo "Success Setup for SUSANOW"

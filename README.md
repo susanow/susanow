@@ -12,8 +12,6 @@ $ export SSN_SDK=/path/to/susanow_src
 $ git clone http://github.com/susanow/susanow.git $SSN_SDK
 $ cd $SSN_SDK
 $ ./setup.sh
-$ make -C lib
-$ make
 ```
 
 ## Depend Software
