@@ -28,13 +28,13 @@ int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
 
-  ssn_lthread_sched_register(4);
-  ssn_lthread_launch(Slankdev, &num2, 4);
+  ssn_lthread_sched_register(1);
+  ssn_lthread_launch(Slankdev, &num2, 1);
   sleep(3);
-  ssn_lthread_launch(Slankdev, &num4, 4);
+  ssn_lthread_launch(Slankdev, &num4, 1);
 
   while (nb_threads > 0) ;
-  ssn_lthread_sched_unregister(4);
+  ssn_lthread_sched_unregister(1);
   ssn_fin();
 }
 
