@@ -9,7 +9,11 @@ CXXFLAGS += -fsanitize=address
 test:
 	$(CXX) $(CXXFLAGS) lthread.cc -o lthread.out $(LDFLAGS)
 
-all:
+all: all-build
+	sudo ./timer.out
+	sudo ./lthread.out
+
+all-build:
 	$(CXX) $(CXXFLAGS) timer.cc   -o timer.out   $(LDFLAGS)
 	$(CXX) $(CXXFLAGS) lthread.cc -o lthread.out $(LDFLAGS)
 
