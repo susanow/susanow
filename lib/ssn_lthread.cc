@@ -17,7 +17,11 @@
 class ssn_lthread_manager;
 ssn_lthread_manager* slm[RTE_MAX_LCORE];
 
+using auto_lock=std::lock_guard<std::mutex>;
 static void _ssn_thread_spawner(void* arg);
+static void _lthread_gc(void* arg);
+static void _lthread_master_spawner(void* arg);
+
 class ssn_lthread {
  public:
   lthread* lt;
@@ -30,26 +34,15 @@ class ssn_lthread {
   { lthread_create(&lt, lcore_id, _ssn_thread_spawner, this); }
   virtual ~ssn_lthread() {}
 };
-static void _ssn_thread_spawner(void* arg)
-{
-  ssn_lthread* sl = reinterpret_cast<ssn_lthread*>(arg);
-  sl->f(sl->arg);
-  sl->dead = true;
-}
-
-void _lthread_gc(void* arg);
-void _lthread_master_spawner(void* arg);
-
-using auto_lock=std::lock_guard<std::mutex>;
 
 class ssn_lthread_manager {
   friend void _lthread_master_spawner(void* arg);
   friend void _lthread_gc(void* arg);
-  mutable std::mutex m;
  private:
   size_t lcore_id;
   std::vector<ssn_lthread*> lthreads;
   bool gc_running;
+  mutable std::mutex m;
  public:
   ssn_lthread_manager(size_t i) : lcore_id(i), gc_running(false) {}
   virtual ~ssn_lthread_manager() { }
@@ -58,52 +51,6 @@ class ssn_lthread_manager {
   void debug_dump(FILE* fp);
   void launch(ssn_function_t f, void* arg);
 };
-
-void _lthread_master_spawner(void* arg)
-{
-  ssn_lthread_manager* mgr = reinterpret_cast<ssn_lthread_manager*>(arg);
-  mgr->gc_running = true;
-
-  ssn_lthread* sl_gc = new ssn_lthread(_lthread_gc  , arg    , mgr->lcore_id);
-  lthread_run();
-  delete sl_gc;
-}
-
-void _lthread_gc(void* arg)
-{
-  ssn_lthread_manager* mgr = reinterpret_cast<ssn_lthread_manager*>(arg);
-  std::vector<ssn_lthread*>& vec = mgr->lthreads;
-
-  while (mgr->gc_running) {
-    ssn_sleep(1000);
-    auto_lock lg(mgr->m);
-    size_t nb_th = vec.size();
-    for (size_t i=0; i<nb_th; i++) {
-      if (vec[i]->dead) {
-        ssn_lthread* sl = vec[i];
-        vec.erase(vec.begin() + i);
-        delete sl;
-        break;
-      }
-    }
-  }
-}
-
-void ssn_lthread_init()
-{
-  size_t nb = rte_lcore_count();
-  for (size_t i=0; i<nb; i++) {
-    slm[i] = new ssn_lthread_manager(i);
-  }
-}
-
-void ssn_lthread_fin()
-{
-  size_t nb = rte_lcore_count();
-  for (size_t i=0; i<nb; i++) {
-    delete slm[i];
-  }
-}
 
 void ssn_lthread_manager::sched_register()
 {
@@ -150,6 +97,58 @@ void ssn_lthread_manager::debug_dump(FILE* fp)
   }
 }
 
+static void _ssn_thread_spawner(void* arg)
+{
+  ssn_lthread* sl = reinterpret_cast<ssn_lthread*>(arg);
+  sl->f(sl->arg);
+  sl->dead = true;
+}
+
+static void _lthread_master_spawner(void* arg)
+{
+  ssn_lthread_manager* mgr = reinterpret_cast<ssn_lthread_manager*>(arg);
+  mgr->gc_running = true;
+
+  ssn_lthread* sl_gc = new ssn_lthread(_lthread_gc  , arg    , mgr->lcore_id);
+  lthread_run();
+  delete sl_gc;
+}
+
+static void _lthread_gc(void* arg)
+{
+  ssn_lthread_manager* mgr = reinterpret_cast<ssn_lthread_manager*>(arg);
+  std::vector<ssn_lthread*>& vec = mgr->lthreads;
+
+  while (mgr->gc_running) {
+    ssn_sleep(1000);
+    auto_lock lg(mgr->m);
+    size_t nb_th = vec.size();
+    for (size_t i=0; i<nb_th; i++) {
+      if (vec[i]->dead) {
+        ssn_lthread* sl = vec[i];
+        vec.erase(vec.begin() + i);
+        delete sl;
+        break;
+      }
+    }
+  }
+}
+
+
+/*
+ * SSN APIs are below
+ */
+
+void ssn_lthread_init()
+{
+  size_t nb = rte_lcore_count();
+  for (size_t i=0; i<nb; i++) slm[i] = new ssn_lthread_manager(i);
+}
+void ssn_lthread_fin()
+{
+  size_t nb = rte_lcore_count();
+  for (size_t i=0; i<nb; i++) delete slm[i];
+}
 void ssn_lthread_launch(ssn_function_t f, void* arg, size_t lcore_id) { slm[lcore_id]->launch(f, arg); }
 void ssn_lthread_debug_dump(FILE* fp, size_t lcore_id) { slm[lcore_id]->debug_dump(fp); }
 void ssn_lthread_sched_register(size_t lcore_id) { slm[lcore_id]->sched_register(); }
