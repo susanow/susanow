@@ -13,6 +13,6 @@ cd ..
 
 make -C lthread_dpdk
 make -C lib
-make -C tests all
+make -C tests test
 
 echo "Success Setup for SUSANOW"
