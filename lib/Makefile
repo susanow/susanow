@@ -15,6 +15,7 @@ SRC = \
 			ssn_timer.cc   \
 			ssn_lthread.cc \
 			ssn_log.cc     \
+			ssn_port.cc    \
 			susanow.cc
 OBJ = $(SRC:.cc=.o)
 

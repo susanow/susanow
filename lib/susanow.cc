@@ -10,12 +10,14 @@ void ssn_init(int argc, char** argv)
   ssn_sys_init(argc, argv);
   ssn_lthread_init();
   ssn_timer_init();
+  ssn_port_init();
 }
 void ssn_fin()
 {
   rte_eal_mp_wait_lcore();
   ssn_lthread_fin();
   ssn_timer_fin();
+  ssn_port_fin();
 }
 
 void ssn_sleep(size_t msec)

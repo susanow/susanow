@@ -11,6 +11,7 @@
 #include <ssn_vty.h>
 #include <ssn_lthread.h>
 #include <ssn_log.h>
+#include <ssn_port.h>
 
 void ssn_init(int argc, char** argv);
 void ssn_fin();
