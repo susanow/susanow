@@ -26,3 +26,6 @@ test: build
 
 clean:
 	rm -rf *.out *.o
+
+re: clean poc
+
