@@ -36,6 +36,9 @@ int main(int argc, char** argv)
   printf("\n\n");
 
   ssn_port_conf conf;
+  conf.nb_rxq = 2;
+  conf.raw.rxmode.mq_mode = ETH_MQ_RX_RSS;
+  conf.raw.rx_adv_conf.rss_conf.rss_hf = ETH_RSS_IP;
   size_t nb_ports = ssn_dev_count();
   for (size_t i=0; i<nb_ports; i++) {
     ssn_port_configure(i, &conf);
