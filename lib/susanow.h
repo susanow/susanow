@@ -13,6 +13,7 @@
 #include <ssn_native_thread.h>
 #include <ssn_log.h>
 #include <ssn_port.h>
+#include <ssn_port_stat.h>
 
 void ssn_init(int argc, char** argv);
 void ssn_fin();
