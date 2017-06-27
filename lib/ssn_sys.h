@@ -48,7 +48,7 @@ class ssn_sys {
 };
 
 ssn_sys* ssn_get_sys();
-void ssn_launch(ssn_function_t f, void* arg, size_t lcore_id);
+void ssn_native_thread_launch(ssn_function_t f, void* arg, size_t lcore_id);
 void ssn_sys_init(int argc, char** argv);
 void ssn_wait(size_t lcore_id);
 bool ssn_cpu_debug_dump(FILE* fp);

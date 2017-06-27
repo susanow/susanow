@@ -48,7 +48,7 @@ void _SSN_TIMER_LAUNCHER(struct rte_timer* tim, void* arg)
 
 void ssn_timer_manager::sched_register()
 {
-  ssn_launch(timer_thread, this, lcore_id);
+  ssn_native_thread_launch(timer_thread, this, lcore_id);
   sys.cpu.lcores[lcore_id].state = SSN_LS_RUNNING_TIMER;
 }
 void ssn_timer_manager::sched_unregister()

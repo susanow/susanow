@@ -54,7 +54,7 @@ class ssn_lthread_manager {
 
 void ssn_lthread_manager::sched_register()
 {
-  ssn_launch(_lthread_master_spawner, this, lcore_id);
+  ssn_native_thread_launch(_lthread_master_spawner, this, lcore_id);
   sys.cpu.lcores[lcore_id].state = SSN_LS_RUNNING_LTHREAD;
 }
 
