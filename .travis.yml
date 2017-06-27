@@ -14,7 +14,7 @@ install:
 addons:
   apt:
     sources:
-      - linux-headers-`uname -r`
+      - linux-headers-$(uname -r)
       - ubuntu-toolchain-r-test
       - llvm-toolchain-precise-3.7
       - llvm-toolchain-precise
