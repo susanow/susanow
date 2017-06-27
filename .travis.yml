@@ -14,6 +14,7 @@ install:
 addons:
   apt:
     sources:
+      - linux-headers-`uname -r`
       - ubuntu-toolchain-r-test
       - llvm-toolchain-precise-3.7
       - llvm-toolchain-precise
@@ -23,7 +24,6 @@ addons:
       - gcc-5
 
 script:
-  - sudo apt install linux-headers-`uname -r`
   - export SSN_SDK=`pwd`
   - ./setup.sh
 
