@@ -10,4 +10,3 @@ void ssn_green_thread_launch(ssn_function_t f, void* arg, size_t lcore_id);
 void ssn_green_thread_debug_dump(FILE* fp, size_t lcore_id);
 void ssn_green_thread_debug_dump(FILE* fp);
 
-

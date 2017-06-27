@@ -16,16 +16,38 @@
 
 
 
+class ssn_lcore {
+ private:
+  size_t id;
+ public:
+  ssn_lcore_state state;
+
+  ssn_lcore() : id(0), state(SSN_LS_WAIT) {}
+  ~ssn_lcore() {}
+
+  void init(size_t i, ssn_lcore_state s);
+  void debug_dump(FILE* fp) const;
+};
+
+class ssn_cpu {
+ public:
+  std::vector<ssn_lcore> lcores;
+  ssn_cpu() {}
+  ~ssn_cpu() {}
+  void init(size_t nb);
+  void debug_dump(FILE* fp) const;
+};
+
+class ssn_sys {
+ public:
+  ssn_cpu cpu;
+  ssn_sys() {}
+  ~ssn_sys() {}
+  void init(int argc, char** argv);
+};
+
 ssn_sys sys;
 
-int _fthread_launcher(void* arg)
-{
-  ssn_lcore* lcore = reinterpret_cast<ssn_lcore*>(arg);
-  lcore->state = SSN_LS_RUNNING_NATIVE;
-  lcore->f(lcore->arg);
-  lcore->state = SSN_LS_FINISHED;
-  return 0;
-}
 
 void ssn_lcore::init(size_t i, ssn_lcore_state s)
 {
@@ -41,24 +63,7 @@ void ssn_lcore::debug_dump(FILE* fp) const
       slankdev::rte_lcore_state_t2str(s));
 }
 
-void ssn_lcore::launch(ssn_function_t _f, void* _arg)
-{
-  f =  _f;
-  arg = _arg;
-  rte_eal_remote_launch(_fthread_launcher, this, id);
-}
 
-void ssn_lcore::wait()
-{
-  rte_lcore_state_t s = rte_eal_get_lcore_state(id);
-  if (s == FINISHED) {
-    rte_eal_wait_lcore(id);
-    state = SSN_LS_WAIT;
-  }
-  if (s == WAIT) {
-    state = SSN_LS_WAIT;
-  }
-}
 
 void ssn_cpu::debug_dump(FILE* fp) const
 {
@@ -90,23 +95,26 @@ void ssn_sys::init(int argc, char** argv)
   cpu.init(rte_lcore_count());
 }
 
-void ssn_waiter_thread(void*)
-{
-  size_t nb_lcores = sys.cpu.lcores.size();
-  while (true) {
-    for (size_t i=0; i<nb_lcores; i++) {
-      ssn_wait(i);
-      ssn_sleep(1);
-    }
-  }
-}
-
-ssn_sys* ssn_get_sys() { return &sys; }
 void ssn_sys_init(int argc, char** argv) { sys.init(argc, argv); }
-void ssn_native_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
-{ sys.cpu.lcores[lcore_id].launch(f, arg); }
-void ssn_wait(size_t lcore_id) { sys.cpu.lcores[lcore_id].wait(); }
 bool ssn_cpu_debug_dump(FILE* fp) { sys.cpu.debug_dump(fp); }
+
 ssn_lcore_state ssn_get_lcore_state(size_t lcore_id)
 { return sys.cpu.lcores[lcore_id].state; }
+void ssn_set_lcore_state(ssn_lcore_state s, size_t lcore_id)
+{ sys.cpu.lcores[lcore_id].state = s; }
+
+size_t ssn_lcore_id() { return rte_lcore_id(); }
+size_t ssn_lcore_count() { return rte_lcore_count(); }
+
+bool is_green_thread(size_t lcore_id) { return ssn_get_lcore_state(lcore_id) == SSN_LS_RUNNING_GREEN; }
+bool is_tthread(size_t lcore_id) { return ssn_get_lcore_state(lcore_id) == SSN_LS_RUNNING_TIMER; }
+
+void ssn_sleep(size_t msec)
+{
+  if (is_green_thread(rte_lcore_id())) lthread_sleep(msec*1000000);
+  else usleep(msec * 1000);
+}
+
+void ssn_yield() { lthread_yield(); }
+
 

@@ -2,9 +2,10 @@
 
 #include <stdint.h>
 #include <susanow.h>
-#include <ssn_lthread.h>
 #include <ssn_sys.h>
 #include <ssn_types.h>
+#include <ssn_green_thread.h>
+#include <ssn_native_thread.h>
 
 #include <lthread.h>
 #include <dlfcn.h>
@@ -55,13 +56,13 @@ class ssn_green_thread_manager {
 void ssn_green_thread_manager::sched_register()
 {
   ssn_native_thread_launch(_green_thread_master_spawner, this, lcore_id);
-  sys.cpu.lcores[lcore_id].state = SSN_LS_RUNNING_GREEN;
+  ssn_set_lcore_state(SSN_LS_RUNNING_GREEN, lcore_id);
 }
 
 void ssn_green_thread_manager::sched_unregister()
 {
   lthread_scheduler_force_shutdown(lcore_id);
-  sys.cpu.lcores[lcore_id].state = SSN_LS_FINISHED;
+  ssn_set_lcore_state(SSN_LS_FINISHED, lcore_id);
   std::vector<ssn_green_thread*>& vec = threads;
   while (!vec.empty()) {
     ssn_green_thread* sl = vec.back();
@@ -154,6 +155,5 @@ void ssn_green_thread_launch(ssn_function_t f, void* arg, size_t lcore_id) { slm
 void ssn_green_thread_debug_dump(FILE* fp, size_t lcore_id) { slm[lcore_id]->debug_dump(fp); }
 void ssn_green_thread_sched_register(size_t lcore_id) { slm[lcore_id]->sched_register(); }
 void ssn_green_thread_sched_unregister(size_t lcore_id) { slm[lcore_id]->sched_unregister(); }
-
 
 

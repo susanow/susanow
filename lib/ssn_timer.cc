@@ -4,6 +4,7 @@
 #include <susanow.h>
 #include <ssn_sys.h>
 #include <ssn_timer.h>
+#include <ssn_native_thread.h>
 #include <slankdev/extra/dpdk.h>
 
 
@@ -49,12 +50,12 @@ void _SSN_TIMER_LAUNCHER(struct rte_timer* tim, void* arg)
 void ssn_timer_manager::sched_register()
 {
   ssn_native_thread_launch(timer_thread, this, lcore_id);
-  sys.cpu.lcores[lcore_id].state = SSN_LS_RUNNING_TIMER;
+  ssn_set_lcore_state(SSN_LS_RUNNING_TIMER, lcore_id);
 }
 void ssn_timer_manager::sched_unregister()
 {
   timer_running = false;
-  sys.cpu.lcores[lcore_id].state = SSN_LS_RUNNING_NATIVE;
+  ssn_set_lcore_state(SSN_LS_RUNNING_NATIVE, lcore_id);
 }
 void ssn_timer_manager::add(ssn_timer* tim)
 {

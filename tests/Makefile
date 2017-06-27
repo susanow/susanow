@@ -12,7 +12,12 @@ CXXFLAGS += -fsanitize=address
 	@$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
 
 
-SRC = lthread.cc timer.cc port.cc
+SRC = \
+			green_thread.cc  \
+			native_thread.cc \
+			timer.cc         \
+			port.cc
+
 OBJ = $(SRC:.cc=.out)
 
 poc: port.out

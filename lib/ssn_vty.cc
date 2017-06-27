@@ -364,8 +364,7 @@ struct show_cpu : public command {
     sh->Printf("show cpu\r\n");
     int fd = sh->get_fd();
     FILE* fp = fdopen(sh->get_fd(), "w");
-    ssn_sys* sys = ssn_get_sys();
-    sys->cpu.debug_dump(fp);
+    ssn_cpu_debug_dump(fp);
     fflush(fp);
   }
 };
