@@ -23,6 +23,7 @@ addons:
       - gcc-5
 
 script:
+  - sudo apt install linux-headers-`uname -r`
   - export SSN_SDK=`pwd`
   - ./setup.sh
 
