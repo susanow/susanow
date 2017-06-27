@@ -27,7 +27,9 @@ build: $(OBJ)
 
 test: build
 	sudo ./timer.out
-	sudo ./lthread.out
+	sudo ./native_thread.out
+	sudo ./green_thread.out
+	sudo ./port.out
 
 clean:
 	rm -rf *.out *.o
