@@ -9,7 +9,8 @@ CXXFLAGS += -fsanitize=address
 
 
 all:
-	$(CXX) $(CXXFLAGS) main.cc $(LDFLAGS)
+	@$(CXX) $(CXXFLAGS) main.cc $(LDFLAGS)
+	@echo LD a.out
 
 clean:
 	rm -rf *.out *.o
