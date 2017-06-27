@@ -151,9 +151,22 @@ void ssn_green_thread_fin()
   size_t nb = rte_lcore_count();
   for (size_t i=0; i<nb; i++) delete slm[i];
 }
-void ssn_green_thread_launch(ssn_function_t f, void* arg, size_t lcore_id) { slm[lcore_id]->launch(f, arg); }
+void ssn_green_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
+{
+  if (!is_green_thread(lcore_id))
+    throw slankdev::exception("is not green thread lcore");
+
+  slm[lcore_id]->launch(f, arg);
+}
+
 void ssn_green_thread_debug_dump(FILE* fp, size_t lcore_id) { slm[lcore_id]->debug_dump(fp); }
 void ssn_green_thread_sched_register(size_t lcore_id) { slm[lcore_id]->sched_register(); }
-void ssn_green_thread_sched_unregister(size_t lcore_id) { slm[lcore_id]->sched_unregister(); }
+void ssn_green_thread_sched_unregister(size_t lcore_id)
+{
+  if (!is_green_thread(lcore_id))
+    throw slankdev::exception("is not green thread lcore");
+
+  slm[lcore_id]->sched_unregister();
+}
 
 
