@@ -41,17 +41,6 @@ void ssn_wait(size_t lcore_id)
   }
 }
 
-void ssn_waiter_thread(void*)
-{
-  size_t nb_lcores = ssn_lcore_count();
-  while (true) {
-    for (size_t i=0; i<nb_lcores; i++) {
-      ssn_wait(i);
-      ssn_sleep(1);
-    }
-  }
-}
-
 void ssn_native_thread_init()
 {
   size_t nb_lcores = rte_lcore_count();
@@ -68,4 +57,13 @@ void ssn_native_thread_fin()
   }
 }
 
-
+void ssn_native_thread_waiter(void*)
+{
+  size_t nb_lcores = ssn_lcore_count();
+  while (true) {
+    for (size_t i=0; i<nb_lcores; i++) {
+      ssn_wait(i);
+      ssn_sleep(1);
+    }
+  }
+}

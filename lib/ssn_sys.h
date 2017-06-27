@@ -7,7 +7,6 @@
 #include <ssn_types.h>
 
 
-void ssn_waiter_thread(void*);
 
 void ssn_sys_init(int argc, char** argv);
 bool ssn_cpu_debug_dump(FILE* fp);
