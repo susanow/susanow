@@ -1,6 +1,5 @@
 sudo: false
 language: cpp
-env: BUILD_KERNEL=4.8.0-56-generic
 branches:
   except:
   - develop # developだけ除外する
@@ -15,7 +14,7 @@ install:
 addons:
   apt:
     sources:
-      - linux-headers-4.8.0-56-generic
+      - linux-headers-3.13.0-29-generic
       - ubuntu-toolchain-r-test
       - llvm-toolchain-precise-3.7
       - llvm-toolchain-precise
