@@ -1,15 +1,7 @@
 
 
 #include <stdio.h>
-#include <unistd.h>
 #include <susanow.h>
-
-size_t num0=0;
-size_t num1=1;
-size_t num2=2;
-size_t num3=3;
-size_t num4=4;
-size_t num5=5;
 
 bool running;
 void l2fwd(void*)
@@ -43,8 +35,6 @@ int main(int argc, char** argv)
   ssn_log_set_level(SSN_LOG_INFO);
   printf("\n\n");
 
-  wait_enter("first");
-
   ssn_port_conf conf;
   size_t nb_ports = ssn_dev_count();
   for (size_t i=0; i<nb_ports; i++) {
@@ -54,13 +44,11 @@ int main(int argc, char** argv)
     ssn_port_promisc_on(i);
   }
 
-  wait_enter("second");
-  ssn_launch(l2fwd, nullptr, 2);
-  wait_enter("final");
+  ssn_native_thread_launch(l2fwd, nullptr, 2);
+  wait_enter("PushEnterToExitL2fwd");
   running = false;
   ssn_sleep(1000);
 
-  printf("after\n");
   ssn_fin();
 }
 
