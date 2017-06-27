@@ -2,6 +2,7 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
+#include <rte_ethdev.h>
 
 struct rte_eth_conf;
 struct rte_mbuf;
@@ -13,7 +14,7 @@ class ssn_port_conf {
   size_t nb_rxd;
   size_t nb_txd;
   ssn_port_conf();
-  rte_eth_conf rte_portconf() const;
+  rte_eth_conf raw;
 };
 
 size_t ssn_dev_count();

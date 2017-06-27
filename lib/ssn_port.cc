@@ -6,63 +6,6 @@
 
 rte_mempool* mp[RTE_MAX_ETHPORTS];
 
-ssn_port_conf::ssn_port_conf() : nb_rxq(1), nb_txq(1), nb_rxd(128), nb_txd(512) {}
-
-rte_eth_conf ssn_port_conf::rte_portconf() const
-{
-  struct rte_eth_conf conf;
-  memset(&conf, 0, sizeof(rte_eth_conf));
-
-  /*********************************************\
-   * Rx Mode
-   \*********************************************/
-  auto& rxmode = conf.rxmode;
-  rxmode.mq_mode        = ETH_MQ_RX_NONE;
-  rxmode.max_rx_pkt_len = ETHER_MAX_LEN;
-  rxmode.split_hdr_size = 0;
-
-  /* bit fields */
-  rxmode.header_split   = 0;
-  rxmode.hw_ip_checksum = 0;
-  rxmode.hw_vlan_filter = 0;
-  rxmode.hw_vlan_strip  = 0;
-  rxmode.hw_vlan_extend = 0;
-  rxmode.jumbo_frame    = 0;
-  rxmode.hw_strip_crc   = 0;
-  rxmode.enable_scatter = 0;
-  rxmode.enable_lro     = 0;
-
-  /*********************************************\
-   * Tx Mode
-   \*********************************************/
-  auto& txmode = conf.txmode;
-  txmode.mq_mode                 = ETH_MQ_TX_NONE;
-  txmode.pvid                    = 0;  /* only I40E? */
-  txmode.hw_vlan_reject_tagged   = 0;  /* only I40E? */
-  txmode.hw_vlan_reject_untagged = 0;  /* only I40E? */
-  txmode.hw_vlan_insert_pvid     = 0;  /* only I40E? */
-
-  /*********************************************\
-   * Rx Adv Conf
-   \*********************************************/
-  auto& rx_adv_conf = conf.rx_adv_conf;
-  UNUSED(rx_adv_conf);
-
-  /*********************************************\
-   * Tx Adv Conf
-   \*********************************************/
-  auto& tx_adv_conf = conf.tx_adv_conf;
-  UNUSED(tx_adv_conf);
-
-  /*********************************************\
-   * FDIR conf
-   \*********************************************/
-  auto& fdir_conf = conf.fdir_conf;
-  UNUSED(fdir_conf);
-
-  return conf;
-}
-
 size_t ssn_dev_count()
 {
   return rte_eth_dev_count();
@@ -109,6 +52,12 @@ void ssn_port_dev_down(size_t pid)
   ssn_log(SSN_LOG_INFO, "port%zd dev down\n", pid);
 }
 
+ssn_port_conf::ssn_port_conf()
+  : nb_rxq(1), nb_txq(1), nb_rxd(128), nb_txd(512)
+{
+  slankdev::init_portconf(&raw);
+}
+
 void ssn_port_configure(size_t pid, ssn_port_conf* conf)
 {
   int ret;
@@ -117,18 +66,21 @@ void ssn_port_configure(size_t pid, ssn_port_conf* conf)
       pid, conf->nb_rxq, conf->nb_txq, conf->nb_rxd, conf->nb_txd);
   ssn_port_dev_down(pid);
 
-  rte_eth_conf pc = conf->rte_portconf();
-  ret = rte_eth_dev_configure(pid, conf->nb_rxq, conf->nb_txq, &pc);
+  ret = rte_eth_dev_configure(pid, conf->nb_rxq, conf->nb_txq, &conf->raw);
   if (ret < 0) {
     throw slankdev::exception("dev configure");
   }
-  ret = rte_eth_rx_queue_setup(pid, 0, conf->nb_rxd, rte_eth_dev_socket_id(pid), nullptr, mp[pid]);
-  if (ret < 0) {
-    throw slankdev::exception("dev rxq setup");
+  for (size_t q=0; q<conf->nb_rxq; q++) {
+    ret = rte_eth_rx_queue_setup(pid, q, conf->nb_rxd, rte_eth_dev_socket_id(pid), nullptr, mp[pid]);
+    if (ret < 0) {
+      throw slankdev::exception("dev rxq setup");
+    }
   }
-  ret = rte_eth_tx_queue_setup(pid, 0, conf->nb_txd, rte_eth_dev_socket_id(pid), nullptr);
-  if (ret < 0) {
-    throw slankdev::exception("dev txq setup");
+  for (size_t q=0; q<conf->nb_txq; q++) {
+    ret = rte_eth_tx_queue_setup(pid, q, conf->nb_txd, rte_eth_dev_socket_id(pid), nullptr);
+    if (ret < 0) {
+      throw slankdev::exception("dev txq setup");
+    }
   }
 }
 
