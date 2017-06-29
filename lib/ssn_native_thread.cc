@@ -29,16 +29,17 @@ void ssn_native_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
   rte_eal_remote_launch(_fthread_launcher, snt[lcore_id], lcore_id);
 }
 
-void ssn_wait(size_t lcore_id)
+bool ssn_lcore_joinable(size_t lcore_id)
 {
   rte_lcore_state_t s = rte_eal_get_lcore_state(lcore_id);
-  if (s == FINISHED) {
-    rte_eal_wait_lcore(lcore_id);
-    ssn_set_lcore_state(SSN_LS_WAIT, lcore_id);
-  }
-  if (s == WAIT) {
-    ssn_set_lcore_state(SSN_LS_WAIT, lcore_id);
-  }
+  return s==FINISHED;
+}
+
+void ssn_lcore_join(size_t lcore_id)
+{
+  rte_eal_wait_lcore(lcore_id);
+  ssn_set_lcore_state(SSN_LS_WAIT, lcore_id);
+  ssn_log(SSN_LOG_DEBUG, "join lcore%zd \n", lcore_id);
 }
 
 void ssn_native_thread_init()
@@ -57,13 +58,3 @@ void ssn_native_thread_fin()
   }
 }
 
-void ssn_native_thread_waiter(void*)
-{
-  size_t nb_lcores = ssn_lcore_count();
-  while (true) {
-    for (size_t i=0; i<nb_lcores; i++) {
-      ssn_wait(i);
-      ssn_sleep(1);
-    }
-  }
-}

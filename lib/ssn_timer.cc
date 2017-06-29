@@ -54,8 +54,8 @@ void ssn_timer_manager::sched_register()
 }
 void ssn_timer_manager::sched_unregister()
 {
-  timer_running = false;
   ssn_set_lcore_state(SSN_LS_RUNNING_NATIVE, lcore_id);
+  timer_running = false;
 }
 void ssn_timer_manager::add(ssn_timer* tim)
 {

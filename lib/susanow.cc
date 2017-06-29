@@ -17,7 +17,6 @@ void ssn_init(int argc, char** argv)
 }
 void ssn_fin()
 {
-  rte_eal_mp_wait_lcore();
   ssn_native_thread_fin();
   ssn_green_thread_fin();
   ssn_timer_fin();
