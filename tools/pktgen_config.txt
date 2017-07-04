@@ -1,0 +1,12 @@
+
+enable all range
+
+range 0 ip src start 192.168.0.1
+range 0 ip src min   192.168.0.1
+range 0 ip src max   192.168.0.254
+range 0 ip src inc   0.0.0.1
+
+range 0 ip dst start 192.168.0.1
+range 0 ip dst min   192.168.0.1
+range 0 ip dst max   192.168.0.254
+range 0 ip dst inc   0.0.0.1

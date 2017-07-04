@@ -27,3 +27,11 @@
 *.exe
 *.out
 *.app
+
+
+GPATH
+GRTAGS
+GTAGS
+GSYMS
+
+*build

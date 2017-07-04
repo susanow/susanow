@@ -1,33 +1,36 @@
 
 # Susanow
 
-A high performance network-stack on DPDK.
+Thread based high Performance Networking Platform on DPDK.
 Please see https://susanow.github.io
 
 
-## Usae
+## Usage
 
 ```
-$ git cloen http://github.com/susanow/susanow.git
-$ cd susanow/src
-$ make rr
-$ make run
+$ export SSN_SDK=/path/to/susanow_src
+$ git clone http://github.com/susanow/susanow.git $SSN_SDK
+$ cd $SSN_SDK
+$ ./setup.sh
 ```
 
-## Required Software
+## Depend Software
 
- - make
- - g++
- - dpdk-16.07
+ - dpdk-16.11 (susanow/dpdk.git)
+ - L-thread slankdev (susanow/lthread.git)
+ - Libslankdev (slankdev/libslankdev.git)
 
-## Licence
+
+## Licence and Author
 
 MIT Licence, see LICENCE file
 
+Hiroki SHIROKURA
 
-## Author
+ - E-mail slank.dev@gmail.com
+ - Twitter @slankdev
+ - Github  slankdev
+ - Facebook hiroki.shirokura
 
-Hiroki SHIROKURA @slankdev
 
-slank.dev@gmail.com
 
