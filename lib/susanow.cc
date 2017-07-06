@@ -23,5 +23,11 @@ void ssn_fin()
   ssn_port_fin();
   ssn_port_stat_fin();
 }
+void ssn_wait_all_lcore()
+{
+  ssn_log(SSN_LOG_INFO, "wait all lcore\n");
+  rte_eal_mp_wait_lcore();
+  ssn_log(SSN_LOG_INFO, "all lcore was joined\n");
+}
 
 
