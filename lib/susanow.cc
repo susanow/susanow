@@ -17,12 +17,17 @@ void ssn_init(int argc, char** argv)
 }
 void ssn_fin()
 {
-  rte_eal_mp_wait_lcore();
   ssn_native_thread_fin();
   ssn_green_thread_fin();
   ssn_timer_fin();
   ssn_port_fin();
   ssn_port_stat_fin();
+}
+void ssn_wait_all_lcore()
+{
+  ssn_log(SSN_LOG_INFO, "wait all lcore\n");
+  rte_eal_mp_wait_lcore();
+  ssn_log(SSN_LOG_INFO, "all lcore was joined\n");
 }
 
 
