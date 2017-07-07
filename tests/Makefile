@@ -16,12 +16,13 @@ SRC = \
 			green_thread.cc  \
 			native_thread.cc \
 			rest.cc          \
+			vty.cc           \
 			timer.cc         \
 			port.cc          \
 			port_stat.cc
 OBJ = $(SRC:.cc=.out)
 
-poc: rest.out
+poc: vty.out
 
 build: $(OBJ)
 	@echo all-build done
