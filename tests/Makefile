@@ -15,13 +15,13 @@ CXXFLAGS += -fsanitize=address
 SRC = \
 			green_thread.cc  \
 			native_thread.cc \
-			webui.cc         \
+			rest.cc          \
 			timer.cc         \
 			port.cc          \
 			port_stat.cc
 OBJ = $(SRC:.cc=.out)
 
-poc: webui.out
+poc: rest.out
 
 build: $(OBJ)
 	@echo all-build done

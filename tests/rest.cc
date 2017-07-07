@@ -6,11 +6,8 @@
 #include <unistd.h>
 #include <thread>
 #include <slankdev/filefd.h>
-
 #include "ssn_webui.h"
-
-// #define PATH "out.json"
-#define PATH "../webui/ssn.json"
+#define PATH ""
 
 bool running = true;
 void update(void* arg)

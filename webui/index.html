@@ -1,24 +1,104 @@
 <!DOCTYPE html>
 <html lang="ja">
+  <head>
+    <title>Susanow</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </head>
+  <body>
 
-<head>
-<meta charset="utf-8">
-<title>D3 Page Template</title>
-<script type="text/javascript" src="js/jquery.min.js"></script>
-<script type="text/javascript" src="js/d3.v3.js"></script>
-<script type="text/javascript" src="js/slankdev.js"></script>
-</script>
-</head>
+		<header style="background-color:gray">
+			<h1>Susanow Web UI</h1>
+		</header>
 
-<body>
-	hello world<br>
-	number of threads: <input id="nb_threads" /><br>
-	number of cpus   : <input id="nb_cpus"    /><br>
-	number of ports  : <input id="nb_ports"   /><br>
-	<div id="dom"></div>
-</body>
+		<div class="container-fluid">
+			<div class="row">
 
+				<div class="col-sm-3" style="background-color:red;">
+					<h2>Sidebar</h2>
+					<div class="list-group">
+						<a href="#" class="list-group-item">General</a>
+						<a href="#" class="list-group-item">VNF</a>
+						<a href="#" class="list-group-item">NIC</a>
+					</div>
+				</div> <!-- col-sm-3 -->
+
+				<div class="col-sm-9" style="background-color:yellow;">
+					<h2>Main</h2>
+						<section>
+							<div class="panel-group" id="accordion">
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<h4 class="panel-title accordion-toggle">
+											<a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+												セクション1 </a>
+										</h4>
+									</div>
+									<div id="collapseOne" class="panel-collapse collapse in">
+										<div class="panel-body">
+											<h3>アコーディオンの中身1</h3>
+											<p>コメントコメントコメントコメントコメントコメントコメント </p>
+										</div>
+									</div>
+								</div>
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<h4 class="panel-title accordion-toggle">
+											<a data-toggle="collapse" data-parent="#accordion"
+												href="#collapseTwo" class="collapsed">セクション2 </a>
+										</h4>
+									</div>
+									<div id="collapseTwo" class="panel-collapse collapse">
+										<div class="panel-body">
+											<h3>アコーディオンの中身2</h3>
+											<p>コメントコメントコメントコメントコメントコメントコメント </p>
+										</div>
+									</div>
+								</div>
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<h4 class="panel-title accordion-toggle">
+											<a data-toggle="collapse" data-parent="#accordion"
+												href="#collapseThree" class="collapsed">セクション3 </a>
+										</h4>
+									</div>
+									<div id="collapseThree" class="panel-collapse collapse">
+										<div class="panel-body">
+											<h3>アコーディオンの中身3</h3>
+											<p>コメントコメントコメントコメントコメントコメントコメント </p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</section>
+
+				</div> <!-- col-sm-9 -->
+			</div>
+		</div>
+
+		<footer style="background-color:gray">
+			Copyright &copy; 2017 Hiroki SHIROKURA All Rights Reserved.
+		</footer>
+
+		<!-- Following is Statistics datas from REST API on Susanow!! -->
+
+		<script>
+        $(function() {
+					$.getJSON("http://localhost/stats" , function(data) {
+						$('#vnfs').html('number of vnfs   : ' + data.nb_vnfs);
+						$('#nics').html('number of nics   : ' + data.nb_nics);
+						$('#thds').html('number of threads: ' + data.nb_thds);
+					});
+				});
+		</script>
+		<b><div id="vnfs"></div></b>
+		<b><div id="nics"></div></b>
+		<b><div id="thds"></div></b>
+
+  </body>
 </html>
-
-
 
