@@ -16,7 +16,6 @@ SRC = \
 			ssn_log.cc     \
 			ssn_rest.cc    \
 			ssn_port.cc    \
-			ssn_thread.cc  \
 			ssn_port_stat.cc     \
 			ssn_green_thread.cc  \
 			ssn_native_thread.cc \
