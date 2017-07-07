@@ -14,7 +14,7 @@ SRC = \
 			ssn_port.cc    \
 			ssn_timer.cc   \
 			ssn_log.cc     \
-			ssn_webui.cc   \
+			ssn_rest.cc    \
 			ssn_port.cc    \
 			ssn_port_stat.cc     \
 			ssn_green_thread.cc  \
