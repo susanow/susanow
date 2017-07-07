@@ -611,65 +611,62 @@ int vty::get_server_sock()
 
 void vty::dispatch()
 {
-  while (true) {
-    struct Pollfd : public pollfd {
-      Pollfd(int ifd, short ievents)
-      {
-        fd = ifd;
-        events = ievents;
-      }
-    };
-    std::vector<struct Pollfd> fds;
-    fds.push_back(Pollfd(server_fd, POLLIN));
-    for (const shell& sh : shells) fds.emplace_back(Pollfd(sh.fd, POLLIN));
+  struct Pollfd : public pollfd {
+    Pollfd(int ifd, short ievents)
+    {
+      fd = ifd;
+      events = ievents;
+    }
+  };
+  std::vector<struct Pollfd> fds;
+  fds.push_back(Pollfd(server_fd, POLLIN));
+  for (const shell& sh : shells) fds.emplace_back(Pollfd(sh.fd, POLLIN));
 
-    if (slankdev::poll(fds.data(), fds.size(), 1000)) {
-      if (fds[0].revents & POLLIN) {
-        /*
-         * Server Accept Process
-         */
-        struct sockaddr_in client;
-        socklen_t client_len = sizeof(client);
-        int fd = accept(fds[0].fd, (sockaddr*)&client, &client_len);
-
-        slankdev::socketfd client_sock(fd);
-        uint32_t on = 1;
-        client_sock.setsockopt(IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
-        int flags = client_sock.fcntl(F_GETFL);
-        client_sock.fcntl(F_SETFL, (flags | O_NONBLOCK));
-        client_sock.noclose_in_destruct = true;
-        slankdev::vty_will_echo (fd);
-        slankdev::vty_will_suppress_go_ahead (fd);
-        slankdev::vty_dont_linemode (fd);
-        slankdev::vty_do_window_size (fd);
-
-        shells.push_back(
-            shell(
-              fd,
-              bootmsg.c_str(),
-              prompt.c_str(),
-              &commands,
-              &keyfuncs,
-              user_ptr
-              )
-            );
-      }
-
+  if (slankdev::poll(fds.data(), fds.size(), 1000)) {
+    if (fds[0].revents & POLLIN) {
       /*
-       * Client Read Process
+       * Server Accept Process
        */
-      for (size_t i=1; i<fds.size(); i++) {
-        if (fds[i].revents & POLLIN) {
-          shells[i-1].process();
-          if (shells[i-1].closed) {
-            close(fds[i].fd);
-            shells.erase(shells.begin() + i);
-            continue;
-          }
+      struct sockaddr_in client;
+      socklen_t client_len = sizeof(client);
+      int fd = accept(fds[0].fd, (sockaddr*)&client, &client_len);
+
+      slankdev::socketfd client_sock(fd);
+      uint32_t on = 1;
+      client_sock.setsockopt(IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
+      int flags = client_sock.fcntl(F_GETFL);
+      client_sock.fcntl(F_SETFL, (flags | O_NONBLOCK));
+      client_sock.noclose_in_destruct = true;
+      slankdev::vty_will_echo (fd);
+      slankdev::vty_will_suppress_go_ahead (fd);
+      slankdev::vty_dont_linemode (fd);
+      slankdev::vty_do_window_size (fd);
+
+      shells.push_back(
+          shell(
+            fd,
+            bootmsg.c_str(),
+            prompt.c_str(),
+            &commands,
+            &keyfuncs,
+            user_ptr
+            )
+          );
+    }
+
+    /*
+     * Client Read Process
+     */
+    for (size_t i=1; i<fds.size(); i++) {
+      if (fds[i].revents & POLLIN) {
+        shells[i-1].process();
+        if (shells[i-1].closed) {
+          close(fds[i].fd);
+          shells.erase(shells.begin() + i);
+          continue;
         }
       }
     }
-    ssn_sleep(1);
   }
 }
 
@@ -740,8 +737,7 @@ ssn_vty::ssn_vty(uint32_t addr, uint16_t port)
       "Y88b  d88P Y88b 888      X88 888  888 888  888 Y88..88P Y88b 888 d88P \r\n"
       " \"Y8888P\"   \"Y88888  88888P\' \"Y888888 888  888  \"Y88P\"   \"Y8888888P\"  \r\n"
       "\r\n";
-
-  v = new vty(port, str, "Susanow> ");
+  v = new vty(port, str, "ssn> ");
 }
 ssn_vty::~ssn_vty() { delete v; }
 
@@ -758,12 +754,13 @@ void ssn_vty_poll_thread(void* arg)
   Vty->v->install_command(new ssn_cmd::show_cpu    );
   Vty->v->install_command(new ssn_cmd::show_author );
   Vty->v->install_command(new ssn_cmd::show_version);
-  Vty->v->dispatch();
 
   ssn_vty_poll_thread_running = true;
   while (ssn_vty_poll_thread_running) {
-
+    Vty->v->dispatch();
+    ssn_sleep(1);
   }
+  ssn_log(SSN_LOG_DEBUG, "ret ssn_vty_poll_thread\n");
 }
 void ssn_vty_poll_thread_stop() { ssn_vty_poll_thread_running = false; }
 
