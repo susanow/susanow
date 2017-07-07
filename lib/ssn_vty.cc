@@ -292,7 +292,6 @@ class vty {
     : port(p), bootmsg(msg), prompt(prmpt), server_fd(get_server_sock())
   {
     add_default_keyfunctions();
-    init_commands();
   }
   virtual ~vty()
   {
@@ -302,7 +301,6 @@ class vty {
 
   void install_keyfunction(key_func* kf) { keyfuncs.push_back(kf); }
   void install_command(command* cmd) { commands.push_back(cmd); }
-  void init_commands();
   void add_default_keyfunctions();
   void init_default_keyfunc();
   void dispatch();
@@ -674,6 +672,7 @@ void vty::dispatch()
     ssn_sleep(1);
   }
 }
+
 void vty::add_default_keyfunctions()
 {
   using namespace slankdev;
@@ -716,16 +715,6 @@ void vty::add_default_keyfunctions()
   install_keyfunction(new KF_backspace  (backspace, sizeof(backspace)));
 }
 
-void vty::init_commands()
-{
-  install_command(new ssn_cmd::quit        );
-  install_command(new ssn_cmd::clear       );
-  install_command(new ssn_cmd::echo        );
-  install_command(new ssn_cmd::list        );
-  install_command(new ssn_cmd::show_cpu    );
-  install_command(new ssn_cmd::show_author );
-  install_command(new ssn_cmd::show_version);
-}
 
 
 struct slank : public command {
@@ -736,9 +725,7 @@ struct slank : public command {
   }
 };
 
-
-
-void ssn_vty_thread(void*)
+ssn_vty::ssn_vty(uint32_t addr, uint16_t port)
 {
   char str[] = "\r\n"
       "Hello, this is Susanow (version 0.00.00.0).\r\n"
@@ -754,10 +741,30 @@ void ssn_vty_thread(void*)
       " \"Y8888P\"   \"Y88888  88888P\' \"Y888888 888  888  \"Y88P\"   \"Y8888888P\"  \r\n"
       "\r\n";
 
-  vty vty0(9999, str, "Susanow> ");
-  vty0.install_command(new slank);
-  vty0.dispatch();
+  v = new vty(port, str, "Susanow> ");
 }
+ssn_vty::~ssn_vty() { delete v; }
 
+
+bool ssn_vty_poll_thread_running;
+void ssn_vty_poll_thread(void* arg)
+{
+  ssn_vty* Vty = reinterpret_cast<ssn_vty*>(arg);
+  Vty->v->install_command(new slank);
+  Vty->v->install_command(new ssn_cmd::quit        );
+  Vty->v->install_command(new ssn_cmd::clear       );
+  Vty->v->install_command(new ssn_cmd::echo        );
+  Vty->v->install_command(new ssn_cmd::list        );
+  Vty->v->install_command(new ssn_cmd::show_cpu    );
+  Vty->v->install_command(new ssn_cmd::show_author );
+  Vty->v->install_command(new ssn_cmd::show_version);
+  Vty->v->dispatch();
+
+  ssn_vty_poll_thread_running = true;
+  while (ssn_vty_poll_thread_running) {
+
+  }
+}
+void ssn_vty_poll_thread_stop() { ssn_vty_poll_thread_running = false; }
 
 
