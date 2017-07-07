@@ -1,8 +1,11 @@
 
 
-#include <susanow.h>
+#include <ssn_log.h> // for ssn_log() only
+#include <ssn_sys.h> // for ssn_sleep() only
 #include <ssn_rest.h>
 #include <slankdev/util.h>
+#include <slankdev/socketfd.h>
+#include <poll.h>
 
 bool ssn_rest_poll_thread_running;
 
@@ -19,11 +22,19 @@ static inline std::string getline(const void* buf, size_t len)
 
 Rest_server::Rest_server(uint32_t addr, uint16_t port)
 {
+  slankdev::socketfd sock;
+  sock.noclose_in_destruct = true;
+
   int yes = 1;
   sock.socket(AF_INET, SOCK_STREAM, 0);
   sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(yes));
   sock.bind(addr, port);
   sock.listen(1);
+
+  struct pollfd pfd;
+  pfd.fd = sock.get_fd();
+  pfd.events = POLLIN | POLLERR;
+  fds.push_back(pfd);
 }
 
 void Rest_server::add_route(const char* path, ssn_restcb_t callback, void* arg)
@@ -31,42 +42,72 @@ void Rest_server::add_route(const char* path, ssn_restcb_t callback, void* arg)
 
 void Rest_server::dispatch()
 {
-  struct sockaddr_in client;
-  socklen_t client_len = sizeof(client);
-  int fd = sock.accept((sockaddr*)&client, &client_len);
-  slankdev::socketfd client_sock;
-  client_sock.set_fd(fd);
+  constexpr int notimeout = 0;
+  poll(fds.data(), fds.size(), notimeout);
 
-  uint8_t buf[1000];
-  size_t recvlen = client_sock.read(buf, sizeof(buf));
+  constexpr int server_sock_idx = 0;
+  for (size_t i=0; i<fds.size(); i++) {
+    if (fds[i].revents & POLLIN) {
+      if (i==server_sock_idx) {
 
-  /* Analyze */
-  std::string line = getline(buf, recvlen);
-  ssn_log(SSN_LOG_DEBUG, "ssn_rest \"%s\" \n", line.c_str());
-  char method[256];
-  char uri[256];
-  sscanf(line.c_str(), "%s %s", method, uri);
+        /*
+         * Server Socket
+         */
+        struct sockaddr_in client;
+        socklen_t client_len = sizeof(client);
+        int fd = accept(fds[i].fd, (sockaddr*)&client, &client_len);
+        if (fd < 0) throw slankdev::exception("accept");
+        struct pollfd pfd;
+        pfd.fd = fd;
+        pfd.events = POLLIN | POLLERR;
+        fds.push_back(pfd);
+        break;
 
-  if (cbs.count(uri) == 0) {
-    slankdev::fdprintf(fd,
-        "HTTP/1.1 400 Bad Request\r\n"
-        "Access-Control-Allow-Origin: *\r\n"
-        "Content-Type: application/json; charaset=UTF-8\r\n"
-        "\r\n"
-        "{"
-        "   \"error\": {"
-        "      \"message\": \"Unsupported get request.\""
-        "   }"
-        "}"
-        );
-  } else {
-    slankdev::fdprintf(fd,
-        "HTTP/1.1 200 OK\r\n"
-        "Access-Control-Allow-Origin: *\r\n"
-        "Content-Type: application/json; charaset=UTF-8\r\n"
-        "\r\n"
-        );
-    cbs[uri].first(fd, buf, recvlen, cbs[uri].second);
+      } else {
+
+        /*
+         * Client Socket
+         */
+        int fd = fds[i].fd;
+
+        uint8_t buf[1000];
+        ssize_t recvlen = read(fd, buf, sizeof(buf));
+        if (recvlen < 0) throw slankdev::exception("read");
+
+        /* Analyze */
+        std::string line = getline(buf, recvlen);
+        ssn_log(SSN_LOG_DEBUG, "ssn_rest \"%s\" \n", line.c_str());
+        char method[256];
+        char uri[256];
+        sscanf(line.c_str(), "%s %s", method, uri);
+
+        if (cbs.count(uri) == 0) {
+          slankdev::fdprintf(fd,
+              "HTTP/1.1 400 Bad Request\r\n"
+              "Access-Control-Allow-Origin: *\r\n"
+              "Content-Type: application/json; charaset=UTF-8\r\n"
+              "\r\n"
+              "{"
+              "   \"error\": {"
+              "      \"message\": \"Unsupported get request.\""
+              "   }"
+              "}"
+              );
+        } else {
+          slankdev::fdprintf(fd,
+              "HTTP/1.1 200 OK\r\n"
+              "Access-Control-Allow-Origin: *\r\n"
+              "Content-Type: application/json; charaset=UTF-8\r\n"
+              "\r\n"
+              );
+          cbs[uri].first(fd, buf, recvlen, cbs[uri].second);
+        }
+
+        fds.erase(fds.begin() + i);
+        close(fd);
+        break;
+      }
+    }
   }
 }
 

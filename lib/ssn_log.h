@@ -2,6 +2,7 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
+#include <stdio.h>
 
 enum ssn_log_level {
   SSN_LOG_EMERG  = 1,
