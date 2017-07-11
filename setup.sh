@@ -12,6 +12,7 @@ make install T=$RTE_TARGET
 cd ..
 
 make -C lthread_dpdk
+make -C libvty
 make -C lib
 make -C tests test
 

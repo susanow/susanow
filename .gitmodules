@@ -7,3 +7,6 @@
 [submodule "libslankdev"]
 	path = libslankdev
 	url = https://github.com/slankdev/libslankdev
+[submodule "libvty"]
+	path = libvty
+	url = http://github.com/susanow/libvty

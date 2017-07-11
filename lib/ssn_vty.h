@@ -26,20 +26,21 @@
  * @file   ssn_vty.h
  * @brief  vty implementation
  * @author Hiroki SHIROKURA
- * @date   2017.6.16
+ * @date   2017.7.12
  */
 
 
 #pragma once
+#include <vty_server.h>
 
-class vty;
 class ssn_vty {
+  vty_server* vty_;
  public:
-  vty* v;
   ssn_vty(uint32_t addr, uint16_t port);
   virtual ~ssn_vty();
+  void poll_dispatch();
+  void install_command(vty_cmd_match m, vty_cmdcallback_t f, void* arg);
 };
-
 void ssn_vty_poll_thread(void* arg);
 void ssn_vty_poll_thread_stop();
 
