@@ -35,6 +35,7 @@
 #include <stddef.h>
 #include <ssn_vty.h>
 #include <vty_server.h>
+#include <ssn_sys.h>
 
 /*
  *======================================
@@ -130,17 +131,20 @@ void list_f(vty_cmd_match* m, vty_client* sh, void* arg)
   }
 }
 
-/* slank */
-vty_cmd_match slank_mt()
+
+vty_cmd_match show_cpu_mt()
 {
   vty_cmd_match m;
-  m.nodes.push_back(new node_fixedstring("slank", ""));
+  m.nodes.push_back(new node_fixedstring("show", ""));
+  m.nodes.push_back(new node_fixedstring("cpu", ""));
   return m;
 }
-void slank_f(vty_cmd_match* m, vty_client* sh, void* arg)
+void show_cpu_f(vty_cmd_match* m, vty_client* sh, void* arg)
 {
-  size_t* n = reinterpret_cast<size_t*>(arg);
-  sh->Printf("slankdev called %zd times\r\n", (*n)++);
+  sh->Printf("show cpu\r\n");
+  FILE* fp = fdopen(sh->get_fd(), "w");
+  ssn_cpu_debug_dump(fp);
+  fflush(fp);
 }
 
 
@@ -166,13 +170,13 @@ ssn_vty::ssn_vty(uint32_t addr, uint16_t port)
       " \"Y8888P\"   \"Y88888  88888P\' \"Y888888 888  888  \"Y88P\"   \"Y8888888P\"  \r\n"
       "\r\n";
   vty_ = new vty_server(addr, port, str, "ssn> ");
-  vty_->install_command(slank_mt       (), slank_f       , &slank_f_call_cnt);
   vty_->install_command(quit_mt        (), quit_f        , nullptr);
   vty_->install_command(clear_mt       (), clear_f       , nullptr);
   vty_->install_command(echo_mt        (), echo_f        , nullptr);
   vty_->install_command(list_mt        (), list_f        , nullptr);
   vty_->install_command(show_author_mt (), show_author_f , nullptr);
   vty_->install_command(show_version_mt(), show_version_f, nullptr);
+  vty_->install_command(show_cpu_mt    (), show_cpu_f    , nullptr);
 }
 ssn_vty::~ssn_vty() { delete vty_; }
 void ssn_vty::poll_dispatch() { vty_->poll_dispatch(); }
@@ -187,6 +191,7 @@ void ssn_vty_poll_thread(void* arg)
   _ssn_vty_poll_thread_running = true;
   while (_ssn_vty_poll_thread_running) {
     v->poll_dispatch();
+    ssn_sleep(1);
   }
   printf("Finish %s\n", __func__);
 }
