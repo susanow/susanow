@@ -115,6 +115,7 @@ void ssn_sleep(size_t msec)
   else usleep(msec * 1000);
 }
 
-void ssn_yield() { lthread_yield(); }
+void ssn_yield()
+{ if (is_green_thread(rte_lcore_id())) lthread_yield(); }
 
 

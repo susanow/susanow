@@ -3,17 +3,35 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <ssn_types.h>
+#include <rte_timer.h>
 
-class ssn_timer;
+class ssn_timer {
+ public:
+  rte_timer tim;
+  ssn_function_t f;
+  void* arg;
+  size_t hz;
+  ssn_timer(ssn_function_t _f, void* _arg, size_t _hz);
+  virtual ~ssn_timer();
+};
+
+class ssn_timer_sched {
+ private:
+  std::vector<ssn_timer*> tims;
+  size_t lcore_id_;
+ public:
+  ssn_timer_sched(size_t i);
+  virtual ~ssn_timer_sched();
+  void add(ssn_timer* tim);
+  void del(ssn_timer* tim);
+  void debug_dump(FILE* fp);
+  size_t lcore_id() const;
+};
+void ssn_timer_sched_poll_thread(void* arg);
+void ssn_timer_sched_poll_thread_stop();
 
 void ssn_timer_init();
 void ssn_timer_fin();
-void ssn_timer_sched_register(size_t lcore_id);
-void ssn_timer_sched_unregister(size_t lcore_id);
-ssn_timer* ssn_timer_alloc(ssn_function_t f, void* arg, size_t hz);
-void ssn_timer_free(ssn_timer* st);
-void ssn_timer_add(ssn_timer* tim, size_t lcore_id);
-void ssn_timer_del(ssn_timer* st, size_t lcore_id);
-void ssn_timer_debug_dump(FILE* fp, size_t lcore_id);
-void ssn_timer_debug_dump(FILE* fp);
+uint64_t ssn_timer_get_hz();
+
 

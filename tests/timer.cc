@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <susanow.h>
-#include <slankdev/extra/dpdk.h>
 
 size_t num0=0;
 size_t num1=1;
@@ -14,27 +13,27 @@ size_t num5=5;
 void Slankdev (void* arg)
 {
   int* n = (int*)arg;
-  printf("slankdev arg=%d lcore%u \n", *n, rte_lcore_id());
+  printf("slankdev arg=%d lcore%zd \n", *n, ssn_lcore_id());
 }
 
 int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
 
-  ssn_timer_sched_register(2);
-  ssn_timer_sched_register(3);
+  ssn_timer_sched tm2(2);
+  ssn_timer_sched tm3(3);
+  ssn_native_thread_launch(ssn_timer_sched_poll_thread, &tm2, 2);
+  ssn_native_thread_launch(ssn_timer_sched_poll_thread, &tm3, 3);
 
-  uint64_t hz = rte_get_timer_hz();
-  ssn_timer* tim2 = ssn_timer_alloc(Slankdev , &num2, hz);
-  ssn_timer* tim3 = ssn_timer_alloc(Slankdev , &num3, hz);
-  ssn_timer_add(tim2, 2);
-  ssn_timer_add(tim3, 3);
+  uint64_t hz = ssn_timer_get_hz();
+  ssn_timer* tim2 = new ssn_timer(Slankdev , &num2, hz);
+  ssn_timer* tim3 = new ssn_timer(Slankdev , &num3, hz);
+  tm2.add(tim2);
+  tm3.add(tim3);
 
   sleep(2);
-  sleep(1); ssn_timer_del(tim2, 2); ssn_timer_free(tim2);
-  sleep(2); ssn_timer_del(tim3, 3); ssn_timer_free(tim3);
-  ssn_timer_sched_unregister(2);
-  ssn_timer_sched_unregister(3);
+  sleep(1); tm2.del(tim2); delete (tim2);
+  sleep(2); tm3.del(tim3); delete (tim3);
 
   ssn_fin();
 }

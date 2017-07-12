@@ -22,7 +22,7 @@ SRC = \
 			port_stat.cc
 OBJ = $(SRC:.cc=.out)
 
-poc: vty.out
+poc: timer.out
 
 build: $(OBJ)
 	@echo all-build done
