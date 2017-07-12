@@ -125,7 +125,7 @@ void ssn_rest_poll_thread(void* arg)
   ssn_rest_poll_thread_running = true;
   while (ssn_rest_poll_thread_running) {
     rest->dispatch();
-    ssn_sleep(1);
+    ssn_yield();
   }
 }
 
