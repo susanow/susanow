@@ -191,9 +191,10 @@ void ssn_vty_poll_thread(void* arg)
   _ssn_vty_poll_thread_running = true;
   while (_ssn_vty_poll_thread_running) {
     v->poll_dispatch();
-    ssn_sleep(1);
+    ssn_yield();
   }
   printf("Finish %s\n", __func__);
 }
+
 
 

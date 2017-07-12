@@ -1,7 +1,6 @@
 
 
 #include <stdint.h>
-#include <susanow.h>
 #include <ssn_sys.h>
 #include <ssn_types.h>
 #include <ssn_green_thread.h>
@@ -133,6 +132,7 @@ static void _green_thread_gc(void* arg)
         break;
       }
     }
+    ssn_yield();
   }
 }
 

@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include <susanow.h>
+#include <ssn_log.h>
 #include <ssn_port.h>
 #include <slankdev/extra/dpdk.h>
 

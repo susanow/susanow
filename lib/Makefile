@@ -19,7 +19,7 @@ SRC = \
 			ssn_port_stat.cc     \
 			ssn_green_thread.cc  \
 			ssn_native_thread.cc \
-			susanow.cc
+			ssn_common.cc
 OBJ = $(SRC:.cc=.o)
 
 $(TARGET): $(OBJ)

@@ -19,10 +19,11 @@ SRC = \
 			vty.cc           \
 			timer.cc         \
 			port.cc          \
-			port_stat.cc
+			port_stat.cc     \
+			vnf.cc
 OBJ = $(SRC:.cc=.out)
 
-poc: timer.out
+poc: clean vnf.out
 
 build: $(OBJ)
 	@echo all-build done

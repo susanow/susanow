@@ -1,7 +1,6 @@
 
 
 #include <assert.h>
-#include <susanow.h>
 #include <ssn_sys.h>
 #include <ssn_timer.h>
 #include <ssn_native_thread.h>
