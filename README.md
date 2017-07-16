@@ -1,6 +1,8 @@
 
 # Susanow
 
+[![Build Status](https://travis-ci.org/susanow/susanow.svg?branch=master)](https://travis-ci.org/susanow/susanow)
+
 Thread based high Performance Networking Platform on DPDK.
 Please see https://susanow.github.io
 
