@@ -14,6 +14,6 @@ cd ..
 make -C lthread_dpdk
 make -C libvty
 make -C lib
-make -C tests test
+make -C tests build
 
 echo "Success Setup for SUSANOW"

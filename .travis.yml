@@ -1,0 +1,10 @@
+sudo: required
+dist: trusty
+language: cpp
+compiler:
+  - gcc
+  - clang
+script:
+  - export SSN_SDK=`pwd`
+  - ./setup.sh
+
