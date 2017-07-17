@@ -11,7 +11,6 @@ CXXFLAGS += -fsanitize=address
 	@echo "CXX $@"
 	@$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
 
-
 SRC = \
 			green_thread.cc  \
 			native_thread.cc \
@@ -28,13 +27,6 @@ poc: clean
 
 build: $(OBJ)
 	@echo all-build done
-
-test: build
-	sudo ./timer.out
-	sudo ./native_thread.out
-	sudo ./green_thread.out
-	sudo ./port.out
-	sudo ./port_stat.out
 
 clean:
 	rm -rf *.out *.o
