@@ -23,7 +23,7 @@ SRC = \
 OBJ = $(SRC:.cc=.out)
 
 poc: clean
-	$(CXX) $(CXXFLAGS) vnf.cc ssn_vnf.cc $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) vnf.cc $(LDFLAGS)
 
 build: $(OBJ)
 	@echo all-build done
