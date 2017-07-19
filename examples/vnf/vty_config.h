@@ -13,34 +13,34 @@ inline void vtycb_slank(vty_cmd_match* m, vty_client* sh, void*)
   static size_t cnt = 0;
   sh->Printf("slankdev called %zd times\r\n", cnt++);
 }
-vty_cmd_match vtymt_show_vnf()
-{
-  vty_cmd_match m;
-  m.nodes.push_back(new node_fixedstring("show", ""));
-  m.nodes.push_back(new node_fixedstring("vnf", ""));
-  return m;
-}
-inline void vtycb_show_vnf(vty_cmd_match* m, vty_client* sh, void* arg)
-{
-  vnf* vnf0 = *reinterpret_cast<vnf**>(arg);
-  FILE* fp = fdopen(sh->get_fd(), "w");
-  vnf0->debug_dump(fp);
-  fflush(fp);
-}
-inline vty_cmd_match vtymt_vnfctl()
-{
-  vty_cmd_match m;
-  m.nodes.push_back(new node_fixedstring("vnfctl", ""));
-  return m;
-}
-inline vty_cmd_match vtymt_vnfctl_STR_inc()
-{
-  vty_cmd_match m;
-  m.nodes.push_back(new node_fixedstring("vnfctl", ""));
-  m.nodes.push_back(new node_string                   );
-  m.nodes.push_back(new node_fixedstring("inc", "increment thread muximize"));
-  return m;
-}
+// vty_cmd_match vtymt_show_vnf()
+// {
+//   vty_cmd_match m;
+//   m.nodes.push_back(new node_fixedstring("show", ""));
+//   m.nodes.push_back(new node_fixedstring("vnf", ""));
+//   return m;
+// }
+// inline void vtycb_show_vnf(vty_cmd_match* m, vty_client* sh, void* arg)
+// {
+//   vnf* vnf0 = *reinterpret_cast<vnf**>(arg);
+//   FILE* fp = fdopen(sh->get_fd(), "w");
+//   vnf0->debug_dump(fp);
+//   fflush(fp);
+// }
+// inline vty_cmd_match vtymt_vnfctl()
+// {
+//   vty_cmd_match m;
+//   m.nodes.push_back(new node_fixedstring("vnfctl", ""));
+//   return m;
+// }
+// inline vty_cmd_match vtymt_vnfctl_STR_inc()
+// {
+//   vty_cmd_match m;
+//   m.nodes.push_back(new node_fixedstring("vnfctl", ""));
+//   m.nodes.push_back(new node_string                   );
+//   m.nodes.push_back(new node_fixedstring("inc", "increment thread muximize"));
+//   return m;
+// }
 // inline void vtycb_vnfctl_STR_inc(vty_cmd_match* m, vty_client* sh, void* arg)
 // {
 //   std::vector<vnf*>& vnfs = *reinterpret_cast<std::vector<vnf*>*>(arg);

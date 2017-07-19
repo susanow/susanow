@@ -1,58 +1,26 @@
 
+
+#include <stdio.h>
+#include <string>
+
+#include <slankdev/exception.h>
+#include <slankdev/util.h>
+#include <slankdev/extra/dpdk.h>
+
+#include <ssn_sys.h>
+#include <ssn_log.h>
+#include <ssn_ring.h>
+#include <ssn_port.h>
+#include <ssn_port_stat.h>
+#include <ssn_timer.h>
+#include <ssn_native_thread.h>
+#include <ssn_green_thread.h>
+
 #include "susanow.h"
 #include "vty_config.h"
 #include "rest_config.h"
 
 
-ssn_ring* prewk[2];
-ssn_ring* poswk[2];
-bool run = true;
-void rx(void*)
-{
-  size_t nb_ports = ssn_dev_count();
-  while (run) {
-    for (size_t p=0; p<nb_ports; p++) {
-      rte_mbuf* mbufs[32];
-      size_t recvlen = ssn_port_rx_burst(p, 0, mbufs, 32);
-      if (recvlen == 0) continue;
-      size_t enqlen = prewk[p]->enq_bulk((void**)mbufs, recvlen);
-      if (recvlen > enqlen) {
-        slankdev::rte_pktmbuf_free_bulk(&mbufs[enqlen], recvlen-enqlen);
-      }
-    }
-  }
-}
-
-void tx(void*)
-{
-  size_t nb_ports = ssn_dev_count();
-  while (run) {
-    for (size_t p=0; p<nb_ports; p++) {
-      rte_mbuf* mbufs[32];
-      size_t deqlen = poswk[p]->deq_bulk((void**)mbufs, 32);
-      if (deqlen == 0) continue;
-      size_t sendlen = ssn_port_tx_burst(p, 0, mbufs, deqlen);
-      if (deqlen > sendlen) {
-        slankdev::rte_pktmbuf_free_bulk(&mbufs[sendlen], deqlen-sendlen);
-      }
-    }
-  }
-}
-
-void wk_shot(void*)
-{
-  size_t nb_ports = ssn_dev_count();
-  rte_mbuf* mbufs[32];
-  while (run) {
-    for (size_t p=0; p<nb_ports; p++) {
-      size_t deqlen = prewk[p]->deq_bulk((void**)mbufs, 32);
-      for (size_t i=0; i<deqlen; i++) {
-        int ret = poswk[p^1]->enq(mbufs[i]);
-        if (ret < 0) rte_pktmbuf_free(mbufs[i]);
-      }
-    }
-  }
-}
 
 
 ssn::ssn(int argc, char** argv)
@@ -77,25 +45,21 @@ ssn::ssn(int argc, char** argv)
   /*
    * Init VTY
    */
-#if 0
   vty = new ssn_vty(0x0, vty_port);
   vty->install_command(vtymt_slank()    , vtycb_slank    , nullptr);
-  vty->install_command(vtymt_show_vnf() , vtycb_show_vnf , &vnf0  );
   vty->install_command(vtymt_show_port(), vtycb_show_port, nullptr);
   vty->install_command(vtymt_show_ring(), vtycb_show_ring, &rings );
+  // vty->install_command(vtymt_show_vnf() , vtycb_show_vnf , &vnf0  );
   ssn_green_thread_launch(ssn_vty_poll_thread, vty, 1);
-#endif
 
   /*
    * Init REST API Server
    */
-#if 0
   rest = new ssn_rest(0x0, rest_port);
   rest->add_route("/"       , restcb_root  , nullptr);
   rest->add_route("/stats"  , restcb_stats , nullptr);
   rest->add_route("/author" , restcb_author, nullptr);
   ssn_green_thread_launch(ssn_rest_poll_thread, rest,1);
-#endif
 
   /*
    * Port Configuration
@@ -112,20 +76,23 @@ ssn::ssn(int argc, char** argv)
   /*
    * Init VNF
    */
-  vnf0 = new vnf("vnf0");
+  ssn_ring* prewk[2];
+  ssn_ring* poswk[2];
   prewk[0] = ring_alloc("prewk0");
   prewk[1] = ring_alloc("prewk1");
   poswk[0] = ring_alloc("poswk0");
   poswk[1] = ring_alloc("poswk1");
-  vnf0->pl.push_back(pl_stage(rx, nullptr));
-  vnf0->pl.push_back(pl_stage(wk_shot, nullptr));
-  vnf0->pl.push_back(pl_stage(tx, nullptr));
-  vnf0->deploy();
+  vnf1 = new vnf_l2fwd(prewk, poswk);
+  vnf1->deploy();
+
 }
+
+void ssn::launch_green_thread(ssn_function_t f, void* arg)
+{ ssn_green_thread_launch(f, arg, 1); }
 
 void ssn::debug_dump(FILE* fp)
 {
-  vnf0->debug_dump(stdout);
+  vnf1->debug_dump(fp);
 }
 
 ssn::~ssn()

@@ -6,14 +6,14 @@
 #include <ssn_sys.h>
 #include "susanow.h"
 
-extern bool run;
 void print(void* arg)
 {
   ssn* s = reinterpret_cast<ssn*>(arg);
-  while (run) {
+  while (true) {
     s->debug_dump(stdout);
     printf("-------------\n");
     ssn_sleep(1000);
+    ssn_yield();
   }
 }
 
@@ -23,7 +23,7 @@ int main(int argc, char** argv)
   ssn_log_set_level(SSN_LOG_DEBUG);
 
   ssn s(argc, argv);
-  ssn_native_thread_launch(print, &s, 7);
+  s.launch_green_thread(print, &s);
 
   while (true) {
     char c = getchar();
@@ -31,8 +31,8 @@ int main(int argc, char** argv)
       printf("quit\n");
       break;
     }
+    s.vnf1->stages[1]->inc();
   }
-  run = false;
-  ssn_timer_sched_poll_thread_stop();
+  ssn_wait_all_lcore();
 }
 
