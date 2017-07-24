@@ -81,6 +81,8 @@ ssn::ssn(int argc, char** argv)
   prewk[1] = ring_alloc("prewk1");
   poswk[0] = ring_alloc("poswk0");
   poswk[1] = ring_alloc("poswk1");
+  hz = ssn_timer_get_hz();
+  add_timer(new ssn_timer(ssn_ring_getstats_timer_cb, nullptr, hz));
   vnf1 = new vnf_l2fwd(prewk, poswk);
   vnf1->deploy();
 
@@ -110,10 +112,7 @@ ssn::~ssn()
 ssn_ring* ssn::ring_alloc(const char* name)
 {
   ssn_ring* sr = new ssn_ring(name);
-  uint64_t hz = ssn_timer_get_hz();
-  add_timer(new ssn_timer(ssn_ring_getstats_timer_cb, sr, hz));
   rings.push_back(sr);
   return sr;
 }
-
 
