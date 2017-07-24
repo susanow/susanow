@@ -10,7 +10,7 @@ LDFLAGS  += $(SSN_LDFLAGS)
 
 
 all:
-	$(CXX) $(CXXFLAGS) main.cc vnf.cc $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) main.cc vnf.cc stage.cc $(LDFLAGS)
 
 clean:
 	rm -rf *.out *.o
