@@ -69,7 +69,6 @@ ssn::ssn(int argc, char** argv)
   for (size_t i=0; i<nb_ports; i++) {
     ssn_port_configure(i, &conf);
     ssn_port_dev_up(i);
-    ssn_port_link_up(i);
     ssn_port_promisc_on(i);
   }
 

@@ -20,7 +20,7 @@ void print(void* arg)
 int main(int argc, char** argv)
 {
   ssn_log_set_level(SSN_LOG_EMERG);
-  ssn_log_set_level(SSN_LOG_DEBUG);
+  // ssn_log_set_level(SSN_LOG_DEBUG);
 
   ssn s(argc, argv);
   s.launch_green_thread(print, &s);
@@ -31,7 +31,7 @@ int main(int argc, char** argv)
       printf("quit\n");
       break;
     }
-    s.vnf1->stages[1]->inc();
+    s.vnf1->scaleup();
   }
   ssn_wait_all_lcore();
 }

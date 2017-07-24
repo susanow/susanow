@@ -265,6 +265,26 @@ class vnf_l2fwd {
       fprintf(fp, "\r\n");
     }
   }
+  void scaleup()
+  {
+    printf("scaleup command!! \n");
+    printf(" find bottle neck... \n");
+    size_t nb_stages = stages.size();
+    size_t stage_perf[nb_stages];
+    for (size_t i=0; i<nb_stages; i++) {
+      stage_perf[i] = stages[i]->throughput_pps();
+    }
+    for (size_t i=0; i<nb_stages; i++) {
+      double r = 1.0;
+      if (i!=0) r = double(stage_perf[i])/double(stage_perf[i-1]);
+      if (r < 0.7) {
+        printf(" find! stage[%zd] is bottle neck\n", i);
+        stages[i]->inc();
+        return ;
+      }
+    }
+    printf(" not found bottle neck. return \n");
+  }
 };
 
 
