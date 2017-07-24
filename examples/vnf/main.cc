@@ -24,6 +24,7 @@
 #include "vnf.h"
 #include "vty_config.h"
 #include "rest_config.h"
+
 constexpr uint16_t vty_port = 9999;
 constexpr uint16_t rest_port = 8888;
 constexpr size_t   required_nb_cores = 4;
