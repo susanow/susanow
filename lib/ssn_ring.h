@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <vector>
 
 
 class rte_ring;
@@ -37,4 +38,6 @@ class ssn_ring {
  * This function must be called once per 1sec
  */
 void ssn_ring_getstats_timer_cb(void* arg);
+std::vector<ssn_ring*>& ssn_ring_get_rings();
+
 

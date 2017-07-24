@@ -10,7 +10,7 @@ LDFLAGS  += $(SSN_LDFLAGS)
 
 
 all:
-	$(CXX) $(CXXFLAGS) main.cc susanow.cc $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) main.cc vnf.cc $(LDFLAGS)
 
 clean:
 	rm -rf *.out *.o

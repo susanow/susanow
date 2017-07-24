@@ -106,7 +106,7 @@ inline vty_cmd_match vtymt_show_ring()
 }
 inline void vtycb_show_ring(vty_cmd_match* m, vty_client* sh, void* arg)
 {
-  std::vector<ssn_ring*>& rings = *reinterpret_cast<std::vector<ssn_ring*>*>(arg);
+  std::vector<ssn_ring*>& rings = ssn_ring_get_rings();
   size_t nb_rings = rings.size();
   for (size_t i=0; i<nb_rings; i++) {
     size_t ipps = rings[i]->ipps;

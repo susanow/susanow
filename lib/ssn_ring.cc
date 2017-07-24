@@ -66,5 +66,9 @@ void ssn_ring_getstats_timer_cb(void*)
   }
 }
 
+std::vector<ssn_ring*>& ssn_ring_get_rings()
+{
+  return _rings;
+}
 
 
