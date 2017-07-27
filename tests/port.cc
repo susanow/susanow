@@ -2,6 +2,13 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <vector>
+#include <stdio.h>
+#include <unistd.h>
+#include <ssn_timer.h>
+#include <ssn_port.h>
+#include <ssn_green_thread.h>
+#include <ssn_native_thread.h>
 #include <ssn_port.h>
 #include <ssn_timer.h>
 #include <ssn_port_stat.h>
