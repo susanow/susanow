@@ -2,7 +2,15 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <susanow.h>
+#include <vector>
+#include <stdio.h>
+#include <unistd.h>
+#include <ssn_timer.h>
+#include <ssn_port.h>
+#include <ssn_green_thread.h>
+#include <ssn_native_thread.h>
+#include <ssn_sys.h>
+#include <ssn_common.h>
 
 
 int main(int argc, char** argv)

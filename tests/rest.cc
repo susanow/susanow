@@ -1,6 +1,10 @@
 
 
-#include <susanow.h>
+#include <ssn_rest.h>
+#include <ssn_green_thread.h>
+#include <ssn_native_thread.h>
+#include <ssn_sys.h>
+#include <ssn_common.h>
 #include <slankdev/util.h>
 #include <slankdev/socketfd.h>
 

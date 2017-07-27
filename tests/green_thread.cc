@@ -1,7 +1,10 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <susanow.h>
+#include <ssn_green_thread.h>
+#include <ssn_sys.h>
+#include <ssn_common.h>
+
 
 size_t num0=0;
 size_t num1=1;
