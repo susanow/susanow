@@ -53,8 +53,8 @@ void fini(ssn_timer_sched* timer_sched, ssn_vty* vty, ssn_rest* rest);
 class func_wk : public func {
   bool run;
  public:
-  stageio_rx_ring rx[2];
-  stageio_tx_ring tx[2];
+  rxios rx;
+  txios tx;
   virtual void poll_exe() override
   {
     ssn_log(SSN_LOG_INFO, "func_wk: INCLUDE DELAY\r\n");
@@ -78,8 +78,8 @@ class func_wk : public func {
 class func_rx : public func {
   bool run;
  public:
-  stageio_rx_port rx[2];
-  stageio_tx_ring tx[2];
+  rxios rx;
+  txios tx;
   virtual void poll_exe() override
   {
     size_t nb_ports = ssn_dev_count();
@@ -101,8 +101,8 @@ class func_rx : public func {
 class func_tx : public func {
   bool run;
  public:
-  stageio_rx_ring rx[2];
-  stageio_tx_port tx[2];
+  rxios rx;
+  txios tx;
   virtual void poll_exe() override
   {
     size_t nb_ports = ssn_dev_count();

@@ -26,6 +26,9 @@ class stageio_tx {
   virtual size_t tx_burst(rte_mbuf** obj_table, size_t n) = 0;
 };
 
+using txios = std::vector<stageio_tx>;
+using rxios = std::vector<stageio_rx>;
+
 class stageio_rx_ring : public stageio_rx {
  public:
   void set(ssn_ring* r) { ring = r; }
