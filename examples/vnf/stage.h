@@ -6,12 +6,63 @@
 #include <string>
 #include <stdint.h>
 #include <stddef.h>
+#include <vector>
+#include <string>
+#include <stdint.h>
+#include <stddef.h>
+#include <slankdev/extra/dpdk.h>
+#include <ssn_ring.h>
+#include <ssn_port.h>
+#include <ssn_port_stat.h>
 
-class stageio_rx;
-class stageio_tx;
+
 class ssn_ring;
 class func;
 typedef func* (*allocate_func)(void*);
+
+
+class stageio_rx {
+ public:
+  virtual ~stageio_rx() {}
+  virtual size_t rx_burst(rte_mbuf** obj_table, size_t n) = 0;
+  virtual size_t rx_pps() const = 0;
+};
+class stageio_tx {
+ public:
+  virtual ~stageio_tx() {}
+  virtual int tx_shot(rte_mbuf* obj) = 0;
+  virtual size_t tx_burst(rte_mbuf** obj_table, size_t n) = 0;
+};
+class stageio_rx_ring final : public stageio_rx {
+  ssn_ring* ring;
+ public:
+  void set(ssn_ring* r) { ring = r; }
+  virtual size_t rx_burst(rte_mbuf** obj_table, size_t n) override;
+  virtual size_t rx_pps() const override;
+};
+class stageio_tx_ring final : public stageio_tx {
+  ssn_ring* ring;
+ public:
+  void set(ssn_ring* r) { ring = r; }
+  virtual int tx_shot(rte_mbuf* obj) override;
+  virtual size_t tx_burst(rte_mbuf** obj_table, size_t n) override;
+};
+class stageio_rx_port final : public stageio_rx {
+  size_t pid;
+ public:
+  void set(size_t p);
+  virtual size_t rx_burst(rte_mbuf** obj_table, size_t n) override;
+  virtual size_t rx_pps() const override;
+};
+class stageio_tx_port final : public stageio_tx {
+  size_t pid;
+ public:
+  void set(size_t p);
+  virtual int tx_shot(rte_mbuf* obj) override;
+  virtual size_t tx_burst(rte_mbuf** obj_table, size_t n) override;
+};
+
+
 
 class stage final {
   size_t mux_;
@@ -37,4 +88,5 @@ class stage final {
   void   inc();
   void   dec();
 };
+
 

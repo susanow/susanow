@@ -20,8 +20,6 @@
 
 #include "func.h"
 #include "stage.h"
-#include "stageio.h"
-
 
 
 
@@ -42,6 +40,37 @@ static inline ssize_t get_free_lcore_id()
 }
 
 
+
+
+
+/*
+ * stageio class member function implementation
+ */
+size_t stageio_rx_ring::rx_burst(rte_mbuf** obj_table, size_t n)
+{ return ring->deq_bulk((void**)obj_table, n); }
+size_t stageio_rx_ring::rx_pps() const { return ring->opps; }
+
+int stageio_tx_ring::tx_shot(rte_mbuf* obj) { return ring->enq((void*)obj); }
+size_t stageio_tx_ring::tx_burst(rte_mbuf** obj_table, size_t n)
+{ return ring->enq_bulk((void* const*)obj_table, n); }
+
+void stageio_rx_port::set(size_t p) { pid = p; }
+size_t stageio_rx_port::rx_burst(rte_mbuf** obj_table, size_t n)
+{ return rte_eth_rx_burst(pid, 0, obj_table, n); }
+size_t stageio_rx_port::rx_pps() const { return  ssn_port_stat_get_cur_rx_pps(pid); }
+
+void stageio_tx_port::set(size_t p) { pid = p; }
+int stageio_tx_port::tx_shot(rte_mbuf* obj)
+{ throw slankdev::exception("not imple"); }
+size_t stageio_tx_port::tx_burst(rte_mbuf** obj_table, size_t n)
+{ return rte_eth_tx_burst(pid, 0, obj_table, n); }
+
+
+
+
+/*
+ * stage class member function implementation
+ */
 void stage::add_input_port(size_t pid)
 {
   stageio_rx_port* port = new stageio_rx_port;
