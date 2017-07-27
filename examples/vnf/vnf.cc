@@ -47,7 +47,7 @@ void vnf::debug_dump(FILE* fp)
         i, stages[i]->name.c_str(),
         stages[i]->mux(),
         stages[i]->throughput_pps(), r);
-    if (r < 0.7) {
+    if (r < vnf::THRESH) {
       fprintf(fp, " <-- BOTTLE NECK");
     }
     fprintf(fp, "\r\n");
@@ -66,7 +66,7 @@ void vnf::tuneup()
   for (size_t i=0; i<nb_stages; i++) {
     double r = 1.0;
     if (i!=0) r = double(stage_perf[i])/double(stage_perf[i-1]);
-    if (r < 0.7) {
+    if (r < vnf::THRESH) {
       printf(" find! stage[%zd] is bottle neck\n", i);
       stages[i]->inc();
       return ;
