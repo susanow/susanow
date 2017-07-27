@@ -53,8 +53,8 @@ void fini(ssn_timer_sched* timer_sched, ssn_vty* vty, ssn_rest* rest);
 class func_wk : public func {
   bool run;
  public:
-  stageio_rx* rx[2];
-  stageio_tx* tx[2];
+  stageio_rx_ring rx[2];
+  stageio_tx_ring tx[2];
   virtual void poll_exe() override
   {
     ssn_log(SSN_LOG_INFO, "func_wk: INCLUDE DELAY\r\n");
@@ -62,11 +62,11 @@ class func_wk : public func {
     rte_mbuf* mbufs[32];
     while (run) {
       for (size_t p=0; p<nb_ports; p++) {
-        size_t deqlen = rx[p]->rx_burst(mbufs, 32);
+        size_t deqlen = rx[p].rx_burst(mbufs, 32);
         for (size_t i=0; i<deqlen; i++) {
           // for (size_t j=0; j<100; j++) ; // DELAY
           for (size_t j=0; j<30; j++) ; // DELAY
-          int ret = tx[p^1]->tx_shot(mbufs[i]);
+          int ret = tx[p^1].tx_shot(mbufs[i]);
           if (ret < 0) rte_pktmbuf_free(mbufs[i]);
         }
       }
@@ -78,17 +78,17 @@ class func_wk : public func {
 class func_rx : public func {
   bool run;
  public:
-  stageio_rx* rx[2];
-  stageio_tx* tx[2];
+  stageio_rx_port rx[2];
+  stageio_tx_ring tx[2];
   virtual void poll_exe() override
   {
     size_t nb_ports = ssn_dev_count();
     while (run) {
       for (size_t p=0; p<nb_ports; p++) {
         rte_mbuf* mbufs[32];
-        size_t recvlen = rx[p]->rx_burst(mbufs, 32);
+        size_t recvlen = rx[p].rx_burst(mbufs, 32);
         if (recvlen == 0) continue;
-        size_t enqlen = tx[p]->tx_burst(mbufs, recvlen);
+        size_t enqlen = tx[p].tx_burst(mbufs, recvlen);
         if (recvlen > enqlen) {
           slankdev::rte_pktmbuf_free_bulk(&mbufs[enqlen], recvlen-enqlen);
         }
@@ -101,18 +101,18 @@ class func_rx : public func {
 class func_tx : public func {
   bool run;
  public:
-  stageio_rx* rx[2];
-  stageio_tx* tx[2];
+  stageio_rx_ring rx[2];
+  stageio_tx_port tx[2];
   virtual void poll_exe() override
   {
     size_t nb_ports = ssn_dev_count();
     while (run) {
       for (size_t p=0; p<nb_ports; p++) {
         rte_mbuf* mbufs[32];
-        size_t deqlen = rx[p]->rx_burst(mbufs, 32);
+        size_t deqlen = rx[p].rx_burst(mbufs, 32);
         if (deqlen == 0) continue;
         printf("stop4 deqlen=%zd p=%zd\n", deqlen, p);
-        size_t sendlen = tx[p]->tx_burst(mbufs, deqlen);
+        size_t sendlen = tx[p].tx_burst(mbufs, deqlen);
         printf("stop10\n");
         if (deqlen > sendlen) {
           slankdev::rte_pktmbuf_free_bulk(&mbufs[sendlen], deqlen-sendlen);
@@ -132,20 +132,20 @@ class stage_rx : public stage {
   virtual func* allocate() override
   {
     func_rx* f_rx = new func_rx;
-    f_rx->rx[0] = &rx[0];
-    f_rx->rx[1] = &rx[1];
-    f_rx->tx[0] = &tx[0];
-    f_rx->tx[1] = &tx[1];
+    f_rx->rx[0] = rx[0];
+    f_rx->rx[1] = rx[1];
+    f_rx->tx[0] = tx[0];
+    f_rx->tx[1] = tx[1];
     return f_rx;
   }
   virtual size_t throughput_pps() const override
   {
-    size_t sum_rx_pps = 0;
+    size_t sum_pps = 0;
     size_t nb_ports = ssn_dev_count();
     for (size_t i=0; i<nb_ports; i++) {
-      sum_rx_pps += rx[i].rx_pps();
+      sum_pps += rx[i].rx_pps();
     }
-    return sum_rx_pps;
+    return sum_pps;
   }
 };
 
@@ -157,10 +157,10 @@ class stage_wk : public stage {
   virtual func* allocate() override
   {
     func_wk* wk = new func_wk;
-    wk->rx[0] = &rx[0];
-    wk->rx[1] = &rx[1];
-    wk->tx[0] = &tx[0];
-    wk->tx[1] = &tx[1];
+    wk->rx[0] = rx[0];
+    wk->rx[1] = rx[1];
+    wk->tx[0] = tx[0];
+    wk->tx[1] = tx[1];
     return wk;
   }
   virtual size_t throughput_pps() const override
@@ -183,10 +183,10 @@ class stage_tx : public stage {
   virtual func* allocate() override
   {
     func_tx* f_tx = new func_tx;
-    f_tx->rx[0] = &rx[0];
-    f_tx->rx[1] = &rx[1];
-    f_tx->tx[0] = &tx[0];
-    f_tx->tx[1] = &tx[2];
+    f_tx->rx[0] = rx[0];
+    f_tx->rx[1] = rx[1];
+    f_tx->tx[0] = tx[0];
+    f_tx->tx[1] = tx[2];
     return f_tx;
   }
   virtual size_t throughput_pps() const override
