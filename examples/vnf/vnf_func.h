@@ -5,7 +5,7 @@
 class func_rx : public func {
  public:
 
-  void init(void* _rx, void* _tx)
+  func_rx(void* _rx, void* _tx)
   {
     rxports& r = *reinterpret_cast<rxports*>(_rx);
     auto nb_r = r.size();
@@ -42,7 +42,7 @@ class func_rx : public func {
 class func_wk : public func {
  public:
 
-  void init(void* _rx, void* _tx)
+  func_wk(void* _rx, void* _tx)
   {
     rxrings& r = *reinterpret_cast<rxrings*>(_rx);
     auto nb_r = r.size();
@@ -81,7 +81,7 @@ class func_wk : public func {
 class func_tx : public func {
  public:
 
-  void init(void* _rx, void* _tx)
+  func_tx(void* _rx, void* _tx)
   {
     rxrings& r = *reinterpret_cast<rxrings*>(_rx);
     auto nb_r = r.size();

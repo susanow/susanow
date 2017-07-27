@@ -2,6 +2,25 @@
 #pragma once
 
 
+func* alloc_func_rx(void* arg)
+{
+  stage* stg = reinterpret_cast<stage*>(arg);
+  func_rx* f = new func_rx(&stg->rx, &stg->tx);
+  return f;
+}
+func* alloc_func_wk(void* arg)
+{
+  stage* stg = reinterpret_cast<stage*>(arg);
+  func_wk* f = new func_wk(&stg->rx, &stg->tx);
+  return f;
+}
+func* alloc_func_tx(void* arg)
+{
+  stage* stg = reinterpret_cast<stage*>(arg);
+  func_tx* f = new func_tx(&stg->rx, &stg->tx);
+  return f;
+}
+
 class vnf_l2fwd : public vnf {
  public:
   ssn_ring* ring_prewk[2];
@@ -13,31 +32,25 @@ class vnf_l2fwd : public vnf {
     ring_poswk[0] = new ssn_ring("poswk0");
     ring_poswk[1] = new ssn_ring("poswk1");
 
-    stage_rx* rx = new stage_rx("rx");
-    rx->rx.resize(2);
-    rx->rx[0].set(0);
-    rx->rx[1].set(1);
-    rx->tx.resize(2);
-    rx->tx[0].set(ring_prewk[0]);
-    rx->tx[1].set(ring_prewk[1]);
+    stage* rx = new stage("rx", alloc_func_rx);
+    rx->add_input_port(0);
+    rx->add_input_port(1);
+    rx->add_output_ring(ring_prewk[0]);
+    rx->add_output_ring(ring_prewk[1]);
     stages.push_back(rx);
 
-    stage_wk* wk = new stage_wk("wk");
-    wk->rx.resize(2);
-    wk->rx[0].set(ring_prewk[0]);
-    wk->rx[1].set(ring_prewk[1]);
-    wk->tx.resize(2);
-    wk->tx[0].set(ring_poswk[0]);
-    wk->tx[1].set(ring_poswk[1]);
+    stage* wk = new stage("wk", alloc_func_wk);
+    wk->add_input_ring(ring_prewk[0]);
+    wk->add_input_ring(ring_prewk[1]);
+    wk->add_output_ring(ring_poswk[0]);
+    wk->add_output_ring(ring_poswk[1]);
     stages.push_back(wk);
 
-    stage_tx* tx = new stage_tx("tx");
-    tx->rx.resize(2);
-    tx->rx[0].set(ring_poswk[0]);
-    tx->rx[1].set(ring_poswk[1]);
-    tx->tx.resize(2);
-    tx->tx[0].set(0);
-    tx->tx[1].set(1);
+    stage* tx = new stage("tx", alloc_func_tx);
+    wk->add_input_ring(ring_poswk[0]);
+    wk->add_input_ring(ring_poswk[1]);
+    wk->add_output_port(0);
+    wk->add_output_port(1);
     stages.push_back(tx);
   }
 };
