@@ -1,7 +1,5 @@
 
 
-#include "stage.h"
-
 #include <string>
 #include <vector>
 #include <stdio.h>
@@ -16,13 +14,17 @@
 #include <ssn_native_thread.h>
 #include <ssn_green_thread.h>
 #include <ssn_port_stat.h>
+#include <ssn_port.h>
 #include <ssn_log.h>
 #include <ssn_ring.h>
-#include <ssn_port.h>
+
+#include "func.h"
+#include "stage.h"
+#include "stageio.h"
 
 
 
-#if 0
+
 static inline void _func_spawner(void* arg)
 {
   func* f = reinterpret_cast<func*>(arg);
@@ -39,12 +41,38 @@ static inline ssize_t get_free_lcore_id()
   return -1;
 }
 
+
+void stage::add_input_port(size_t pid)
+{
+  stageio_rx_port* port = new stageio_rx_port;
+  port->set(pid);
+  rx.push_back(port);
+}
+void stage::add_input_ring(ssn_ring* ring_ptr)
+{
+  stageio_rx_ring* ringio = new stageio_rx_ring;
+  ringio->set(ring_ptr);
+  rx.push_back(ringio);
+}
+void stage::add_output_port(size_t pid)
+{
+  stageio_tx_port* port = new stageio_tx_port;
+  port->set(pid);
+  tx.push_back(port);
+}
+void stage::add_output_ring(ssn_ring* r)
+{
+  stageio_tx_ring* ringio = new stageio_tx_ring;
+  ringio->set(r);
+  tx.push_back(ringio);
+}
+size_t stage::mux() const { return mux_; }
 void stage::inc()
 {
-  func* f = allocate();
-  funcs.push_back(f);
+  func* f = alloc_fn(this);
   ssize_t lcore_id = get_free_lcore_id();
   if (lcore_id < 0) throw slankdev::exception("no lcore");
+  funcs.push_back(f);
   ssn_native_thread_launch(_func_spawner, f, lcore_id);
   mux_ ++ ;
 }
@@ -55,5 +83,16 @@ void stage::dec()
   funcs.erase(funcs.begin() + idx);
   mux_ -- ;
 }
-size_t stage::mux() const { return mux_; }
-#endif
+size_t stage::throughput_pps() const
+{
+  size_t sum_pps = 0;
+  size_t nb_ports = rx.size();
+  for (size_t i=0; i<nb_ports; i++) {
+    sum_pps += rx[i]->rx_pps();
+  }
+  return sum_pps;
+}
+
+
+
+

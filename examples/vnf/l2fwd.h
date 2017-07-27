@@ -1,7 +1,7 @@
 
 #pragma once
 #include "func.h"
-
+#include "stageio.h"
 
 class func_rx : public func {
  public:

@@ -25,6 +25,7 @@
 #include "vnf.h"
 #include "vty_config.h"
 #include "rest_config.h"
+// #include "stageio.h"
 
 constexpr uint16_t vty_port = 9999;
 constexpr uint16_t rest_port = 8888;
@@ -49,178 +50,10 @@ void fini(ssn_timer_sched* timer_sched, ssn_vty* vty, ssn_rest* rest);
 /*
  * VNF IMPLEMENTATION BEGIN
  */
-class func_wk : public func {
-  bool run;
- public:
-  ssn_ring* prewk_[2];
-  ssn_ring* poswk_[2];
-  virtual void poll_exe() override
-  {
-    ssn_log(SSN_LOG_INFO, "func_wk: INCLUDE DELAY\r\n");
-    size_t nb_ports = ssn_dev_count();
-    rte_mbuf* mbufs[32];
-    while (run) {
-      for (size_t p=0; p<nb_ports; p++) {
-        size_t deqlen = prewk_[p]->deq_bulk((void**)mbufs, 32);
-        for (size_t i=0; i<deqlen; i++) {
-          // for (size_t j=0; j<100; j++) ; // DELAY
-          for (size_t j=0; j<30; j++) ; // DELAY
-          int ret = poswk_[p^1]->enq(mbufs[i]);
-          if (ret < 0) rte_pktmbuf_free(mbufs[i]);
-        }
-      }
-    }
-  }
-  virtual void stop() override { run = false; }
-};
-
-class func_rx : public func {
-  bool run;
- public:
-  ssn_ring* prewk_[2];
-  virtual void poll_exe() override
-  {
-    size_t nb_ports = ssn_dev_count();
-    while (run) {
-      for (size_t p=0; p<nb_ports; p++) {
-        rte_mbuf* mbufs[32];
-        size_t recvlen = ssn_port_rx_burst(p, 0, mbufs, 32);
-        if (recvlen == 0) continue;
-        size_t enqlen = prewk_[p]->enq_bulk((void**)mbufs, recvlen);
-        if (recvlen > enqlen) {
-          slankdev::rte_pktmbuf_free_bulk(&mbufs[enqlen], recvlen-enqlen);
-        }
-      }
-    }
-  }
-  virtual void stop() override { run = false; }
-};
-
-class func_tx : public func {
-  bool run;
- public:
-  ssn_ring* poswk_[2];
-  virtual void poll_exe() override
-  {
-    size_t nb_ports = ssn_dev_count();
-    while (run) {
-      for (size_t p=0; p<nb_ports; p++) {
-        rte_mbuf* mbufs[32];
-        size_t deqlen = poswk_[p]->deq_bulk((void**)mbufs, 32);
-        if (deqlen == 0) continue;
-        size_t sendlen = ssn_port_tx_burst(p, 0, mbufs, deqlen);
-        if (deqlen > sendlen) {
-          slankdev::rte_pktmbuf_free_bulk(&mbufs[sendlen], deqlen-sendlen);
-        }
-      }
-    }
-  }
-  virtual void stop() override { run = false; }
-};
-class stage_rx : public stage {
- public:
-  ssn_ring* prewk_[2];
-  stage_rx(const char* n) : stage(n) {}
-  virtual func* allocate() override
-  {
-    func_rx* rx = new func_rx;
-    rx->prewk_[0] = prewk_[0];
-    rx->prewk_[1] = prewk_[1];
-    return rx;
-  }
-  virtual size_t throughput_pps() const override
-  {
-    size_t sum_rx_pps = 0;
-    size_t nb_ports = ssn_dev_count();
-    for (size_t i=0; i<nb_ports; i++) {
-      auto pps = ssn_port_stat_get_cur_rx_pps(i);
-      sum_rx_pps += pps;
-    }
-    return sum_rx_pps;
-  }
-};
-
-class stage_wk : public stage {
- public:
-  stage_wk(const char* n) : stage(n) {}
-  ssn_ring* prewk_[2];
-  ssn_ring* poswk_[2];
-  virtual func* allocate() override
-  {
-    func_wk* wk = new func_wk;
-    wk->prewk_[0] = prewk_[0];
-    wk->prewk_[1] = prewk_[1];
-    wk->poswk_[0] = poswk_[0];
-    wk->poswk_[1] = poswk_[1];
-    return wk;
-  }
-  virtual size_t throughput_pps() const override
-  {
-    size_t sum_pps = 0;
-    size_t nb_ports = ssn_dev_count();
-    for (size_t i=0; i<nb_ports; i++) {
-      sum_pps += prewk_[i]->opps;
-    }
-    return sum_pps;
-  }
-};
-
-class stage_tx : public stage {
- public:
-  stage_tx(const char* n) : stage(n) {}
-  ssn_ring* poswk_[2];
-  virtual func* allocate() override
-  {
-    func_tx* tx = new func_tx;
-    tx->poswk_[0] = poswk_[0];
-    tx->poswk_[1] = poswk_[1];
-    return tx;
-  }
-  virtual size_t throughput_pps() const override
-  {
-    size_t sum_pps = 0;
-    size_t nb_ports = ssn_dev_count();
-    for (size_t i=0; i<nb_ports; i++) {
-      sum_pps += poswk_[i]->opps;
-    }
-    return sum_pps;
-  }
-};
-
-class vnf_l2fwd : public vnf {
- public:
-  ssn_ring* prewk[2];
-  ssn_ring* poswk[2];
-  vnf_l2fwd()
-  {
-    prewk[0] = new ssn_ring("prewk0");
-    prewk[1] = new ssn_ring("prewk1");
-    poswk[0] = new ssn_ring("poswk0");
-    poswk[1] = new ssn_ring("poswk1");
-
-    stage_rx* rx = new stage_rx("rx");
-    rx->prewk_[0] = prewk[0];
-    rx->prewk_[1] = prewk[1];
-
-    stage_wk* wk = new stage_wk("wk");
-    wk->prewk_[0] = prewk[0];
-    wk->prewk_[1] = prewk[1];
-    wk->poswk_[0] = poswk[0];
-    wk->poswk_[1] = poswk[1];
-
-    stage_tx* tx = new stage_tx("tx");
-    tx->poswk_[0] = poswk[0];
-    tx->poswk_[1] = poswk[1];
-
-    stages.push_back(rx);
-    stages.push_back(wk);
-    stages.push_back(tx);
-  }
-};
+#include "l2fwd.h"
 /*
  * VNF IMPLEMENTATION END
  */
-
 
 
 int main(int argc, char** argv)
@@ -306,3 +139,5 @@ void fini(ssn_timer_sched* timer_sched, ssn_vty* vty, ssn_rest* rest)
   ssn_wait_all_lcore();
   ssn_fin();
 }
+
+
