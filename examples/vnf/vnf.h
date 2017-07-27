@@ -5,7 +5,7 @@
 #include "stage.h"
 
 class ssn_ring;
-class stage;
+// class stage;
 
 class vnf {
  public:

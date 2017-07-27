@@ -22,6 +22,7 @@
 
 
 
+#if 0
 static inline void _func_spawner(void* arg)
 {
   func* f = reinterpret_cast<func*>(arg);
@@ -55,3 +56,4 @@ void stage::dec()
   mux_ -- ;
 }
 size_t stage::mux() const { return mux_; }
+#endif

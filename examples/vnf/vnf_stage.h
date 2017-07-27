@@ -1,7 +1,7 @@
 
 #pragma once
 
-
+#if 0
 class stage_rx : public stage {
  public:
   std::vector<stageio_rx_port> rx;
@@ -70,5 +70,5 @@ class stage_tx : public stage {
     return sum_pps;
   }
 };
-
+#endif
 
