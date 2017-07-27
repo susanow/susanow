@@ -19,6 +19,7 @@ SRC = \
 			ssn_port_stat.cc     \
 			ssn_green_thread.cc  \
 			ssn_native_thread.cc \
+			ssn_ring.cc          \
 			ssn_common.cc
 OBJ = $(SRC:.cc=.o)
 
