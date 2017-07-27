@@ -1,27 +1,18 @@
 
 #pragma once
+#include "func.h"
+
 
 
 class func_rx : public func {
  public:
 
-  func_rx(void* _rx, void* _tx)
-  {
-    rxports& r = *reinterpret_cast<rxports*>(_rx);
-    auto nb_r = r.size();
-    for (size_t i=0; i<nb_r; i++) {
-      rx.push_back(&r[i]);
-    }
-
-    txrings& t = *reinterpret_cast<txrings*>(_tx);
-    auto nb_t = t.size();
-    for (size_t i=0; i<nb_t; i++) {
-      tx.push_back(&t[i]);
-    }
-  }
+  func_rx(std::vector<stageio_rx*>& _rx,
+          std::vector<stageio_tx*>& _tx) : func(_rx, _tx) {}
   virtual void poll_exe() override
   {
     size_t nb_ports = ssn_dev_count();
+    run = true;
     while (run) {
       for (size_t p=0; p<nb_ports; p++) {
         rte_mbuf* mbufs[32];
@@ -42,20 +33,8 @@ class func_rx : public func {
 class func_wk : public func {
  public:
 
-  func_wk(void* _rx, void* _tx)
-  {
-    rxrings& r = *reinterpret_cast<rxrings*>(_rx);
-    auto nb_r = r.size();
-    for (size_t i=0; i<nb_r; i++) {
-      rx.push_back(&r[i]);
-    }
-
-    txrings& t = *reinterpret_cast<txrings*>(_tx);
-    auto nb_t = t.size();
-    for (size_t i=0; i<nb_t; i++) {
-      tx.push_back(&t[i]);
-    }
-  }
+  func_wk(std::vector<stageio_rx*>& _rx,
+          std::vector<stageio_tx*>& _tx) : func(_rx, _tx) {}
   virtual void poll_exe() override
   {
     ssn_log(SSN_LOG_INFO, "func_wk: INCLUDE DELAY\r\n");
@@ -81,23 +60,11 @@ class func_wk : public func {
 class func_tx : public func {
  public:
 
-  func_tx(void* _rx, void* _tx)
-  {
-    rxrings& r = *reinterpret_cast<rxrings*>(_rx);
-    auto nb_r = r.size();
-    for (size_t i=0; i<nb_r; i++) {
-      rx.push_back(&r[i]);
-    }
-
-    txports& t = *reinterpret_cast<txports*>(_tx);
-    auto nb_t = t.size();
-    for (size_t i=0; i<nb_t; i++) {
-      tx.push_back(&t[i]);
-    }
-  }
+  func_tx(std::vector<stageio_rx*>& _rx,
+          std::vector<stageio_tx*>& _tx) : func(_rx, _tx) {}
   virtual void poll_exe() override
   {
-    size_t nb_ports = ssn_dev_count();
+    size_t nb_ports = rx.size();
     while (run) {
       for (size_t p=0; p<nb_ports; p++) {
         rte_mbuf* mbufs[32];

@@ -15,19 +15,7 @@
 static inline void _func_spawner(void* arg);
 static inline ssize_t get_free_lcore_id();
 
-class stageio_rx;
-class stageio_tx;
-
-class func {
- protected:
-  bool run;
- public:
-  std::vector<stageio_rx*> rx;
-  std::vector<stageio_tx*> tx;
-  virtual void poll_exe() = 0;
-  virtual void stop() = 0;
-};
-
+#include "func.h"
 
 typedef func* (*allocate_func)(void*);
 

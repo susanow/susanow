@@ -51,7 +51,6 @@ void fini(ssn_timer_sched* timer_sched, ssn_vty* vty, ssn_rest* rest);
  * VNF IMPLEMENTATION BEGIN
  */
 #include "vnf_func.h"
-#include "vnf_stage.h"
 #include "vnf_vnf.h"
 /*
  * VNF IMPLEMENTATION END

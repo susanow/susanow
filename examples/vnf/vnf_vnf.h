@@ -5,19 +5,19 @@
 func* alloc_func_rx(void* arg)
 {
   stage* stg = reinterpret_cast<stage*>(arg);
-  func_rx* f = new func_rx(&stg->rx, &stg->tx);
+  func_rx* f = new func_rx(stg->rx, stg->tx);
   return f;
 }
 func* alloc_func_wk(void* arg)
 {
   stage* stg = reinterpret_cast<stage*>(arg);
-  func_wk* f = new func_wk(&stg->rx, &stg->tx);
+  func_wk* f = new func_wk(stg->rx, stg->tx);
   return f;
 }
 func* alloc_func_tx(void* arg)
 {
   stage* stg = reinterpret_cast<stage*>(arg);
-  func_tx* f = new func_tx(&stg->rx, &stg->tx);
+  func_tx* f = new func_tx(stg->rx, stg->tx);
   return f;
 }
 
