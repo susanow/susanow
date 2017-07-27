@@ -28,6 +28,7 @@ class stageio_tx {
 
 class stageio_rx_ring : public stageio_rx {
  public:
+  void set(ssn_ring* r) { ring = r; }
   ssn_ring* ring;
   virtual size_t rx_burst(rte_mbuf** obj_table, size_t n) override
   { return ring->deq_bulk((void**)obj_table, n); }
@@ -35,6 +36,7 @@ class stageio_rx_ring : public stageio_rx {
 };
 class stageio_tx_ring : public stageio_tx {
  public:
+  void set(ssn_ring* r) { ring = r; }
   ssn_ring* ring;
   virtual int tx_shot(rte_mbuf* obj) override { return ring->enq((void*)obj); }
   virtual size_t tx_burst(rte_mbuf** obj_table, size_t n) override
@@ -43,6 +45,7 @@ class stageio_tx_ring : public stageio_tx {
 
 class stageio_rx_port : public stageio_rx {
  public:
+  void set(size_t p, size_t q) { pid = p; qid = q; }
   size_t pid;
   size_t qid;
   virtual size_t rx_burst(rte_mbuf** obj_table, size_t n) override
@@ -51,12 +54,17 @@ class stageio_rx_port : public stageio_rx {
 };
 class stageio_tx_port : public stageio_tx {
  public:
+  void set(size_t p, size_t q) { pid = p; qid = q; }
   size_t pid;
   size_t qid;
   virtual int tx_shot(rte_mbuf* obj) override
   { throw slankdev::exception("not imple"); }
   virtual size_t tx_burst(rte_mbuf** obj_table, size_t n) override
-  { return rte_eth_tx_burst(pid, qid, obj_table, n); }
+  {
+    std::terminate();
+    printf("slankdev? \n");
+    return rte_eth_tx_burst(pid, qid, obj_table, n);
+  }
 };
 
 

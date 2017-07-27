@@ -9,6 +9,9 @@ CXXFLAGS += -O0
 LDFLAGS  += $(SSN_LDFLAGS)
 
 
+new:
+	$(CXX) $(CXXFLAGS) main_new.cc vnf.cc stage.cc $(LDFLAGS)
+
 all:
 	$(CXX) $(CXXFLAGS) main.cc vnf.cc stage.cc $(LDFLAGS)
 
