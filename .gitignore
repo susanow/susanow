@@ -37,3 +37,5 @@ GSYMS
 *build
 
 webui/ssn.json
+
+.DS_store
