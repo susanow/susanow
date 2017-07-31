@@ -1,6 +1,7 @@
 
 #pragma once
 #include "func.h"
+constexpr size_t delay_loops = 30;
 
 class func_rx : public func {
  public:
@@ -42,8 +43,7 @@ class func_wk : public func {
       for (size_t p=0; p<nb_ports; p++) {
         size_t deqlen = rx[p]->rx_burst(mbufs, 32);
         for (size_t i=0; i<deqlen; i++) {
-          // for (size_t j=0; j<100; j++) ; // DELAY
-          for (size_t j=0; j<40; j++) ; // DELAY
+          for (size_t j=0; j<delay_loops; j++) ; // DELAY
           int ret = tx[p^1]->tx_shot(mbufs[i]);
           if (ret < 0) rte_pktmbuf_free(mbufs[i]);
         }
