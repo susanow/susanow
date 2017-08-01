@@ -26,12 +26,37 @@
 #include "nfvi.h"
 
 
+size_t rx_pps_sum()
+{
+  size_t sum = 0;
+  size_t nb_ports = ssn_dev_count();
+  for (size_t i=0; i<nb_ports; i++) {
+    sum += ssn_port_stat_get_cur_rx_pps(i);
+  }
+  return sum;
+}
+size_t tx_pps_sum()
+{
+  size_t sum = 0;
+  size_t nb_ports = ssn_dev_count();
+  for (size_t i=0; i<nb_ports; i++) {
+    sum += ssn_port_stat_get_cur_tx_pps(i);
+  }
+  return sum;
+}
+
 void print(void* arg)
 {
   vnf* v = reinterpret_cast<vnf*>(arg);
   while (true) {
+    size_t pps;
+    pps = rx_pps_sum();
+    printf("rx: %zd pps\n", pps);
     v->debug_dump(stdout);
+    pps = tx_pps_sum();
+    printf("tx: %zd pps\n", pps);
     printf("-------------\n");
+
     ssn_sleep(1000);
     ssn_yield();
   }
@@ -48,15 +73,14 @@ int main(int argc, char** argv)
   nfvi ssn(argc, argv);
   if (ssn_dev_count() != 2) throw slankdev::exception("nb_ports is not 2");
 
-  vnic* vnic0 = new vnic;
-  vnic* vnic1 = new vnic;
-  ssn.connect(vnic0, 0);
-  ssn.connect(vnic1, 1);
-  vnf_l2fwd* vnf1 = new vnf_l2fwd(vnic0, vnic1);
+  vnic vnic0;
+  vnic vnic1;
+  ssn.connect(&vnic0, 0);
+  ssn.connect(&vnic1, 1);
+  vnf_l2fwd* vnf1 = new vnf_l2fwd(&vnic0, &vnic1);
 
   vnf1->deploy();
-
-  // ssn.green_thread_launch(print, vnf1);
+  ssn.green_thread_launch(print, vnf1);
   while (true) {
     char c = getchar();
     if (c == 'q') {

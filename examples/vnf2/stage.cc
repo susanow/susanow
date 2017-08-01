@@ -42,54 +42,17 @@ static inline ssize_t get_free_lcore_id()
 
 
 /*
- * stageio class member function implementation
- */
-size_t stageio_rx_ring::rx_burst(rte_mbuf** obj_table, size_t n)
-{ return ring->deq_bulk((void**)obj_table, n); }
-size_t stageio_rx_ring::rx_pps() const { return ring->opps; }
-
-int stageio_tx_ring::tx_shot(rte_mbuf* obj) { return ring->enq((void*)obj); }
-size_t stageio_tx_ring::tx_burst(rte_mbuf** obj_table, size_t n)
-{ return ring->enq_bulk((void* const*)obj_table, n); }
-
-void stageio_rx_port::set(size_t p) { pid = p; }
-size_t stageio_rx_port::rx_burst(rte_mbuf** obj_table, size_t n)
-{ return rte_eth_rx_burst(pid, 0, obj_table, n); }
-size_t stageio_rx_port::rx_pps() const { return  ssn_port_stat_get_cur_rx_pps(pid); }
-
-void stageio_tx_port::set(size_t p) { pid = p; }
-int stageio_tx_port::tx_shot(rte_mbuf* obj)
-{ throw slankdev::exception("not imple"); }
-size_t stageio_tx_port::tx_burst(rte_mbuf** obj_table, size_t n)
-{ return rte_eth_tx_burst(pid, 0, obj_table, n); }
-
-
-
-
-/*
  * stage class member function implementation
  */
-void stage::add_input_port(size_t pid)
-{
-  stageio_rx_port* port = new stageio_rx_port;
-  port->set(pid);
-  rx.push_back(port);
-}
 void stage::add_input_ring(ssn_ring* ring_ptr)
 {
-  stageio_rx_ring* ringio = new stageio_rx_ring;
+  stageio_rx* ringio = new stageio_rx;
   ringio->set(ring_ptr);
   rx.push_back(ringio);
 }
-void stage::add_output_port(size_t pid)
-{
-  stageio_tx_port* port = new stageio_tx_port;
-  port->set(pid);
-  tx.push_back(port);
-}
 void stage::add_output_ring(ssn_ring* r)
 {
-  stageio_tx_ring* ringio = new stageio_tx_ring;
+  stageio_tx* ringio = new stageio_tx;
   ringio->set(r);
   tx.push_back(ringio);
 }
