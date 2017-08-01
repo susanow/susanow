@@ -56,6 +56,10 @@ void vnf::debug_dump(FILE* fp)
 
 void vnf::tuneup()
 {
+#if 1
+  printf("scaleup command!! \n");
+  stages[0]->inc();
+#else
   printf("scaleup command!! \n");
   printf(" find bottle neck... \n");
   size_t nb_stages = stages.size();
@@ -73,6 +77,7 @@ void vnf::tuneup()
     }
   }
   printf(" not found bottle neck. return \n");
+#endif
 }
 
 

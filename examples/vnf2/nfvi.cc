@@ -137,9 +137,17 @@ nfvi::~nfvi()
   ssn_fin();
 }
 
-void nfvi::connect(vnic* nic0, size_t nic1)
+void nfvi::connect_vp(vnic* nic0, size_t nic1)
 {
   nic0->rx = ring_rx[nic1];
   nic0->tx = ring_tx[nic1];
+}
+
+void nfvi::connect_vv(vnic* nic0, vnic* nic1)
+{
+  ssn_ring* ring_1to0 = new ssn_ring("1to0");
+  ssn_ring* ring_0to1 = new ssn_ring("0to1");
+  nic0->rx = nic1->tx = ring_1to0;
+  nic1->rx = nic0->tx = ring_0to1;
 }
 

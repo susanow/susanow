@@ -75,19 +75,27 @@ int main(int argc, char** argv)
 
   vnic vnic0;
   vnic vnic1;
-  ssn.connect(&vnic0, 0);
-  ssn.connect(&vnic1, 1);
-  vnf_l2fwd* vnf1 = new vnf_l2fwd(&vnic0, &vnic1);
+  vnf_l2fwd vnf1(vnic0, vnic1);
 
-  vnf1->deploy();
-  ssn.green_thread_launch(print, vnf1);
+  vnic vnic2;
+  vnic vnic3;
+  vnf_l2fwd vnf2(vnic2, vnic3);
+
+  ssn.connect_vp(&vnic0, 0);
+  ssn.connect_vv(&vnic1, &vnic2);
+  ssn.connect_vp(&vnic3, 1);
+
+  vnf1.deploy();
+  vnf2.deploy();
+
+  ssn.green_thread_launch(print, &vnf1);
   while (true) {
     char c = getchar();
     if (c == 'q') {
       printf("quit\n");
       break;
     }
-    vnf1->tuneup();
+    vnf1.tuneup();
   }
 }
 

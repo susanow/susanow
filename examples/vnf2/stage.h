@@ -14,55 +14,57 @@
 #include <ssn_ring.h>
 #include <ssn_port.h>
 #include <ssn_port_stat.h>
-
+#include <ssn_sys.h>
+#include <ssn_native_thread.h>
 
 class ssn_ring;
-class func;
-typedef func* (*allocate_func)(void*);
+using ssn_rings = std::vector<ssn_ring*>;
 
-
-class stageio_rx final{
-  ssn_ring* ring;
+class func {
  public:
-  void set(ssn_ring* r) { ring = r; }
-  size_t rx_burst(rte_mbuf** obj_table, size_t n)
-  { return ring->deq_bulk((void**)obj_table, n); }
-  size_t rx_pps() const { return ring->opps; }
-};
-class stageio_tx final{
-  ssn_ring* ring;
- public:
-  void set(ssn_ring* r) { ring = r; }
-  int tx_shot(rte_mbuf* obj) { return ring->enq((void*)obj); }
-  size_t tx_burst(rte_mbuf** obj_table, size_t n)
-  { return ring->enq_bulk((void* const*)obj_table, n); }
+  virtual void poll_exe() = 0;
+  virtual void stop() = 0;
 };
 
-class vnic;
-class stage final {
-  size_t mux_;
+static inline ssize_t get_free_lcore_id()
+{
+  size_t nb_lcores = ssn_lcore_count();
+  for (size_t i=1; i<nb_lcores; i++) {
+    auto s = ssn_get_lcore_state(i);
+    if (s == SSN_LS_WAIT) return i;
+  }
+  throw slankdev::exception("no lcore");
+}
+
+static inline void _func_spawner(void* arg)
+{
+  func* f = reinterpret_cast<func*>(arg);
+  f->poll_exe();
+}
+
+class stage {
+  std::vector<func*> funcs;
  public:
   const std::string name;
-  std::vector<func*> funcs;
-  std::vector<stageio_rx*> rx;
-  std::vector<stageio_tx*> tx;
-  allocate_func     alloc_fn;
-
-  stage(const char* n, allocate_func f)
-    : name(n), mux_(0) , alloc_fn(f) {}
 
  public:
-  void add_input_ring(ssn_ring* ring_ptr);
-  void add_output_ring(ssn_ring* r);
-
- public:
-  void add_nic(vnic* nic);
-
- public:
-  size_t throughput_pps() const;
-  size_t mux() const;
-  void   inc();
-  void   dec();
+  stage(const char* n) : name(n) {}
+  size_t mux() const { return funcs.size(); }
+  void inc()
+  {
+    ssize_t lcore_id = get_free_lcore_id();
+    func* f = falloc();
+    funcs.push_back(f);
+    ssn_native_thread_launch(_func_spawner, f, lcore_id);
+  }
+  void dec()
+  {
+    size_t idx = funcs.size()-1;
+    funcs[idx]->stop();
+    funcs.erase(funcs.begin() + idx);
+  }
+  virtual func*  falloc() = 0;
+  virtual size_t throughput_pps() const = 0;
 };
 
 

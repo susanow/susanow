@@ -28,14 +28,11 @@ class nfvi final {
   std::vector<ssn_ring*> ring_rx;
   std::vector<ssn_ring*> ring_tx;
 
-  // ssn_ring* ring_rx[2];
-  // ssn_ring* ring_tx[2];
-
   nfvi(int argc, char** argv);
   virtual ~nfvi();
 
-  // void connect(vnic* nic0, vnic* nic1);
-  void connect(vnic* nic0, size_t nic1);
+  void connect_vv(vnic* nic0, vnic* nic1);
+  void connect_vp(vnic* nic0, size_t nic1);
   void green_thread_launch(ssn_function_t f, void* arg);
 };
 
