@@ -1,13 +1,11 @@
 
 
+#include <string>
 #include <stdio.h>
 #include <ssn_log.h>
 #include <ssn_port.h>
 #include <ssn_sys.h>
 #include <ssn_common.h>
-
-#include <stdio.h>
-#include <string>
 
 #include <slankdev/exception.h>
 #include <slankdev/util.h>
@@ -47,16 +45,16 @@ size_t tx_pps_sum()
 
 void print(void* arg)
 {
-  vnf* v = reinterpret_cast<vnf*>(arg);
+  std::vector<vnf*>& vnfs = *reinterpret_cast<std::vector<vnf*>*>(arg);
   while (true) {
     size_t pps;
     pps = rx_pps_sum();
     printf("rx: %zd pps\n", pps);
-    v->debug_dump(stdout);
+    for (vnf* v : vnfs) v->debug_dump(stdout);
     pps = tx_pps_sum();
     printf("tx: %zd pps\n", pps);
-    printf("-------------\n");
 
+    printf("-------------\n");
     ssn_sleep(1000);
     ssn_yield();
   }
@@ -73,22 +71,32 @@ int main(int argc, char** argv)
   nfvi ssn(argc, argv);
   if (ssn_dev_count() != 2) throw slankdev::exception("nb_ports is not 2");
 
-  vnic vnic0;
-  vnic vnic1;
+  vnic vnic0("vnic0");
+  vnic vnic1("vnic1");
   vnf_l2fwd vnf1(vnic0, vnic1);
 
-  vnic vnic2;
-  vnic vnic3;
+  vnic vnic2("vnic2");
+  vnic vnic3("vnic3");
   vnf_l2fwd vnf2(vnic2, vnic3);
 
-  ssn.connect_vp(&vnic0, 0);
-  ssn.connect_vv(&vnic1, &vnic2);
-  ssn.connect_vp(&vnic3, 1);
+  vnic vnic4("vnic4");
+  vnic vnic5("vnic5");
+  vnf_l2fwd vnf3(vnic4, vnic5);
+
+  ssn.connect_vp(vnic0, 0);
+  ssn.connect_vv(vnic1, vnic2);
+  ssn.connect_vv(vnic3, vnic4);
+  ssn.connect_vp(vnic5, 1);
 
   vnf1.deploy();
   vnf2.deploy();
+  vnf3.deploy();
+  std::vector<vnf*> vnfs;
+  vnfs.push_back(&vnf1);
+  vnfs.push_back(&vnf2);
+  vnfs.push_back(&vnf3);
 
-  ssn.green_thread_launch(print, &vnf1);
+  ssn.green_thread_launch(print, &vnfs);
   while (true) {
     char c = getchar();
     if (c == 'q') {

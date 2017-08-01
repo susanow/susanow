@@ -1,4 +1,5 @@
 
+
 #include "nfvi.h"
 #include "vty_config.h"
 #include "rest_config.h"
@@ -88,7 +89,6 @@ nfvi::nfvi(int argc, char** argv)
   vty->install_command(vtymt_slank()    , vtycb_slank    , nullptr);
   vty->install_command(vtymt_show_port(), vtycb_show_port, nullptr);
   vty->install_command(vtymt_show_ring(), vtycb_show_ring, nullptr );
-  // vty->install_command(vtymt_show_vnf() , vtycb_show_vnf , &vnf0  );
   ssn_green_thread_launch(ssn_vty_poll_thread, vty, 1);
 
   /* Init REST API Server */
@@ -137,17 +137,20 @@ nfvi::~nfvi()
   ssn_fin();
 }
 
-void nfvi::connect_vp(vnic* nic0, size_t nic1)
+void nfvi::connect_vp(vnic& nic0, size_t nic1)
 {
-  nic0->rx = ring_rx[nic1];
-  nic0->tx = ring_tx[nic1];
+  nic0.rx = ring_rx[nic1];
+  nic0.tx = ring_tx[nic1];
 }
 
-void nfvi::connect_vv(vnic* nic0, vnic* nic1)
+void nfvi::connect_vv(vnic& nic0, vnic& nic1)
 {
-  ssn_ring* ring_1to0 = new ssn_ring("1to0");
-  ssn_ring* ring_0to1 = new ssn_ring("0to1");
-  nic0->rx = nic1->tx = ring_1to0;
-  nic1->rx = nic0->tx = ring_0to1;
+  std::string name;
+  name = slankdev::format("%s->%s", nic0.name.c_str(), nic1.name.c_str());
+  ssn_ring* ring_0to1 = new ssn_ring(name.c_str());
+  name = slankdev::format("%s->%s", nic1.name.c_str(), nic0.name.c_str());
+  ssn_ring* ring_1to0 = new ssn_ring(name.c_str());
+  nic0.rx = nic1.tx = ring_1to0;
+  nic1.rx = nic0.tx = ring_0to1;
 }
 
