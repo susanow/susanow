@@ -11,7 +11,8 @@ const char* ssn_ring::name() const { return ring_->name; }
 
 ssn_ring::ssn_ring(const char* name) : ring_(nullptr)
 {
-  ring_ = slankdev::ring_alloc(name, 1024);
+  constexpr size_t socket_id = 0;
+  ring_ = rte_ring_create(name, 1024, socket_id, 0);
   _rings.push_back(this);
 }
 
@@ -41,15 +42,15 @@ int ssn_ring::deq(void** obj)
   opacket ++;
   return ret;
 }
-size_t ssn_ring::enq_bulk(void *const *obj_table, size_t n)
+size_t ssn_ring::enq_burst(void *const *obj_table, size_t n)
 {
   ipacket += n;
-  int ret = rte_ring_enqueue_bulk(ring_, obj_table, n, nullptr);
+  int ret = rte_ring_enqueue_burst(ring_, obj_table, n, nullptr);
   return ret;
 }
-size_t ssn_ring::deq_bulk(void**obj_table, size_t n)
+size_t ssn_ring::deq_burst(void**obj_table, size_t n)
 {
-  int ret = rte_ring_dequeue_bulk(ring_, obj_table, n, nullptr);
+  int ret = rte_ring_dequeue_burst(ring_, obj_table, n, nullptr);
   opacket += ret;
   return ret;
 }
