@@ -8,16 +8,16 @@
 #include <ssn_common.h>
 #include <ssn_native_thread.h>
 #include <ssn_ring.h>
-
+#define DELAY 50
 ssn_ring* ring_rx[2];
 ssn_ring* ring_tx[2];
 
 
 bool running = true;
-void l2fwd(void*)
+void txrx(void*)
 {
   size_t nb_ports = ssn_dev_count();
-  printf("start l2fwd nb_ports=%zd lcore%zd\n", nb_ports, ssn_lcore_id());
+  printf("start %s nb_ports=%zd lcore%zd\n", __func__, nb_ports, ssn_lcore_id());
   while (running) {
     for (size_t pid=0; pid<nb_ports; pid++) {
       rte_mbuf* mbufs[32];
@@ -25,7 +25,6 @@ void l2fwd(void*)
       if (nb_recv == 0) continue;
       size_t nb_enq = ring_rx[pid]->enq_bulk((void**)mbufs, nb_recv);
       if (nb_recv > nb_enq) {
-        // printf("aaaaaaaaaaaaaaaaaaaaaaaaaadrop\n");
         ssn_mbuf_free_bulk(&mbufs[nb_enq], nb_recv-nb_enq);
       }
     }
@@ -36,7 +35,6 @@ void l2fwd(void*)
 
       size_t nb_send = ssn_port_tx_burst(pid, 0, mbufs, nb_deq);
       if (nb_deq > nb_send) {
-        // printf("dradfdfdfdfdop pid=%zd nb_send=%zd, nb_deq=%zd\n", pid, nb_send, nb_deq);
         ssn_mbuf_free_bulk(&mbufs[nb_send], nb_deq-nb_send);
       }
     }
@@ -46,7 +44,7 @@ void l2fwd(void*)
 void wk(void*)
 {
   size_t nb_ports = ssn_dev_count();
-  printf("start wk nb_ports=%zd lcore%zd\n", nb_ports, ssn_lcore_id());
+  printf("start %s nb_ports=%zd lcore%zd\n", __func__, nb_ports, ssn_lcore_id());
   while (running) {
     for (size_t pid=0; pid<nb_ports; pid++) {
       rte_mbuf* mbufs[32];
@@ -55,7 +53,7 @@ void wk(void*)
       for (size_t i=0; i<nb_deq; i++) {
 
         size_t n = 0;
-        for (size_t j=0; j<30; j++) n++;
+        for (size_t j=0; j<DELAY; j++) n++;
 
         int ret = ring_tx[pid^1]->enq(mbufs[i]);
         if (ret < 0)
@@ -91,8 +89,10 @@ int main(int argc, char** argv)
     ssn_port_promisc_on(i);
   }
 
-  ssn_native_thread_launch(l2fwd, nullptr, 2);
-  ssn_native_thread_launch(wk   , nullptr, 3);
+  ssn_native_thread_launch(txrx, nullptr, 2);
+  ssn_native_thread_launch(wk  , nullptr, 3);
+  ssn_native_thread_launch(wk  , nullptr, 4);
+  ssn_sleep(1000);
   wait_enter("PushEnterToExitL2fwd");
   running = false;
   ssn_sleep(1000);
