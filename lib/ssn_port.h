@@ -15,6 +15,7 @@ class ssn_port_conf {
   size_t nb_txd;
   ssn_port_conf();
   rte_eth_conf raw;
+  void debug_dump(FILE* fp) const;
 };
 
 size_t ssn_dev_count();

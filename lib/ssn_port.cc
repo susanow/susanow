@@ -52,6 +52,51 @@ void ssn_port_dev_down(size_t pid)
   ssn_log(SSN_LOG_INFO, "port%zd dev down\n", pid);
 }
 
+void ssn_port_conf::debug_dump(FILE* fp) const
+{
+  using namespace slankdev;
+
+  fprintf(fp, "nb_rxq: %zd \r\n", nb_rxq);
+  fprintf(fp, "nb_txq: %zd \r\n", nb_txq);
+  fprintf(fp, "nb_rxd: %zd \r\n", nb_rxd);
+  fprintf(fp, "nb_txd: %zd \r\n", nb_txd);
+
+  fprintf(fp, "raw {\r\n");
+  fprintf(fp, "  link_speeds : %u(%s) \r\n", raw.link_speeds, linkspeed2str(raw.link_speeds));
+  fprintf(fp, "  rxmode {\r\n");
+
+  fprintf(fp, "    mq_mode        : %s\n", rte_eth_rx_mq_mode2str(raw.rxmode.mq_mode));
+  fprintf(fp, "    max_rx_pkt_len : %u\n", raw.rxmode.max_rx_pkt_len);
+  fprintf(fp, "    split_hdr_size : %u\n", raw.rxmode.split_hdr_size);
+  fprintf(fp, "    header_split   : %s\n", (raw.rxmode.header_split  ==1)?"Yes":"No");
+  fprintf(fp, "    hw_ip_checksum : %s\n", (raw.rxmode.hw_ip_checksum==1)?"Yes":"No");
+  fprintf(fp, "    hw_vlan_filter : %s\n", (raw.rxmode.hw_vlan_filter==1)?"Yes":"No");
+  fprintf(fp, "    hw_vlan_strip  : %s\n", (raw.rxmode.hw_vlan_strip ==1)?"Yes":"No");
+  fprintf(fp, "    hw_vlan_extend : %s\n", (raw.rxmode.hw_vlan_extend==1)?"Yes":"No");
+  fprintf(fp, "    jumbo_frame    : %s\n", (raw.rxmode.jumbo_frame   ==1)?"Yes":"No");
+  fprintf(fp, "    hw_strip_crc   : %s\n", (raw.rxmode.hw_strip_crc  ==1)?"Yes":"No");
+  fprintf(fp, "    enable_scatter : %s\n", (raw.rxmode.enable_scatter==1)?"Yes":"No");
+  fprintf(fp, "    enable_lro     : %s\n", (raw.rxmode.enable_lro    ==1)?"Yes":"No");
+  fprintf(fp, "  }\r\n");
+
+  fprintf(fp, "  txmode \r\n");
+  fprintf(fp, "  rx_adv_conf {\r\n");
+  fprintf(fp, "    rss_conf         \r\n");
+  fprintf(fp, "    vmdq_dcb_conf    \r\n");
+  fprintf(fp, "    dcb_rx_conf      \r\n");
+  fprintf(fp, "    vmdq_rx_conf     \r\n");
+  fprintf(fp, "  }\r\n");
+  fprintf(fp, "  tx_adv_conf {\r\n");
+  fprintf(fp, "    vmdq_dcb_tx_conf \r\n");
+  fprintf(fp, "    dcb_tx_conf      \r\n");
+  fprintf(fp, "    vmdq_tx_conf     \r\n");
+  fprintf(fp, "  }\r\n");
+  fprintf(fp, "  dcb_capability_en %u \r\n", raw.dcb_capability_en  );
+  fprintf(fp, "  fdir_conf \r\n");
+  fprintf(fp, "  intr_conf \r\n");
+  fprintf(fp, "}\r\n");
+}
+
 ssn_port_conf::ssn_port_conf()
   : nb_rxq(1), nb_txq(1), nb_rxd(128), nb_txd(512)
 {
@@ -64,7 +109,6 @@ void ssn_port_configure(size_t pid, ssn_port_conf* conf)
   ssn_log(SSN_LOG_INFO,
       "port%zd configure nb_rxqs=%zd, nb_txqs=%zd, nb_rxd=%zd, nb_txd=%zd\n",
       pid, conf->nb_rxq, conf->nb_txq, conf->nb_rxd, conf->nb_txd);
-  ssn_port_dev_down(pid);
 
   ret = rte_eth_dev_configure(pid, conf->nb_rxq, conf->nb_txq, &conf->raw);
   if (ret < 0) {
@@ -73,7 +117,10 @@ void ssn_port_configure(size_t pid, ssn_port_conf* conf)
   for (size_t q=0; q<conf->nb_rxq; q++) {
     ret = rte_eth_rx_queue_setup(pid, q, conf->nb_rxd, rte_eth_dev_socket_id(pid), nullptr, mp[pid]);
     if (ret < 0) {
-      throw slankdev::exception("dev rxq setup");
+      std::string errstr = slankdev::format(
+          "rte_eth_rx_queue_setup(%zd,%zd,%zd,%zd,%p,%p)",
+          pid, q, conf->nb_rxd, rte_eth_dev_socket_id(pid), nullptr, mp[pid]);
+      throw slankdev::exception(errstr.c_str());
     }
   }
   for (size_t q=0; q<conf->nb_txq; q++) {
