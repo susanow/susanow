@@ -59,11 +59,13 @@ void PRINT(void*)
 int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
-  ssn_timer_sched_register(1);
+
+  ssn_timer_sched tm1(1);
+  ssn_native_thread_launch(ssn_timer_sched_poll_thread, &tm1, 1);
 
   uint64_t hz = rte_get_timer_hz();
-  ssn_timer* tim0 = ssn_timer_alloc(ssn_port_stat_update, nullptr, hz);
-  ssn_timer_add(tim0, 1);
+  ssn_timer* tim0 = new ssn_timer(ssn_port_stat_update, nullptr, hz);
+  tm1.add(tim0);
 
   ssn_native_thread_launch(PRINT, nullptr, 3);
 
@@ -79,8 +81,7 @@ int main(int argc, char** argv)
   ssn_native_thread_launch(wk, nullptr, 2);
   sleep(5);
   running = false;
-  ssn_timer_del(tim0, 1); ssn_timer_free(tim0);
-  ssn_timer_sched_unregister(1);
+  tm1.del(tim0); delete (tim0);
   ssn_fin();
 }
 
