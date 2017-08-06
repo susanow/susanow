@@ -2,6 +2,7 @@
 git submodule init
 git submodule update
 
+sudo apt install -y libpcap-dev
 sudo apt install -y linux-headers-`uname -r`
 
 echo "Build DPDK"
