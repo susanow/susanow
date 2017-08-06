@@ -30,8 +30,8 @@ class ssn_ring {
 
   int enq(void* obj);
   int deq(void** obj);
-  size_t enq_bulk(void *const *obj_table, size_t n);
-  size_t deq_bulk(void**obj_table, size_t n);
+  size_t enq_burst(void *const *obj_table, size_t n);
+  size_t deq_burst(void**obj_table, size_t n);
 };
 
 /*
