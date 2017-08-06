@@ -22,8 +22,8 @@ runnull:
 
 runpcap:
 	sudo ./a.out \
-		--vdev=net_pcap0,iface=tap0 \
-		--vdev=net_pcap1,iface=tap1
+		--vdev=eth_pcap0,iface=tap0 \
+		--vdev=eth_pcap1,iface=tap1
 
 runtap:
 	sudo ./a.out \

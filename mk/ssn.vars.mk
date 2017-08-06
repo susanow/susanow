@@ -24,7 +24,7 @@ DPDK_LDFLAGS += \
 	-lrte_ethdev -lrte_meter -lrte_pmd_ena -lrte_pmd_sfc_efx -lrte_table \
 	-lrte_eventdev -lrte_metrics -lrte_pmd_enic -lrte_pmd_skeleton_event -lrte_timer \
 	-lrte_hash -lrte_net -lrte_pmd_fm10k -lrte_pmd_sw_event -lrte_vhost \
-	-lrte_ip_frag -lrte_pdump -lrte_pmd_i40e -lrte_pmd_tap \
+	-lrte_ip_frag -lrte_pdump -lrte_pmd_i40e -lrte_pmd_tap -lrte_pmd_pcap \
 	-Wl,--end-group -Wl,--no-whole-archive
 
 SSN_LIB_CXXFLAGS += \
