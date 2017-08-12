@@ -19,20 +19,21 @@ void wk(void*)
   ssn_log(SSN_LOG_INFO, "start rx-thread \n");
   size_t nb_ports = ssn_dev_count();
   while (running) {
-#ifdef DEBUG
-    static size_t cnt = 0;
-    if (cnt >= 100000) {
-      printf("forward %zd packets\n", cnt );
-      cnt = 0;
-    } else {
-      cnt ++;
-    }
-#endif
-
     for (size_t pid=0; pid<nb_ports; pid++) {
       rte_mbuf* mbufs[32];
       size_t nb_recv = ssn_port_rx_burst(pid, 0, mbufs, 32);
       if (nb_recv == 0) continue;
+
+#ifdef DEBUG
+      printf("recv\n");
+      static size_t cnt = 0;
+      if (cnt >= 100000) {
+        printf("forward %zd packets\n", cnt );
+        cnt = 0;
+      } else {
+        cnt ++;
+      }
+#endif
 
       size_t nb_send = ssn_port_tx_burst(pid^1,0, mbufs, nb_recv);
       if (nb_send < nb_recv)
@@ -45,8 +46,9 @@ void wk(void*)
 int main(int argc, char** argv)
 {
   // ssn_log_set_level(SSN_LOG_EMERG);
-  ssn_log_set_level(SSN_LOG_DEBUG);
+  ssn_log_set_level(SSN_LOG_INFO);
   ssn_init(argc, argv);
+
   ssn_green_thread_sched_register(1);
 
   size_t nb_ports = ssn_dev_count();
@@ -61,9 +63,9 @@ int main(int argc, char** argv)
     ssn_port_dev_up(i);
     ssn_port_promisc_on(i);
   }
-  return 0;
 
   ssn_native_thread_launch(wk, nullptr, 2);
+  while (1);
   getchar();
   running = false;
 
