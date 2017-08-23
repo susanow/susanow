@@ -8,7 +8,7 @@
 
 
 
-void ssn_sys_init(int argc, char** argv);
+void ssn_cpu_init(int argc, char** argv);
 bool ssn_cpu_debug_dump(FILE* fp);
 
 ssn_lcore_state ssn_get_lcore_state(size_t lcore_id);

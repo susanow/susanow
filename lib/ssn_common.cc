@@ -19,7 +19,7 @@
 
 void ssn_init(int argc, char** argv)
 {
-  ssn_sys_init(argc, argv);
+  ssn_cpu_init(argc, argv);
   ssn_native_thread_init();
   ssn_green_thread_init();
   ssn_timer_init();
