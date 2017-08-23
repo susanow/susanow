@@ -10,7 +10,7 @@
 #include <slankdev/extra/dpdk.h>
 #include <slankdev/extra/dpdk_struct.h>
 
-#include <ssn_sys.h>
+#include <ssn_cpu.h>
 
 
 class ssn_lcore {

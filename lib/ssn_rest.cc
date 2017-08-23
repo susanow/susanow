@@ -1,7 +1,7 @@
 
 
 #include <ssn_log.h> // for ssn_log() only
-#include <ssn_sys.h> // for ssn_sleep() only
+#include <ssn_cpu.h> // for ssn_sleep() only
 #include <ssn_rest.h>
 #include <slankdev/util.h>
 #include <slankdev/socketfd.h>

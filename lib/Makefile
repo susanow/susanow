@@ -8,7 +8,7 @@ LDFLAGS  = $(SSN_LIB_LDFLAGS)
 
 TARGET = libsusanow.a
 SRC = \
-			ssn_sys.cc     \
+			ssn_cpu.cc     \
 			ssn_vty.cc     \
 			ssn_config.cc  \
 			ssn_port.cc    \
