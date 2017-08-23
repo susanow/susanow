@@ -52,11 +52,11 @@ static void _vswitch_thread(void* arg)
   while (true) {
     for (size_t p=0; p<nb_ports; p++) {
       size_t recvlen = rte_eth_rx_burst(p, 0, mbufs, 32);
-      size_t enqlen  = ring_rx[p]->enq_bulk((void**)mbufs, recvlen);
+      size_t enqlen  = ring_rx[p]->enq_burst((void**)mbufs, recvlen);
       if (recvlen > enqlen)
         slankdev::rte_pktmbuf_free_bulk(&mbufs[enqlen], recvlen-enqlen);
 
-      size_t deqlen = ring_tx[p]->deq_bulk((void**)mbufs, 32);
+      size_t deqlen = ring_tx[p]->deq_burst((void**)mbufs, 32);
       size_t sendlen = rte_eth_tx_burst(p, 0, mbufs, deqlen);
       if (deqlen > sendlen)
         slankdev::rte_pktmbuf_free_bulk(&mbufs[sendlen], deqlen-sendlen);

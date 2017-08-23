@@ -13,7 +13,7 @@ class func_rx : public func {
     size_t nb_ports = ssn_dev_count();
     while (run) {
       for (size_t p=0; p<nb_ports; p++) {
-        size_t deqlen = rx[p]->deq_bulk((void**)mbufs, 32);
+        size_t deqlen = rx[p]->deq_burst((void**)mbufs, 32);
 
         int n=0;
         for (size_t J=0; J<400; J++) n++; //DELAY
@@ -78,7 +78,7 @@ class func_tx : public func {
     size_t nb_ports = ssn_dev_count();
     while (run) {
       for (size_t p=0; p<nb_ports; p++) {
-        size_t deqlen = rx[p]->deq_bulk((void**)mbufs, 32);
+        size_t deqlen = rx[p]->deq_burst((void**)mbufs, 32);
 
         int n=0;
         for (size_t J=0; J<400; J++) n++; //DELAY
