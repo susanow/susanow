@@ -5,7 +5,7 @@
 #include <ssn_timer.h>
 #include <ssn_green_thread.h>
 #include <ssn_native_thread.h>
-#include <ssn_sys.h>
+#include <ssn_cpu.h>
 #include <ssn_common.h>
 
 size_t num0=0;
