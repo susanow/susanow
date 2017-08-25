@@ -14,13 +14,13 @@ Hiroki SHIROKURA
 - ライブラリ部分をのぞいて100行
 
 最初 (非バルク処理)
-<p><img src="./fig1.saisyo.png" width="100%"/></p>
+<p><img src="./img/fig1.saisyo.png" width="100%"/></p>
 
 バルク処理(Scalar) -> 意味なし?
-<p><img src="./fig2.bulk_scalar.png" width="100%"/></p>
+<p><img src="./img/fig2.bulk_scalar.png" width="100%"/></p>
 
 バルク処理(AVX2) -> 性能悪くね?
-<p><img src="./fig3.bulk_avx2.png" width="100%"/></p>
+<p><img src="./img/fig3.bulk_avx2.png" width="100%"/></p>
 
 ---
 ## nDPIを使ったDPIパケットフィルタ
