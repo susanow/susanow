@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <ssn_green_thread.h>
-#include <ssn_sys.h>
+#include <ssn_cpu.h>
 #include <ssn_common.h>
 
 

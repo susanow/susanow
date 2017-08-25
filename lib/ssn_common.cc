@@ -5,11 +5,9 @@
 #include <lthread.h>
 #include <slankdev/extra/dpdk.h>
 
-#include <ssn_sys.h>
-
+#include <ssn_cpu.h>
 #include <ssn_common.h>
 #include <ssn_types.h>
-#include <ssn_sys.h>
 #include <ssn_timer.h>
 #include <ssn_vty.h>
 #include <ssn_rest.h>
@@ -21,7 +19,7 @@
 
 void ssn_init(int argc, char** argv)
 {
-  ssn_sys_init(argc, argv);
+  ssn_cpu_init(argc, argv);
   ssn_native_thread_init();
   ssn_green_thread_init();
   ssn_timer_init();

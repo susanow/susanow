@@ -10,7 +10,7 @@
 #include <slankdev/extra/dpdk.h>
 #include <slankdev/extra/dpdk_struct.h>
 
-#include <ssn_sys.h>
+#include <ssn_cpu.h>
 
 
 class ssn_lcore {
@@ -35,15 +35,8 @@ class ssn_cpu {
   void debug_dump(FILE* fp) const;
 };
 
-class ssn_sys {
- public:
-  ssn_cpu cpu;
-  ssn_sys() {}
-  ~ssn_sys() {}
-  void init(int argc, char** argv);
-};
 
-ssn_sys sys;
+ssn_cpu cpu;
 
 
 void ssn_lcore::init(size_t i, ssn_lcore_state s)
@@ -86,19 +79,18 @@ void ssn_cpu::init(size_t nb)
   }
 }
 
-void ssn_sys::init(int argc, char** argv)
+
+void ssn_cpu_init(int argc, char** argv)
 {
   slankdev::dpdk_boot(argc, argv);
   cpu.init(rte_lcore_count());
 }
-
-void ssn_sys_init(int argc, char** argv) { sys.init(argc, argv); }
-bool ssn_cpu_debug_dump(FILE* fp) { sys.cpu.debug_dump(fp); }
+bool ssn_cpu_debug_dump(FILE* fp) { cpu.debug_dump(fp); }
 
 ssn_lcore_state ssn_get_lcore_state(size_t lcore_id)
-{ return sys.cpu.lcores[lcore_id].state; }
+{ return cpu.lcores[lcore_id].state; }
 void ssn_set_lcore_state(ssn_lcore_state s, size_t lcore_id)
-{ sys.cpu.lcores[lcore_id].state = s; }
+{ cpu.lcores[lcore_id].state = s; }
 
 size_t ssn_lcore_id() { return rte_lcore_id(); }
 size_t ssn_lcore_count() { return rte_lcore_count(); }

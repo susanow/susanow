@@ -13,7 +13,7 @@
 #include <ssn_port.h>
 #include <ssn_timer.h>
 #include <ssn_port_stat.h>
-#include <ssn_sys.h>
+#include <ssn_cpu.h>
 #include <ssn_common.h>
 #include <slankdev/extra/dpdk.h>
 

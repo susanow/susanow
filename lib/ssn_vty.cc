@@ -35,7 +35,7 @@
 #include <stddef.h>
 #include <ssn_vty.h>
 #include <vty_server.h>
-#include <ssn_sys.h>
+#include <ssn_cpu.h>
 
 /*
  *======================================

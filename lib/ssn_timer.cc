@@ -1,7 +1,7 @@
 
 
 #include <assert.h>
-#include <ssn_sys.h>
+#include <ssn_cpu.h>
 #include <ssn_timer.h>
 #include <ssn_native_thread.h>
 #include <slankdev/extra/dpdk.h>

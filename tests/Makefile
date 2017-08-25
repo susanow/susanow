@@ -18,8 +18,7 @@ SRC = \
 			vty.cc           \
 			timer.cc         \
 			port.cc          \
-			port_stat.cc     \
-			vnf.cc
+			port_stat.cc
 OBJ = $(SRC:.cc=.out)
 
 poc: clean
