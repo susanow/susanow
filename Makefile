@@ -1,14 +1,6 @@
 
+SSN_SDK := `pwd`
 
-include $(SSN_SDK)/mk/ssn.vars.mk
-CXXFLAGS += $(SSN_CXXFLAGS)
-LDFLAGS  += $(SSN_LDFLAGS)
+all:
+	@echo "SSN_SDK=$(SSN_SDK)"
 
-CXXFLAGS += -Wno-format-security -I. -g -O0 -std=c++11
-CXXFLAGS += -fsanitize=address
-
-def:
-	$(CXX) $(CXXFLAGS) main.cc $(LDFLAGS)
-
-clean:
-	rm -rf *.out *.o
