@@ -12,9 +12,9 @@ export RTE_TARGET=x86_64-native-linuxapp-gcc
 make install T=$RTE_TARGET
 cd ..
 
-make -C lthread_dpdk
+make -C liblthread_dpdk
 make -C libvty
-make -C lib
+make -C libsusanow
 make -C tests build
 
 echo "Success Setup for SUSANOW"
