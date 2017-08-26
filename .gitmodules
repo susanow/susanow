@@ -7,3 +7,6 @@
 [submodule "lib/libslankdev"]
 	path = lib/libslankdev
 	url = https://github.com/slankdev/libslankdev
+[submodule "lib/libdpdk_cpp"]
+	path = lib/libdpdk_cpp
+	url = https://github.com/susanow/libdpdk_cpp
