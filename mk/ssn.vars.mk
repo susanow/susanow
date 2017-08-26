@@ -1,11 +1,11 @@
 
 
 DPDK_PATH        = $(SSN_SDK)/dpdk/x86_64-native-linuxapp-gcc
-LTHREAD_PATH     = $(SSN_SDK)/liblthread_dpdk
-LIBVTY_PATH      = $(SSN_SDK)/libvty
-LIBSLANKDEV_PATH = $(SSN_SDK)/libslankdev
-LIBDPDK_CPP_PATH = $(SSN_SDK)/libdpdk_cpp
-LIBSSN_PATH      = $(SSN_SDK)/libsusanow
+LTHREAD_PATH     = $(SSN_SDK)/lib/liblthread_dpdk
+LIBVTY_PATH      = $(SSN_SDK)/lib/libvty
+LIBSLANKDEV_PATH = $(SSN_SDK)/lib/libslankdev
+LIBDPDK_CPP_PATH = $(SSN_SDK)/lib/libdpdk_cpp
+LIBSSN_PATH      = $(SSN_SDK)/lib/libsusanow
 
 DPDK_LDFLAGS += \
 	-Wl,--no-as-needed \

@@ -1,7 +1,7 @@
 
 
-include ../mk/ssn.vars.mk
-include ../mk/rules.mk
+include ../../mk/ssn.vars.mk
+include ../../mk/rules.mk
 
 CXXFLAGS = $(SSN_LIB_CXXFLAGS) -Wno-format-security
 LDFLAGS  = $(SSN_LIB_LDFLAGS)
