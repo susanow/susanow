@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 #include <lthread.h>
-#include <slankdev/extra/dpdk.h>
+#include <dpdk/hdr.h>
 
 #include <ssn_cpu.h>
 #include <ssn_common.h>

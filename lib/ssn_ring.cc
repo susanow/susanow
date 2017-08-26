@@ -1,9 +1,7 @@
 
 #include <ssn_ring.h>
 #include <vector>
-#include <rte_ring.h>
-#include <slankdev/extra/dpdk.h>
-
+#include <dpdk/hdr.h>
 
 std::vector<ssn_ring*> _rings;
 

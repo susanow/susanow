@@ -2,7 +2,13 @@
 #include <stdio.h>
 #include <ssn_log.h>
 #include <ssn_port.h>
-#include <slankdev/extra/dpdk.h>
+
+#include <dpdk/hdr.h>
+#include <dpdk/wrap.h>
+#include <dpdk/struct.h>
+
+#include <slankdev/exception.h>
+#include <slankdev/string.h>
 
 rte_mempool* mp[RTE_MAX_ETHPORTS];
 
@@ -55,6 +61,7 @@ void ssn_port_dev_down(size_t pid)
 void ssn_port_conf::debug_dump(FILE* fp) const
 {
   using namespace slankdev;
+  using namespace dpdk;
 
   fprintf(fp, "nb_rxq: %zd \r\n", nb_rxq);
   fprintf(fp, "nb_txq: %zd \r\n", nb_txq);
@@ -100,7 +107,7 @@ void ssn_port_conf::debug_dump(FILE* fp) const
 ssn_port_conf::ssn_port_conf()
   : nb_rxq(1), nb_txq(1), nb_rxd(128), nb_txd(512)
 {
-  slankdev::init_portconf(&raw);
+  dpdk::init_portconf(&raw);
 }
 
 void ssn_port_configure(size_t pid, ssn_port_conf* conf)
@@ -136,7 +143,7 @@ void ssn_port_init()
   size_t nb_ports = rte_eth_dev_count();
   for (size_t i=0; i<nb_ports; i++) {
     std::string name = slankdev::format("RXMP%zd", i);
-    mp[i] = slankdev::mp_alloc(name.c_str());
+    mp[i] = dpdk::mp_alloc(name.c_str());
   }
 }
 

@@ -11,7 +11,8 @@
 #include <vector>
 #include <mutex>
 #include <queue>
-#include <slankdev/extra/dpdk.h>
+#include <dpdk/hdr.h>
+#include <slankdev/exception.h>
 
 
 class ssn_green_thread_manager;

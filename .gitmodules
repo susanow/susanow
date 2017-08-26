@@ -1,6 +1,3 @@
-# [submodule "lthread"]
-# 	path = lthread
-# 	url = https://github.com/susanow/lthread.git
 [submodule "dpdk"]
 	path = dpdk
 	url = https://github.com/susanow/dpdk
@@ -11,5 +8,5 @@
 	path = libvty
 	url = http://github.com/susanow/libvty
 [submodule "libdpdk_cpp"]
-	path = libvty
-	url = http://github.com/susanow/libdpdk_cpp
+	path = libdpdk_cpp
+	url = https://github.com/susanow/libdpdk_cpp

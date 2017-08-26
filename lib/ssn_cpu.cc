@@ -2,15 +2,17 @@
 
 #include <dlfcn.h>
 #include <unistd.h>
-#include <unistd.h>
+#include <ssn_cpu.h>
 
 #include <lthread.h>
+
 #include <slankdev/hexdump.h>
 #include <slankdev/exception.h>
-#include <slankdev/extra/dpdk.h>
-#include <slankdev/extra/dpdk_struct.h>
 
-#include <ssn_cpu.h>
+#include <dpdk/hdr.h>
+#include <dpdk/wrap.h>
+#include <dpdk/struct.h>
+
 
 
 class ssn_lcore {
@@ -50,7 +52,7 @@ void ssn_lcore::debug_dump(FILE* fp) const
   rte_lcore_state_t s = rte_eal_get_lcore_state(id);
   fprintf(fp, "lcore%zd: ssn_state=%s rte_state=%s\r\n",
       id, ssn_lcore_state2str(state),
-      slankdev::rte_lcore_state_t2str(s));
+      dpdk::rte_lcore_state_t2str(s));
 }
 
 
@@ -65,7 +67,7 @@ void ssn_cpu::debug_dump(FILE* fp) const
     rte_lcore_state_t rs = rte_eal_get_lcore_state(i);
     ssn_lcore_state ss = ssn_get_lcore_state(i);
     fprintf(fp, "[%3zd]: %-10s %-10s  \r\n", i,
-          slankdev::rte_lcore_state_t2str(rs), ssn_lcore_state2str(ss));
+          dpdk::rte_lcore_state_t2str(rs), ssn_lcore_state2str(ss));
   }
 
 }
@@ -82,7 +84,7 @@ void ssn_cpu::init(size_t nb)
 
 void ssn_cpu_init(int argc, char** argv)
 {
-  slankdev::dpdk_boot(argc, argv);
+  dpdk::dpdk_boot(argc, argv);
   cpu.init(rte_lcore_count());
 }
 bool ssn_cpu_debug_dump(FILE* fp) { cpu.debug_dump(fp); }

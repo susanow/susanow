@@ -1,5 +1,5 @@
 
-#include <slankdev/extra/dpdk.h>
+#include <dpdk/hdr.h>
 #include <ssn_port_stat.h>
 
 class ssn_port_stat {

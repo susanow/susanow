@@ -1,9 +1,9 @@
 
-#include <slankdev/extra/dpdk.h>
 
-#include <ssn_native_thread.h>
 #include <ssn_cpu.h>
 #include <ssn_log.h>
+#include <ssn_native_thread.h>
+#include <dpdk/hdr.h>
 
 
 class ssn_native_thread {

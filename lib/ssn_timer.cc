@@ -4,8 +4,9 @@
 #include <ssn_cpu.h>
 #include <ssn_timer.h>
 #include <ssn_native_thread.h>
-#include <slankdev/extra/dpdk.h>
-
+#include <slankdev/exception.h>
+#include <slankdev/string.h>
+#include <dpdk/hdr.h>
 
 static void _SSN_TIMER_LAUNCHER(struct rte_timer* tim, void* arg)
 {

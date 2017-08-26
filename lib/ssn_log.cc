@@ -3,8 +3,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <slankdev/extra/dpdk.h>
 #include <ssn_log.h>
+#include <slankdev/exception.h>
+#include <dpdk/hdr.h>
 
 
 FILE* ssn_log_stdout = stderr;
