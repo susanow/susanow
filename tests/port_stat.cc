@@ -15,7 +15,7 @@
 #include <ssn_port_stat.h>
 #include <ssn_cpu.h>
 #include <ssn_common.h>
-#include <slankdev/extra/dpdk.h>
+#include <dpdk/hdr.h>
 
 
 bool running = true;
