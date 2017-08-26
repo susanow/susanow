@@ -5,7 +5,7 @@ LTHREAD_PATH     = $(SSN_SDK)/lthread_dpdk
 LIBVTY_PATH      = $(SSN_SDK)/libvty
 LIBSLANKDEV_PATH = $(SSN_SDK)/libslankdev
 LIBDPDK_CPP_PATH = $(SSN_SDK)/libdpdk_cpp
-LIBSSN_PATH      = $(SSN_SDK)/lib
+LIBSSN_PATH      = $(SSN_SDK)/libsusanow
 
 DPDK_LDFLAGS += \
 	-Wl,--no-as-needed \
