@@ -4,6 +4,7 @@ DPDK_PATH        = $(SSN_SDK)/dpdk/x86_64-native-linuxapp-gcc
 LTHREAD_PATH     = $(SSN_SDK)/lthread_dpdk
 LIBVTY_PATH      = $(SSN_SDK)/libvty
 LIBSLANKDEV_PATH = $(SSN_SDK)/libslankdev
+LIBDPDK_CPP_PATH = $(SSN_SDK)/libdpdk_cpp
 LIBSSN_PATH      = $(SSN_SDK)/lib
 
 DPDK_LDFLAGS += \
@@ -32,6 +33,7 @@ SSN_LIB_CXXFLAGS += \
 		-I$(LTHREAD_PATH)      \
 		-I$(LIBVTY_PATH)       \
 		-I$(LIBSLANKDEV_PATH)  \
+		-I$(LIBDPDK_CPP_PATH)  \
 		-I$(LIBSSN_PATH)       \
 		-m64 -mssse3           \
 		-std=c++11

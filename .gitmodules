@@ -10,3 +10,6 @@
 [submodule "libvty"]
 	path = libvty
 	url = http://github.com/susanow/libvty
+[submodule "libdpdk_cpp"]
+	path = libvty
+	url = http://github.com/susanow/libdpdk_cpp
