@@ -1,6 +1,3 @@
-[submodule "dpdk"]
-	path = dpdk
-	url = https://github.com/susanow/dpdk
 [submodule "lib/libvty"]
 	path = lib/libvty
 	url = https://github.com/susanow/libvty
@@ -10,3 +7,6 @@
 [submodule "lib/libdpdk_cpp"]
 	path = lib/libdpdk_cpp
 	url = https://github.com/susanow/libdpdk_cpp
+[submodule "lib/dpdk"]
+	path = lib/dpdk
+	url = https://github.com/susanow/dpdk

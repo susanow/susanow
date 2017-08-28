@@ -9,30 +9,22 @@ function install_packages() {
 
 function build_dpdk() {
 	echo "Build DPDK"
-	cd dpdk
+	cd lib/dpdk
 	export RTE_SDK=`pwd`
 	export RTE_TARGET=x86_64-native-linuxapp-gcc
 	make install T=$RTE_TARGET
 	if [ ! $? = "0" ]; then
 		exit -1;
 	fi
-	cd ..
+	cd ../../
 }
 
 function build_libs() {
-	make -C lib/liblthread_dpdk
-	if [ ! $? = "0" ]; then
-		exit -1
-	fi
-	make -C lib/libvty
-	if [ ! $? = "0" ]; then
-		exit -1
-	fi
-	make -C lib/libsusanow
-	if [ ! $? = "0" ]; then
-		exit -1
-	fi
-	make -C tests build
+	make -C lib
+}
+
+function test_libs() {
+	make -C lib/libsusanow/tests all
 	if [ ! $? = "0" ]; then
 		exit -1
 	fi
@@ -42,5 +34,6 @@ function build_libs() {
 install_packages
 build_dpdk
 build_libs
+test_libs
 echo "Success Setup for SUSANOW"
 

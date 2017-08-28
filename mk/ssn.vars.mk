@@ -1,6 +1,6 @@
 
 
-DPDK_PATH        = $(SSN_SDK)/dpdk/x86_64-native-linuxapp-gcc
+DPDK_PATH        = $(SSN_SDK)/lib/dpdk/x86_64-native-linuxapp-gcc
 LTHREAD_PATH     = $(SSN_SDK)/lib/liblthread_dpdk
 LIBVTY_PATH      = $(SSN_SDK)/lib/libvty
 LIBSLANKDEV_PATH = $(SSN_SDK)/lib/libslankdev
