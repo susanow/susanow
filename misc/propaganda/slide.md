@@ -100,6 +100,13 @@ http://slankdev.net
 ターゲットは10GbE x4-8, 40GbE x4くらい<br>
 まだ未完成. BCP(BestCurrentPractice)をお話します
 
+```
+コンピュータリソース100%10G
+A33%10Gbps B33%05Gbps C33%20Gbps
+A33%10Gbps B66%10Gbps C16%10Gbps
+とする、アルゴリズムを開発する
+```
+
 ---
 ## Agenda
 
