@@ -1,5 +1,5 @@
 
-export SSN_SDK = ../
+export SSN_SDK = ../../../
 include $(SSN_SDK)/mk/ssn.vars.mk
 CXXFLAGS += $(SSN_CXXFLAGS)
 LDFLAGS  += $(SSN_LDFLAGS)
@@ -21,10 +21,10 @@ SRC = \
 			port_stat.cc
 OBJ = $(SRC:.cc=.out)
 
-poc: clean
-	$(CXX) $(CXXFLAGS) vty.cc $(LDFLAGS)
+# poc: clean
+# 	$(CXX) $(CXXFLAGS) vty.cc $(LDFLAGS)
 
-build: $(OBJ)
+all: $(OBJ)
 	@echo all-build done
 
 clean:
