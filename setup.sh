@@ -18,21 +18,7 @@ function build_dpdk() {
 	cd ../../
 }
 
-function build_libs() {
-	make -C lib
-}
-
-function test_libs() {
-	make -C lib/libsusanow/tests all
-	if [ ! $? = "0" ]; then
-		exit -1
-	fi
-}
-
-
 install_packages
 build_dpdk
-build_libs
-test_libs
 echo "Success Setup for SUSANOW"
 
