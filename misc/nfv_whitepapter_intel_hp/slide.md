@@ -1,13 +1,12 @@
 
-# NFV Whitepaper by Intel&HP
+# 次世代の通信インフラストラクチャーに対応する効率的な仮想ネットワーク機能(VNF)アーキテクチャー
 
+- NFV Whitepaper by Intel HPE
 - Hiroki SHIROKURA @slankdev
 - 2018.07.30
 
-本レポートは以下のWhitepaperをよんで筆者なりにまとめたものである
-```
-https://www.altera.co.jp/content/dam/altera-www/global/ja_JP/pdfs/literature/wp/wp-01273-finding-an-efficient-virtual-network-function-architecture_j.pdf
-```
+本レポートは以下のLINKのWhitepaperをよんで筆者なりにまとめたものである
+[LINK](https://www.altera.co.jp/content/dam/altera-www/global/ja_JP/pdfs/literature/wp/wp-01273-finding-an-efficient-virtual-network-function-architecture_j.pdf)
 
 ## はじめに
 
