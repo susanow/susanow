@@ -1,5 +1,5 @@
 
-export SSN_SDK = $(HOME)/git/susanow
+# export SSN_SDK = $(HOME)/git/susanow
 include $(SSN_SDK)/mk/ssn.vars.mk
 CXXFLAGS += $(SSN_CXXFLAGS)
 LDFLAGS  += $(SSN_LDFLAGS)

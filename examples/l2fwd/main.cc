@@ -2,14 +2,15 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <slankdev/extra/dpdk.h>
+#include <dpdk/dpdk.h>
 #include <ssn_native_thread.h>
 #include <ssn_green_thread.h>
 #include <ssn_port.h>
 #include <ssn_log.h>
 #include <ssn_common.h>
-#include <ssn_sys.h>
+#include <ssn_cpu.h>
 #include <ssn_port_stat.h>
+#include <slankdev/exception.h>
 #define DEBUG
 
 

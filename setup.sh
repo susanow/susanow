@@ -3,8 +3,7 @@
 function install_packages() {
 	git submodule init
 	git submodule update
-	sudo apt install -y libpcap-dev
-	sudo apt install -y linux-headers-`uname -r`
+	sudo apt install -y libpcap-dev python linux-headers-`uname -r`
 }
 
 function build_dpdk() {
