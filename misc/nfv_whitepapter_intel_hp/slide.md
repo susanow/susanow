@@ -115,7 +115,81 @@ VNFの拡大と隔離の必要性<br>
 <p><img src="./img/fig01.png" width="100%"/></p>
 
 ## CTNet2025: 2025までのChinaTelecomネットワークの変革
+
+China Telecomは次の技術が新しいNWアーキテクチャに重要だと判断した.
+
+- SDNの実装
+- 2025年までにインフラストラクチャーの80%を仮想化
+- クラウドコンピューティングテクノロジーの活用
+- OSSの使用
+
+これらに不可欠なVNFはvBRAS, vPE, vEPC, vIMS, vOLTである.
+
+
 ## 拡張性と効率性の高いvBRASアーキテクチャへ
+
+China Telecom, HPE, Intelの設計目標
+- Architecture
+	- CPUSを第一段階
+	- クラウドネイティブ設計原則をサポート
+- Efficient&performance
+	- 電力消費量は4KW/Tbps
+	- 各ノードは100Gbps以上
+- Relative cost
+	- SmartNICを用いた50%おコスト削減
+	- 将来の世代に対応できる拡張性を実現する
+
+BRASからvBRASへの進化
+- 物理アプライアンス (a)
+- vBRAS (b)
+- CUPSの実現 (c)
+
+<p><img src="./img/fig02.png" width="100%"/></p>
+
+前述の(c)を実現する,効率的なvBRAS設計(図4)
+
+<p><img src="./img/fig03.png" width="100%"/></p>
+
+vBRAS-c Node
+- コンテナ実装に適している
+- 必要に応じて新規ユーザを追加
+- vBRAS-cインスタンスがロケーションに依存しなくなる
+- vBRAS-cを集中管理したり分散管理したりどちらも可能
+
+vBRAS-d Node
+- パケット処理専用のノード
+- 一部のコアにパケット転送のみを割り当て
+- 残りのコアに複雑なパケット処理を行わせる
+- Intel Arria10 FPGA based SmartNICが使われる
+- FPGAは以下の複雑なパケット処理機能を実行する
+	- QoS, VPN, NAT, DPI
+- FPGAには利点がある
+	- 40%をQoSとシェービングに費やした場合
+	- 60%を別のパケット処理に適用できる
+	- デプロイ環境に合わせて機能を変えることができる
+		- DPIの独自アルゴリズム
+		- ストリーミングコンテンツの動的encode/decode
+		- アプリケーション固有のユースケースに同じサーバを用いられる
+
+SDNコントローラ
+- vBRAS-dのみを制御する
+- vBRAS-cがSDNコントローラになることもできる
+
+Intel Arria10 FPGA based SmartNIC
+- 複数の並列パケット処理パイプライン(40/100GbE以上)に対応するように構成可能
+- レイテンシはASIC/ASSPで発生するレイテンシと同様
+- 機能アップデートに対しハードウェアアップデートが必要ない
+- 製品のアップグレードサイクルを速めることができる
+
+<p><img src="./img/fig04.png" width="100%"/></p>
+
+ベンダに依存しないオープンエコシステム
+- CUPSがこのアーキテクチャの肝
+- 複数ベンダが寄与する駅システムで促進される
+- 本WhitePapaerではintel HPEだが,他にも様々なベンダで構成可能
+- 多数ベンダでAPI定義の協調的議論
+
+
 ## vBRASのパフォーマンス結果
 ## 効果的なvBRASで早退コストを削減
 ## 他のCUPS実装との比較
