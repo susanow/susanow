@@ -1,8 +1,8 @@
 
 # Susanow:<br>環境に対して自動最適化する<br>高性能通信基盤
 
-- 高速PCルータ研究会2017.08 in 田町
 - Hiroki SHIROKURA @slankdev slank.dev@gmail.com
+- powered by IPA-MITOU-program
 
 ===
 
@@ -12,7 +12,7 @@
 http://slankdev.net
 
 活動
-- セキュリティキャンプ 2015~ 今年から講義を担当
+- セキュリティキャンプ 2015~
 - Cybozu-Lab-Youth [拡張可能なパケット解析ライブラリ]
 - Cybozu-Lab-Youth [高性能TCP/IPネットワークスタック]
 - IIJii アルバイト [DPDK, BPF, 高性能パケット処理]
@@ -21,7 +21,7 @@ http://slankdev.net
 ---
 ## Agenda
 
-1. **Background, Motivation, Summary**
+1. Background, Motivation, Summary
 2. System Design
 3. Demonstration
 
@@ -44,10 +44,28 @@ http://slankdev.net
 ---
 ## Network Function Virtualization
 
-ネットワーク機能の仮想化(ソフトウェア化)
-- 汎用機によりコストダウン
-- 迅速なデプロイ,機能追加
-- 複数VNFを単一ホストにデプロイ (後述)
+ネットワーク機能を仮想化技術で実現すること.
+本プロジェクトはいくつかにフォーカスして説明する.
+
+利点
+- コストダウン
+	- 値段(汎用サーバ << 専用HW)
+	- 保守運用(統一的インターフェース,自動化)
+- 迅速
+	- サービスの拡大/縮小
+	- デプロイ,機能拡張
+
+可能になった背景
+- 高速マルチコアCPUを搭載した高性能なパケット処理が可能
+- クラウドインフラは、リソースの可用性と使用を向上させる方法を提供
+- 管理,制御APIのオープン化
+- 業界標準の大容量サーバ
+
+課題
+- Portability/Interoperability
+- Performance Trade-Off
+- Manage & Orchestration
+- Automation
 
 <p><img src="./img/fig1.nfv.png" width="100%"/></p>
 
@@ -61,6 +79,7 @@ http://slankdev.net
 - DPDKとVMの相性は?
 
 <p><img src="./img/fig3.chaining.png" width="100%"/></p>
+
 ---
 ## NFV with VM
 
@@ -75,7 +94,7 @@ http://slankdev.net
 <p><img src="./img/fig4.vm.png" width="100%"/></p>
 
 ---
-## OvS-DPDK architecture
+## ex) OvS-DPDK architecture
 
 - OVS用にいくつかのCPUを使用する
 - {sum of vCPU} > {num of cores}になったら, vm\_entry, vm\_exitの数が上昇?
@@ -84,6 +103,19 @@ http://slankdev.net
 
 <p><img src="./img/fig7.ovs.png" width="100%"/></p>
 
+
+---
+## 現状のアーキテクチャの問題点
+
+- VMによるNFVによりパフォーマンス低下
+	- VMの性能変更より迅速に性能を変更したい
+	- VMオーバヘッドは考えていない
+- 様々な情報は色々なタイミングで決定する
+	- 企画次に決まる情報
+	- デプロイ次に決まる情報
+	- 実行中に決まる情報
+- 高度に仮想化がすすみつつある現代ではHSPCRを実装しただけではだめ
+- それを利用するフィールドの整備まで行わなければならない
 
 ---
 ## 本テーマの貢献とインパクト
@@ -109,12 +141,18 @@ A33%10Gbps B66%10Gbps C16%10Gbps
 
 ベンダのエコシステムを利用することができる. (要参考文献)
 
----
-## Agenda
+Susanow計画のワークロード
+- スレッド最適化による環境に対して自動最適化する高性能通信基盤
+- 上記を複数NFに適用させ, ネットワークスライスを最適化するNFV基盤
+- 複数ノードを追加することにより無限にスケールするオーケストレータエージェント
+- 開発した基盤上で動くNF複数種類 (VNFリポジトリ)
+	- DPI, Router, FW, QoS
+	- 帯域混雑時でも緊急電話に対応できる可用性99.9%のVoIP
 
-1. Background, Motivation, Summary
-2. **System Design**
-3. Demonstration
+開発者の本音
+- NFVサービスチェインが迅速にいじれて高性能なことを売りにしたい
+- できれば40coreくらい使いたい...
+
 
 ---
 ## System Architecture
@@ -206,27 +244,16 @@ void optimize_stage(vnf nf) {
 ```
 
 ---
-## 現状の問題点
-- Kamueeのようなパターンはどうやって動的最適化するか
-- 一般:「チューニングにNIC構成変更の必要があるVNFは最適化可能か」
-- vNICとしてアブストラクションするとOvS見たいにpNICのスレッドが必要になる.
-  以下のpNICを制御しているコアのように
+## Evaluation
 
-<p><img src="./img/fig7.ovs.png" width="100%"/></p>
-
----
-## 評価, 案検討中
-
-- どのような構成でどうやって検証をすればよいのか
-- @yasu 卒業研究と同スペックでNetVMやOVSと勝負ができるかも
-- NFVサービスチェインが迅速にいじれて高性能なことを売りにしたい
-- できれば40coreくらい使いたい...
-
----
-## デモ
-
-- スレッドチューニングの動的最適化
-- VNFを新たにデプロイした場合の自動最適化エンジン
+- スレッド最適化による動的な性能変更
+- SFCの最適化によるネットワークスライスの動的な性能変更
+	- 非NUMA構成
+	- NUMA構成
+- 複数ノードでのクラスタリングの動的な性能変更
+- 実装したVNFの個別な性能変更の確認
+- これらを可能にするVNFのプログラミングモデル
+- NFVを管理する独自プロトコルとそのAPI
 
 
 
