@@ -36,6 +36,11 @@
 - 信頼性
 - スケーラビリティ
 
+## Challenges
+
+- Scallability
+- High Performance Function Chaining
+- NUMA Aware
 
 
 
