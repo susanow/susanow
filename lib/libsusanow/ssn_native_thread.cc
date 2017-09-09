@@ -3,7 +3,8 @@
 #include <ssn_cpu.h>
 #include <ssn_log.h>
 #include <ssn_native_thread.h>
-#include <dpdk/hdr.h>
+#include <dpdk/dpdk.h>
+#include <slankdev/exception.h>
 
 
 class ssn_native_thread {
@@ -25,9 +26,14 @@ static int _fthread_launcher(void* arg)
 
 void ssn_native_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
 {
+  size_t n_lcore = rte_lcore_count();
+  if (n_lcore <= lcore_id) {
+    throw slankdev::exception("too huge lcore_id?");
+  }
+
   snt[lcore_id]->f   = f;
   snt[lcore_id]->arg = arg;
-  rte_eal_remote_launch(_fthread_launcher, snt[lcore_id], lcore_id);
+  dpdk::rte_eal_remote_launch(_fthread_launcher, snt[lcore_id], lcore_id);
 }
 
 bool ssn_lcore_joinable(size_t lcore_id)
