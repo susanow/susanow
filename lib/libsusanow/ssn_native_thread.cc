@@ -26,6 +26,7 @@ static int _fthread_launcher(void* arg)
 
 void ssn_native_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
 {
+  ssn_log(SSN_LOG_DEBUG, "launch native thread to lcore%zd \n", lcore_id);
   size_t n_lcore = rte_lcore_count();
   if (n_lcore <= lcore_id) {
     throw slankdev::exception("too huge lcore_id?");

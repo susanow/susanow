@@ -6,6 +6,8 @@
 #include <ssn_green_thread.h>
 #include <ssn_native_thread.h>
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <lthread.h>
 #include <dlfcn.h>
 #include <vector>

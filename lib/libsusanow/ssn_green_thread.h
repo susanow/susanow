@@ -1,5 +1,7 @@
 
 #pragma once
+
+#include <stdio.h>
 #include <ssn_types.h>
 
 void ssn_green_thread_init();
