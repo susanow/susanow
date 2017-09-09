@@ -10,7 +10,7 @@
 #include <string>
 #include <stdint.h>
 #include <stddef.h>
-#include <slankdev/extra/dpdk.h>
+#include <dpdk/dpdk.h>
 #include <ssn_ring.h>
 #include <ssn_port.h>
 #include <ssn_port_stat.h>
