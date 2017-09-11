@@ -50,6 +50,24 @@ void ssn_lcore_join(size_t lcore_id)
   ssn_log(SSN_LOG_DEBUG, "join lcore%zd \n", lcore_id);
 }
 
+bool ssn_lcore_join_poll_thread_running;
+void ssn_lcore_join_poll_thread_stop()
+{ ssn_lcore_join_poll_thread_running=false; }
+void ssn_lcore_join_poll_thread(void*)
+{
+  ssn_lcore_join_poll_thread_running = true;
+  size_t lcore_id = ssn_lcore_id();
+  while (ssn_lcore_join_poll_thread_running) {
+    size_t nb_lcores = ssn_lcore_count();
+    for (size_t i=0; i<nb_lcores; i++) {
+      if (ssn_lcore_joinable(i)) {
+        ssn_lcore_join(i);
+      }
+    }
+    if (is_green_thread(lcore_id)) ssn_yield();
+  }
+}
+
 void ssn_native_thread_init()
 {
   size_t nb_lcores = rte_lcore_count();
