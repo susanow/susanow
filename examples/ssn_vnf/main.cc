@@ -12,6 +12,8 @@
 #include <dpdk/dpdk.h>
 #include <slankdev/exception.h>
 
+void (*thread_launcher)(ssn_function_t, void* arg, size_t lcore_id) = ssn_native_thread_launch;
+
 size_t num0 = 0;
 size_t num1 = 1;
 size_t num2 = 2;
@@ -21,7 +23,6 @@ size_t num5 = 5;
 size_t num6 = 6;
 size_t num7 = 7;
 size_t num8 = 8;
-bool block = false;
 
 struct port {
   size_t rxques_idx;
@@ -107,8 +108,6 @@ void get_config(std::vector<thread_conf>& confs, size_t nb_cores, size_t nb_port
   if (!is_power_of2(nb_cores))
     throw slankdev::exception("nb_lcore is not support");
 
-  block = true;
-
   confs.clear();
   confs.resize(nb_cores);
   const size_t nb_ques_per_core = nb_ques / nb_cores;
@@ -126,9 +125,9 @@ void get_config(std::vector<thread_conf>& confs, size_t nb_cores, size_t nb_port
     }
     que_idx += nb_ques_per_core;
   }
-  block = false;
 }
 
+bool running = true;
 void imple(void* arg)
 {
   size_t lid = *reinterpret_cast<size_t*>(arg);
@@ -139,29 +138,27 @@ void imple(void* arg)
   printf("----------------------------\n\n");
 
   size_t nb_ports = ssn_dev_count();
-  while (true) {
-    if (block) {
-      printf("block\n");
-      continue;
-    }
-
+  while (running) {
     for (size_t pid=0; pid<nb_ports; pid++) {
       rte_mbuf* mbufs[32];
       size_t nb_recv = confs[lid].ports[pid].rx_burst(mbufs, 32);
       if (nb_recv == 0) continue;
 
       for (size_t i=0; i<nb_recv; i++) {
-        printf("recv %zd:%zd hash=0x%x\n", pid,
-            confs[lid].ports[pid].rxques_idx,
-            mbufs[i]->hash.rss);
-        // dpdk::hexdump_mbuf(stdout, mbufs[i]);
+
+#if 0
+        size_t n=10;
+        for (size_t j=0; j<100; j++) n++;
+#else
+        rte_delay_us_block(100);
+#endif
+
+        size_t nb_send = confs[lid].ports[pid^1].tx_burst(&mbufs[i], 1);
+        if (nb_send != 1)
+          rte_pktmbuf_free(mbufs[i]);
       }
 
-      size_t nb_send = confs[lid].ports[pid^1].tx_burst(mbufs, nb_recv);
-      if (nb_send < nb_recv)
-        ssn_mbuf_free_bulk(&mbufs[nb_send], nb_recv-nb_send);
     }
-    ssn_yield();
   }
   ssn_log(SSN_LOG_INFO, "finish rx-thread \n");
 }
@@ -194,29 +191,31 @@ int main(int argc, char** argv)
 
   /* 1 thread */
   getchar();
+  running = false;
   get_config(confs, 1, nb_ports, nb_queues_per_port);
-  ssn_green_thread_launch(imple, &num0, 1);
+  running = true;
+  thread_launcher(imple, &num0, 2);
 
   /* 2 thread */
   getchar();
+  running = false;
+  ssn_lcore_join(2);
   get_config(confs, 2, nb_ports, nb_queues_per_port);
-  ssn_green_thread_launch(imple, &num1, 1);
+  running = true;
+  thread_launcher(imple, &num0, 2);
+  thread_launcher(imple, &num1, 3);
 
   /* 4 thread */
   getchar();
+  running = false;
+  ssn_lcore_join(2);
+  ssn_lcore_join(3);
   get_config(confs, 4, nb_ports, nb_queues_per_port);
-  ssn_green_thread_launch(imple, &num2, 1);
-  ssn_green_thread_launch(imple, &num3, 1);
-
-#if 0
-  /* 8 thread */
-  getchar();
-  get_config(confs, 8,8);
-  ssn_green_thread_launch(imple, &num4, 1);
-  ssn_green_thread_launch(imple, &num5, 1);
-  ssn_green_thread_launch(imple, &num6, 1);
-  ssn_green_thread_launch(imple, &num7, 1);
-#endif
+  running = true;
+  thread_launcher(imple, &num0, 2);
+  thread_launcher(imple, &num1, 3);
+  thread_launcher(imple, &num2, 4);
+  thread_launcher(imple, &num3, 5);
 
   getchar();
 
