@@ -45,7 +45,8 @@ bool ssn_lcore_joinable(size_t lcore_id)
 
 void ssn_lcore_join(size_t lcore_id)
 {
-  rte_eal_wait_lcore(lcore_id);
+  int ret = rte_eal_wait_lcore(lcore_id);
+  UNUSED(ret);
   ssn_set_lcore_state(SSN_LS_WAIT, lcore_id);
   ssn_log(SSN_LOG_DEBUG, "join lcore%zd \n", lcore_id);
 }
