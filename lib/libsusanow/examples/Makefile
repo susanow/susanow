@@ -12,14 +12,14 @@ CXXFLAGS += -fsanitize=address
 	@$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
 
 SRC = \
-			ssn_thread.cc    \
-			green_thread.cc  \
-			native_thread.cc \
-			rest.cc          \
-			vty.cc           \
-			timer.cc         \
-			port.cc          \
-			port_stat.cc
+			example_ssn_thread.cc        \
+			example_ssn_green_thread.cc  \
+			example_ssn_native_thread.cc \
+			example_ssn_rest.cc          \
+			example_ssn_vty.cc           \
+			example_ssn_timer.cc         \
+			example_ssn_port.cc          \
+			example_ssn_port_stat.cc
 OBJ = $(SRC:.cc=.out)
 
 # poc: clean
