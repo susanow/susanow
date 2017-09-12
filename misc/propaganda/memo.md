@@ -21,3 +21,8 @@
 - High Performance Function Chaining
 - NUMA Aware
 
+## Memo
+
+- サービスチェインはNSH(Network Service Header)を採用する予定である
+
+

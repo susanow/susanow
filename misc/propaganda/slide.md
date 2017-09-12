@@ -25,98 +25,6 @@ http://slankdev.net
 2. System Design
 3. Demonstration
 
-
----
-## DPDKの影響と高い開発コスト
-
-- DPDKによりLinux上での高性能通信が可能
-- しかし高い開発コスト.
-- 高性能通信の仮想化は簡単には手に入らない
-- DPDK VNFの性能はCPU数でスケール
-- Run-to-Completion, Pipeline
-
-キーワード<br>
-ソフトウェアパイプライン/NICコンフィグ/ゼロコピー/排他制御
-
-**最適なスレッドデザインで広帯域,程遅延を実現せよ**
-<p><img src="./img/fig2.thread.png" width="100%"/></p>
-
----
-## Network Function Virtualization
-
-ネットワーク機能を仮想化技術で実現すること.
-本プロジェクトはいくつかにフォーカスして説明する.
-
-利点
-- コストダウン
-	- 値段(汎用サーバ << 専用HW)
-	- 保守運用(統一的インターフェース,自動化)
-- 迅速
-	- サービスの拡大/縮小
-	- デプロイ,機能拡張
-
-可能になった背景
-- 高速マルチコアCPUを搭載した高性能なパケット処理が可能
-- クラウドインフラは、リソースの可用性と使用を向上させる方法を提供
-- 管理,制御APIのオープン化
-- 業界標準の大容量サーバ
-
-課題
-- Portability/Interoperability
-- Performance Trade-Off
-- Manage & Orchestration
-- Automation
-
-<p><img src="./img/fig1.nfv.png" width="100%"/></p>
-
----
-## Function Chaining
-
-- 汎用機で複数のNFを繋げてうごかす
-- 迅速にサービスを拡大/縮小
-- ex) Router → Router+IDS
-- 多くがVMを用いてVNFを実現
-- DPDKとVMの相性は?
-
-<p><img src="./img/fig3.chaining.png" width="100%"/></p>
-
----
-## NFV with VM
-
-利点: 高いセキュリティ, 抽象性
-
-欠点:
-- VMオーバヘッド
-- VMのコンピュータ構成の変更(vCPU数を動的に変化)
-- VMのチューニング, VNFのチューニング
-- DPDK性能はCPU数とNIC構成でスケール
-
-<p><img src="./img/fig4.vm.png" width="100%"/></p>
-
----
-## ex) OvS-DPDK architecture
-
-- OVS用にいくつかのCPUを使用する
-- {sum of vCPU} > {num of cores}になったら, vm\_entry, vm\_exitの数が上昇?
-- DPDKのCPUpinningの効果が低減
-- VM上で動くVNFが一般的なDPDK VNFならまとめて管理をできる
-
-<p><img src="./img/fig7.ovs.png" width="100%"/></p>
-
-
----
-## 現状のアーキテクチャの問題点
-
-- VMによるNFVによりパフォーマンス低下
-	- VMの性能変更より迅速に性能を変更したい
-	- VMオーバヘッドは考えていない
-- 様々な情報は色々なタイミングで決定する
-	- 企画次に決まる情報
-	- デプロイ次に決まる情報
-	- 実行中に決まる情報
-- 高度に仮想化がすすみつつある現代ではHSPCRを実装しただけではだめ
-- それを利用するフィールドの整備まで行わなければならない
-
 ---
 ## 本テーマの貢献とインパクト
 
@@ -256,4 +164,98 @@ void optimize_stage(vnf nf) {
 - NFVを管理する独自プロトコルとそのAPI
 
 
+---
+## 解決する問題, ターゲット
+
+実装するもの
+- DPDKのスレッドチューニングの自動化
+- no-VM NFV基盤
+- これらの上で動くRouter
+
+世間へのインパクト
+- 性能変更が柔軟なRouter
+- NFVサービスチェインをする新たなアプローチ
+  VMを利用しないパターン
+
+---
+## ユーザに提供するもの, しないもの
+
+すること
+- VNF実装の独自のプログラミングモデルの提供
+- それにそってVNFを実装すると実行時に必要に応じて
+  ソフトウェアパイプラインを自動で最適化してVNFの性能を自動調節
+- ユーザはNUMA nodeを考慮したプログラミングを行うことで
+  自動チューニングの手助けをする
+
+しないこと
+- NIC構成の動的再構成はしない
+  boot時にできるだけたくさんRingを用意してそれをソフトウェアでさばく
+
+---
+## 自動チューニングについて
+
+利点
+- 単純なRun2Completionはちゃんと自動スケールする
+
+欠点
+- 複雑なPipelineモデルの自動スケールがまだテストできていない
+- チューニングの段階が広い (1,2,4,8コア割り当て)
+- 自動チューニングが完全に動いてくれていない
+	現状特定の状態までしかサポートしていない
+
+---
+## SMP l3fwd の対応に関して
+
+以下のようにしてMultiQueueを監視する.
+ただし若干の条件がある.
+
+<p><img src="./img/fig1.jpg" width="100%"/></p>
+
+---
+## NUMA l3fwd の対応に関して
+
+<p><img src="./img/fig2.jpg" width="100%"/></p>
+
+---
+## NUMA Lagopus の対応に関して
+
+- 現在対応中
+- どのようにスレッドを増やしていけるかがまだまとまっていない
+- Lagopusに対応することができれば, Pipelineモデルの一般的な
+  自動最適化ができそう
+- Lagopusは対応できればする
+
+---
+## スレッド追加の完成度
+
+- 2^n多重での自動チューニングに対応 <br>
+  1,2,4,8,16,....
+- Multi Ring構造に対応
+
+---
+## Emulated Multi Queue NIC
+
+- 物理NICを動的に再構成するのは現実的に不可能
+- 事前に多めにQueueuを用意しておく.
+  それをSoftwareでうまく振り分けていく
+	-> Overheadはどの程度か...
+	-> Threadを増やせば増やすほど,Soft抽象化が減るので大丈夫
+
+---
+## Evaluation
+
+- 動的最適化のEvel
+	- l3fwd
+- Function ChainingのEval
+	- i.e. l3fwd + packet-capture
+	- OvS, SR-IOV
+
+---
+## 今後の展望
+
+うわさでまだ試していない内容
+- Seaster + Schelaのマルチスレッド最適化が良い?
+- HTが意味ないことの確認
+- Inter Processorの性能低下　
+- Click Moduler Routerのプログラミングモデルはさんこうになる
 
