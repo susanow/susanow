@@ -19,7 +19,7 @@ class func_rx : public func {
         if (recvlen == 0) continue;
         size_t enqlen = tx[p]->tx_burst(mbufs, recvlen);
         if (recvlen > enqlen) {
-          slankdev::rte_pktmbuf_free_bulk(&mbufs[enqlen], recvlen-enqlen);
+          dpdk::rte_pktmbuf_free_bulk(&mbufs[enqlen], recvlen-enqlen);
         }
       }
     }
@@ -70,7 +70,7 @@ class func_tx : public func {
         if (deqlen == 0) continue;
         size_t sendlen = tx[p]->tx_burst(mbufs, deqlen);
         if (deqlen > sendlen) {
-          slankdev::rte_pktmbuf_free_bulk(&mbufs[sendlen], deqlen-sendlen);
+          dpdk::rte_pktmbuf_free_bulk(&mbufs[sendlen], deqlen-sendlen);
         }
       }
     }

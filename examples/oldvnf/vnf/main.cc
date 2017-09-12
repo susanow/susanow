@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <ssn_log.h>
 #include <ssn_port.h>
-#include <ssn_sys.h>
+#include <ssn_cpu.h>
 #include <ssn_common.h>
 
 #include <stdio.h>
@@ -11,9 +11,9 @@
 
 #include <slankdev/exception.h>
 #include <slankdev/util.h>
-#include <slankdev/extra/dpdk.h>
+#include <dpdk/dpdk.h>
 
-#include <ssn_sys.h>
+#include <ssn_cpu.h>
 #include <ssn_log.h>
 #include <ssn_ring.h>
 #include <ssn_port.h>
@@ -25,7 +25,6 @@
 #include "vnf.h"
 #include "vty_config.h"
 #include "rest_config.h"
-// #include "stageio.h"
 
 constexpr uint16_t vty_port = 9999;
 constexpr uint16_t rest_port = 8888;

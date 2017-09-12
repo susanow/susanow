@@ -19,6 +19,7 @@ SRC = \
 			ssn_port_stat.cc     \
 			ssn_green_thread.cc  \
 			ssn_native_thread.cc \
+			ssn_thread.cc        \
 			ssn_ring.cc          \
 			ssn_common.cc
 OBJ = $(SRC:.cc=.o)
@@ -29,7 +30,7 @@ $(TARGET): $(OBJ)
 
 clean:
 	rm -rf *.o *.out *.a
-	make -C tests clean
+	make -C examples clean
 
 test:
-	make -C tests all
+	make -C examples all

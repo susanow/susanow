@@ -6,10 +6,10 @@
 
 #include <slankdev/util.h>
 #include <slankdev/exception.h>
-#include <slankdev/extra/dpdk.h>
+#include <dpdk/dpdk.h>
 
 #include <ssn_common.h>
-#include <ssn_sys.h>
+#include <ssn_cpu.h>
 #include <ssn_timer.h>
 #include <ssn_native_thread.h>
 #include <ssn_green_thread.h>
@@ -47,12 +47,12 @@ static inline ssize_t get_free_lcore_id()
  * stageio class member function implementation
  */
 size_t stageio_rx_ring::rx_burst(rte_mbuf** obj_table, size_t n)
-{ return ring->deq_bulk((void**)obj_table, n); }
+{ return ring->enq_burst((void**)obj_table, n); }
 size_t stageio_rx_ring::rx_pps() const { return ring->opps; }
 
 int stageio_tx_ring::tx_shot(rte_mbuf* obj) { return ring->enq((void*)obj); }
 size_t stageio_tx_ring::tx_burst(rte_mbuf** obj_table, size_t n)
-{ return ring->enq_bulk((void* const*)obj_table, n); }
+{ return ring->enq_burst((void* const*)obj_table, n); }
 
 void stageio_rx_port::set(size_t p) { pid = p; }
 size_t stageio_rx_port::rx_burst(rte_mbuf** obj_table, size_t n)

@@ -3,7 +3,8 @@
 #include <ssn_cpu.h>
 #include <ssn_log.h>
 #include <ssn_native_thread.h>
-#include <dpdk/hdr.h>
+#include <dpdk/dpdk.h>
+#include <slankdev/exception.h>
 
 
 class ssn_native_thread {
@@ -25,9 +26,15 @@ static int _fthread_launcher(void* arg)
 
 void ssn_native_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
 {
+  ssn_log(SSN_LOG_DEBUG, "launch native thread to lcore%zd \n", lcore_id);
+  size_t n_lcore = rte_lcore_count();
+  if (n_lcore <= lcore_id) {
+    throw slankdev::exception("too huge lcore_id?");
+  }
+
   snt[lcore_id]->f   = f;
   snt[lcore_id]->arg = arg;
-  rte_eal_remote_launch(_fthread_launcher, snt[lcore_id], lcore_id);
+  dpdk::rte_eal_remote_launch(_fthread_launcher, snt[lcore_id], lcore_id);
 }
 
 bool ssn_lcore_joinable(size_t lcore_id)
@@ -38,9 +45,28 @@ bool ssn_lcore_joinable(size_t lcore_id)
 
 void ssn_lcore_join(size_t lcore_id)
 {
-  rte_eal_wait_lcore(lcore_id);
+  int ret = rte_eal_wait_lcore(lcore_id);
+  UNUSED(ret);
   ssn_set_lcore_state(SSN_LS_WAIT, lcore_id);
   ssn_log(SSN_LOG_DEBUG, "join lcore%zd \n", lcore_id);
+}
+
+bool ssn_lcore_join_poll_thread_running;
+void ssn_lcore_join_poll_thread_stop()
+{ ssn_lcore_join_poll_thread_running=false; }
+void ssn_lcore_join_poll_thread(void*)
+{
+  ssn_lcore_join_poll_thread_running = true;
+  size_t lcore_id = ssn_lcore_id();
+  while (ssn_lcore_join_poll_thread_running) {
+    size_t nb_lcores = ssn_lcore_count();
+    for (size_t i=0; i<nb_lcores; i++) {
+      if (ssn_lcore_joinable(i)) {
+        ssn_lcore_join(i);
+      }
+    }
+    if (is_green_thread(lcore_id)) ssn_yield();
+  }
 }
 
 void ssn_native_thread_init()

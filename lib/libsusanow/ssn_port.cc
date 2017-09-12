@@ -88,7 +88,12 @@ void ssn_port_conf::debug_dump(FILE* fp) const
 
   fprintf(fp, "  txmode \r\n");
   fprintf(fp, "  rx_adv_conf {\r\n");
-  fprintf(fp, "    rss_conf         \r\n");
+  fprintf(fp, "    rss_conf {       \r\n");
+  fprintf(fp, "      rss_key    : %p \r\n", raw.rx_adv_conf.rss_conf.rss_key);
+  fprintf(fp, "      rss_key_len: %u \r\n", raw.rx_adv_conf.rss_conf.rss_key_len);
+  fprintf(fp, "      rss_hf     : 0x%016lx\r\n", raw.rx_adv_conf.rss_conf.rss_hf);
+  fprintf(fp, "       \r\n");
+  fprintf(fp, "    }                \r\n");
   fprintf(fp, "    vmdq_dcb_conf    \r\n");
   fprintf(fp, "    dcb_rx_conf      \r\n");
   fprintf(fp, "    vmdq_rx_conf     \r\n");
