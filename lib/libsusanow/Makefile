@@ -30,7 +30,7 @@ $(TARGET): $(OBJ)
 
 clean:
 	rm -rf *.o *.out *.a
-	make -C tests clean
+	make -C examples clean
 
 test:
-	make -C tests all
+	make -C examples all
