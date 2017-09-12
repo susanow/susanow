@@ -12,6 +12,7 @@ CXXFLAGS += -fsanitize=address
 	@$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
 
 SRC = \
+			ssn_thread.cc    \
 			green_thread.cc  \
 			native_thread.cc \
 			rest.cc          \
