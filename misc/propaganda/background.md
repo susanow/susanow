@@ -81,7 +81,7 @@ SFC: 複数のNFを数珠つなぎすることでフレキシブルにNFをカ�
 
 ## DPDK (Data Plane Development Kit)
 
-4 Big Feature
+4 Big Features
 - Numa awared Memory management system
 - Network Stack bypassing for High speed Packet I/O
 - CPU Assignment for bypass context switch
