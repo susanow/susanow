@@ -96,6 +96,8 @@ SFC: 複数のNFを数珠つなぎすることでフレキシブルにNFをカ�
 キーワード<br>
 ソフトウェアパイプライン/NICコンフィグ/ゼロコピー/排他制御
 
+<p><img src="./img/fig2.dpdk.png" width="100%"/></p>
+
 **最適なスレッドデザインで広帯域,程遅延を実現せよ**
 <p><img src="./img/fig2.thread.png" width="100%"/></p>
 
