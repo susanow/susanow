@@ -60,6 +60,19 @@ SFC: 複数のNFを数珠つなぎすることでフレキシブルにNFをカ�
 - NSH (Network Service Header): SFC Chaing designのためのプロトコル
 
 
+## OpenDaylight
+
+- not only OpenFlow Controller
+- Supports: BGP, OpenFlow, NETCONF
+- Controllerとしては世界でもっとも知名度が高い?
+- 商用サポートあり
+
+## Open vSwitch (OvS)
+
+- OpenFlow vSwitch developed as OSS
+- Linuxのbridgeと互換性あり
+- DPDK利用可能
+
 ## OvS-DPDK
 
 - パケット処理をDPDKによってアクセラレーション
@@ -101,7 +114,6 @@ SFC: 複数のNFを数珠つなぎすることでフレキシブルにNFをカ�
 **最適なスレッドデザインで広帯域,程遅延を実現せよ**
 <p><img src="./img/fig2.thread.png" width="100%"/></p>
 
-
 ## DPDKをKVM上で動作させる場合
 
 - KVM, OvS-dpdk
@@ -118,8 +130,16 @@ SFC: 複数のNFを数珠つなぎすることでフレキシブルにNFをカ�
 - VMのチューニング, VNFのチューニング
 - DPDK性能はCPU数とNIC構成でスケール
 
+現状vhost-userを使うことでゼロコピーを実現可能
+
 <p><img src="./img/fig4.vm.png" width="100%"/></p>
 
+## Vhost-user
+
+- 最近導入されたKVMのvNICバックエンド　
+- Guest, Hostでshare memをしてパケットを渡し合う
+- socketファイルとして実装されている
+- KVMの起動時にsock-pathを指定する
 
 ## NFVの課題
 
