@@ -45,7 +45,8 @@ SFC: 複数のNFを数珠つなぎすることでフレキシブルにNFをカ�
 - 多くがVMを用いてVNFを実現
 - DPDKとVMの相性は?
 
-<p><img src="./img/fig3.chaining.png" width="100%"/></p>
+
+<p><img src="./img/sfc.png" width="100%"/></p>
 
 現状の接続ポイント例
 - KVMをHVとしたNFV
@@ -55,6 +56,8 @@ SFC: 複数のNFを数珠つなぎすることでフレキシブルにNFをカ�
 - non KVMのNFV
 	- NetVM
 	- Susanow
+
+<p><img src="./img/fig3.chaining.png" width="100%"/></p>
 
 関連技術など
 - NSH (Network Service Header): SFC Chaing designのためのプロトコル
