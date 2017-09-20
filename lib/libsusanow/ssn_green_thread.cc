@@ -32,9 +32,16 @@ class ssn_green_thread {
   void* arg;
   size_t lcore_id;
   bool dead;
+  uint32_t tid;
   ssn_green_thread(ssn_function_t _f, void* _arg, size_t _lcore_id)
     : lt(nullptr), f(_f), arg(_arg), lcore_id(_lcore_id), dead(false)
-  { lthread_create(&lt, lcore_id, _ssn_thread_spawner, this); }
+  {
+    static uint32_t subtid = 1;
+    tid = lcore_id + (subtid << 16);
+    subtid++;
+
+    lthread_create(&lt, lcore_id, _ssn_thread_spawner, this);
+  }
   virtual ~ssn_green_thread() {}
 };
 
@@ -81,8 +88,11 @@ void ssn_green_thread_manager::launch(ssn_function_t f, void* arg)
   threads.push_back(sl);
 }
 
+bool ssn_green_thread_joinable(uint32_t tid) { return false; }
+
 void ssn_green_thread_manager::debug_dump(FILE* fp)
 {
+#if 0
   auto_lock lg(m);
   if (!is_green_thread(lcore_id))
     throw slankdev::exception("is not green thread");
@@ -99,7 +109,20 @@ void ssn_green_thread_manager::debug_dump(FILE* fp)
     fprintf(fp, " [%3zd]: %-15p %-15p(%-15s) %-15p %-15s\r\n", i, vec[i]->lt,
         vec[i]->f,  dli.dli_sname, vec[i]->arg, vec[i]->dead?"true":"false");
   }
+#else
+  fprintf(fp, "\r\n");
+  fprintf(fp, " %-10s   %-10s   %-10s\r\n", "thread_id", "joinable", "state");
+  fprintf(fp, " ----------------------------------------------------\r\n");
+  size_t n_threads = threads.size();
+  for (size_t i=0; i<n_threads; i++) {
+    uint32_t tid = threads[i]->tid;
+    fprintf(fp, " 0x%08x   %-10s   \r\n", tid,
+        ssn_green_thread_joinable(tid)?"yes":"no");
+  }
+  fprintf(fp, "\r\n");
+#endif
 }
+
 
 static void _ssn_thread_spawner(void* arg)
 {
@@ -154,12 +177,13 @@ void ssn_green_thread_fin()
   size_t nb = rte_lcore_count();
   for (size_t i=0; i<nb; i++) delete slm[i];
 }
-void ssn_green_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
+uint32_t ssn_green_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
 {
   if (!is_green_thread(lcore_id))
     throw slankdev::exception("is not green thread lcore");
 
   slm[lcore_id]->launch(f, arg);
+  return 0xffffffff;
 }
 
 void ssn_green_thread_debug_dump(FILE* fp, size_t lcore_id) { slm[lcore_id]->debug_dump(fp); }
