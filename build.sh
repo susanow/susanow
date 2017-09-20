@@ -5,7 +5,7 @@ function build_libs() {
 }
 
 function test_libs() {
-	make -C lib/libsusanow/tests all
+	make -C lib test
 	if [ ! $? = "0" ]; then
 		exit -1
 	fi

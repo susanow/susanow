@@ -9,3 +9,5 @@ clean:
 	make -C libvty          clean
 	make -C libsusanow      clean
 
+test:
+	make -C libsusanow      test
