@@ -8,70 +8,63 @@
 #include <dpdk/dpdk.h>
 #include <slankdev/exception.h>
 
-
-class ssn_thread {
- public:
-  uint16_t lcore_id;
-  uint16_t tid;
-  bool is_native() { return tid==0; }
-};
-std::vector<ssn_thread> _ssn_threads;
+bool ssn_tid_is_green_thread(uint32_t tid) { return ((tid&0xffff0000) != 0); }
 
 
-uint16_t ssn_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
+uint32_t ssn_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
 {
   if (lcore_id == 0)
     throw slankdev::exception("ssn_thread_launch: lcore_id is master's id");
 
-  ssn_thread thread;
   uint32_t (*thread_launcher)(ssn_function_t, void*, size_t) = nullptr;
   if (is_green_thread(lcore_id)) {
-
     /*
      * Green Thread
      */
-    static size_t gt_cnt_current = 1;
-    thread.lcore_id = lcore_id;
-    thread.tid = gt_cnt_current++;
-    ssn_log(SSN_LOG_DEBUG,
-        "ssn_thread_launch: lcore%u is green, %p(%p)\n",
-        lcore_id, f, arg);
     thread_launcher = ssn_green_thread_launch;
-
   } else {
-
     /*
      * Native Thread
      */
-    thread.lcore_id = lcore_id;
-    thread.tid = 0;
-    ssn_log(SSN_LOG_DEBUG,
-        "ssn_thread_launch: lcore%zd is native, %p(%p)\n",
-        lcore_id, f, arg);
     thread_launcher = ssn_native_thread_launch;
-
   }
-  _ssn_threads.push_back(thread);
-  thread_launcher(f, arg, lcore_id);
-  size_t tid = 0;
-  return tid;
+  return thread_launcher(f, arg, lcore_id);
 }
 
-void ssn_thread_wait(uint16_t tid)
+void ssn_thread_join(uint32_t tid)
 {
-#if 1
-  throw slankdev::exception("Not IMPLE");
-  printf("%s(%u)\n", __func__, tid);
-  return ;
-#else
-  if (is_green_thread(lcore_id)) {
-    ssn_log(SSN_LOG_DEBUG, "ssn_thread_wait: lcore%zd is green ...\n", lcore_id);
-    ssn_log(SSN_LOG_DEBUG, "ssn_thread_wait: lcore%zd is green ...done\n", lcore_id);
+  if (ssn_tid_is_green_thread(tid)) {
+    /*
+     * Green Thread
+     */
+    ssn_green_thread_join(tid);
   } else {
-    ssn_log(SSN_LOG_DEBUG, "ssn_thread_wait: lcore%zd is native ...\n", lcore_id);
-    ssn_lcore_join(lcore_id);
-    ssn_log(SSN_LOG_DEBUG, "ssn_thread_wait: lcore%zd is native ...done\n", lcore_id);
+    /*
+     * Native Thread
+     */
+    ssn_native_thread_join(tid);
   }
-#endif
 }
+
+bool ssn_thread_joinable(uint32_t tid)
+{
+  if (ssn_tid_is_green_thread(tid)) {
+    /*
+     * Green Thread
+     */
+    return ssn_green_thread_joinable(tid);
+  } else {
+    /*
+     * Native Thread
+     */
+    return ssn_native_thread_joinable(tid);
+  }
+}
+
+void ssn_thread_debug_dump(FILE* fp)
+{
+  ssn_native_thread_debug_dump(fp);
+  ssn_green_thread_debug_dump(fp);
+}
+
 

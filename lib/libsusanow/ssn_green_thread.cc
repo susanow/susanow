@@ -96,7 +96,7 @@ void ssn_green_thread_join(uint32_t tid)
       return ;
     }
   }
-  throw slankdev::exception("MITSUKARANAI TID");
+  throw slankdev::exception("ssn_green_thread_join: tid not found");
 }
 
 bool ssn_green_thread_joinable(uint32_t tid)
@@ -108,7 +108,7 @@ bool ssn_green_thread_joinable(uint32_t tid)
       return threads[i]->dead;
     }
   }
-  throw slankdev::exception("MITSUKARANAI TID");
+  throw slankdev::exception("ssn_green_thread_joinable: tid not found");
 }
 
 void ssn_green_thread_sched_register(size_t lcore_id)
