@@ -71,7 +71,7 @@ static void _green_thread_master(void*)
 
 uint32_t ssn_green_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
 {
-  if (!is_green_thread(lcore_id))
+  if (!ssn_lcoreid_is_green_thread(lcore_id))
     throw slankdev::exception("is not green thread lcore");
 
   auto_lock lg(m);
@@ -119,7 +119,7 @@ void ssn_green_thread_sched_register(size_t lcore_id)
 
 void ssn_green_thread_sched_unregister(size_t lcore_id)
 {
-  if (!is_green_thread(lcore_id))
+  if (!ssn_lcoreid_is_green_thread(lcore_id))
     throw slankdev::exception("is not green thread lcore");
 
   _green_thread_dummy_running[lcore_id] = false;

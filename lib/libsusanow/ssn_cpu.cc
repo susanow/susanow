@@ -97,16 +97,16 @@ void ssn_set_lcore_state(ssn_lcore_state s, size_t lcore_id)
 size_t ssn_lcore_id() { return rte_lcore_id(); }
 size_t ssn_lcore_count() { return rte_lcore_count(); }
 
-bool is_green_thread(size_t lcore_id) { return ssn_get_lcore_state(lcore_id) == SSN_LS_RUNNING_GREEN; }
-bool is_tthread(size_t lcore_id) { return ssn_get_lcore_state(lcore_id) == SSN_LS_RUNNING_TIMER; }
+bool ssn_lcoreid_is_green_thread(size_t lcore_id) { return ssn_get_lcore_state(lcore_id) == SSN_LS_RUNNING_GREEN; }
+bool ssn_lcoreid_is_tthread(size_t lcore_id) { return ssn_get_lcore_state(lcore_id) == SSN_LS_RUNNING_TIMER; }
 
 void ssn_sleep(size_t msec)
 {
-  if (is_green_thread(rte_lcore_id())) lthread_sleep(msec*1000000);
+  if (ssn_lcoreid_is_green_thread(rte_lcore_id())) lthread_sleep(msec*1000000);
   else usleep(msec * 1000);
 }
 
 void ssn_yield()
-{ if (is_green_thread(rte_lcore_id())) lthread_yield(); }
+{ if (ssn_lcoreid_is_green_thread(rte_lcore_id())) lthread_yield(); }
 
 

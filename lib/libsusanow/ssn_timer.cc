@@ -30,7 +30,7 @@ size_t ssn_timer_sched::lcore_id() const { return lcore_id_; }
 void ssn_timer_sched::add(ssn_timer* tim)
 {
   tims.push_back(tim);
-  if (!is_tthread(lcore_id_)) {
+  if (!ssn_lcoreid_is_tthread(lcore_id_)) {
     ssn_lcore_state s = ssn_get_lcore_state(lcore_id_);
     std::string e;
     e += "ssn_timer_add: ";
@@ -42,7 +42,7 @@ void ssn_timer_sched::add(ssn_timer* tim)
 }
 void ssn_timer_sched::del(ssn_timer* tim)
 {
-  if (!is_tthread(lcore_id_)) {
+  if (!ssn_lcoreid_is_tthread(lcore_id_)) {
     ssn_lcore_state s = ssn_get_lcore_state(lcore_id_);
     std::string e;
     e += "ssn_timer_del: ";

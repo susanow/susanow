@@ -155,7 +155,7 @@ void ssn_lcore_join_poll_thread(void*)
         ssn_lcore_join(i);
       }
     }
-    if (is_green_thread(lcore_id)) ssn_yield();
+    if (ssn_lcoreid_is_green_thread(lcore_id)) ssn_yield();
   }
 }
 #endif

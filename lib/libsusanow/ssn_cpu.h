@@ -17,8 +17,8 @@ void ssn_set_lcore_state(ssn_lcore_state s, size_t lcore_id);
 size_t ssn_lcore_id();
 size_t ssn_lcore_count();
 
-bool is_green_thread(size_t lcore_id);
-bool is_tthread(size_t lcore_id);
+bool ssn_lcoreid_is_green_thread(size_t lcore_id);
+bool ssn_lcoreid_is_tthread(size_t lcore_id);
 
 void ssn_sleep(size_t msec);
 
