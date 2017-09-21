@@ -30,6 +30,7 @@
  */
 
 #pragma once
+#include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <ssn_types.h>

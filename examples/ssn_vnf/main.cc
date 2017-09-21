@@ -1,5 +1,4 @@
 
-
 #include <ssn_common.h>
 #include <ssn_thread.h>
 #include <ssn_port.h>
@@ -12,7 +11,6 @@
 #include <dpdk/dpdk.h>
 #include <slankdev/exception.h>
 
-void (*thread_launcher)(ssn_function_t, void* arg, size_t lcore_id) = ssn_native_thread_launch;
 
 size_t num0 = 0;
 size_t num1 = 1;
@@ -146,12 +144,10 @@ void imple(void* arg)
 
       for (size_t i=0; i<nb_recv; i++) {
 
-#if 0
+        /* Delay Block begin */
         size_t n=10;
         for (size_t j=0; j<100; j++) n++;
-#else
-        rte_delay_us_block(100);
-#endif
+        /* Delay Block end */
 
         size_t nb_send = confs[lid].ports[pid^1].tx_burst(&mbufs[i], 1);
         if (nb_send != 1)
@@ -189,36 +185,37 @@ int main(int argc, char** argv)
   }
   /*-BOOT-END----------------------------------------------------------------*/
 
+  uint32_t tid0,tid1,tid2,tid3;
+
   /* 1 thread */
   getchar();
   running = false;
   get_config(confs, 1, nb_ports, nb_queues_per_port);
   running = true;
-  thread_launcher(imple, &num0, 2);
+  tid0 = ssn_thread_launch(imple, &num0, 2);
 
   /* 2 thread */
   getchar();
   running = false;
-  ssn_lcore_join(2);
+  ssn_thread_join(tid0);
   get_config(confs, 2, nb_ports, nb_queues_per_port);
   running = true;
-  thread_launcher(imple, &num0, 2);
-  thread_launcher(imple, &num1, 3);
+  tid0 = ssn_thread_launch(imple, &num0, 2);
+  tid1 = ssn_thread_launch(imple, &num1, 3);
 
   /* 4 thread */
   getchar();
   running = false;
-  ssn_lcore_join(2);
-  ssn_lcore_join(3);
+  ssn_thread_join(tid0);
+  ssn_thread_join(tid1);
   get_config(confs, 4, nb_ports, nb_queues_per_port);
   running = true;
-  thread_launcher(imple, &num0, 2);
-  thread_launcher(imple, &num1, 3);
-  thread_launcher(imple, &num2, 4);
-  thread_launcher(imple, &num3, 5);
+  tid0 = ssn_thread_launch(imple, &num0, 2);
+  tid1 = ssn_thread_launch(imple, &num1, 3);
+  tid2 = ssn_thread_launch(imple, &num2, 4);
+  tid3 = ssn_thread_launch(imple, &num3, 5);
 
   getchar();
-
   /*-FINI-BEGIN--------------------------------------------------------------*/
   ssn_green_thread_sched_unregister(1);
   ssn_wait_all_lcore();
