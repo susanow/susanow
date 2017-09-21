@@ -76,6 +76,13 @@ Susanow計画のワークロード
 
 <p><img src="./img/fig5.susanow.png" width="50%"/></p>
 
+Moduler Design
+
+- ssn_thread
+  - ssn_native_thread
+  - ssn_green_thread
+- etc...
+
 ---
 ## DPDKのラップ: Thread, Timer, Port (実装の話)
 
