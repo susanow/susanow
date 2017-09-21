@@ -36,7 +36,6 @@
 
 void ssn_green_thread_init();
 void ssn_green_thread_fin();
-
 void ssn_green_thread_sched_register(size_t lcore_id);
 void ssn_green_thread_sched_unregister(size_t lcore_id);
 
@@ -44,6 +43,6 @@ uint32_t ssn_green_thread_launch(ssn_function_t f, void* arg, size_t lcore_id);
 void ssn_green_thread_join(uint32_t tid);
 bool ssn_green_thread_joinable(uint32_t tid);
 
-void ssn_green_thread_debug_dump(FILE* fp, size_t lcore_id);
 void ssn_green_thread_debug_dump(FILE* fp);
+
 

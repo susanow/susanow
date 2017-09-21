@@ -1,6 +1,7 @@
 
 
 #include <stdint.h>
+#include <ssn_log.h>
 #include <ssn_cpu.h>
 #include <ssn_types.h>
 #include <ssn_green_thread.h>
@@ -16,14 +17,9 @@
 #include <dpdk/hdr.h>
 #include <slankdev/exception.h>
 
-
-class ssn_green_thread_manager;
-ssn_green_thread_manager* slm[RTE_MAX_LCORE];
-
 using auto_lock=std::lock_guard<std::mutex>;
+std::mutex m;
 static void _ssn_thread_spawner(void* arg);
-static void _green_thread_gc(void* arg);
-static void _green_thread_master_spawner(void* arg);
 
 class ssn_green_thread {
  public:
@@ -33,83 +29,106 @@ class ssn_green_thread {
   size_t lcore_id;
   bool dead;
   uint32_t tid;
+
   ssn_green_thread(ssn_function_t _f, void* _arg, size_t _lcore_id)
     : lt(nullptr), f(_f), arg(_arg), lcore_id(_lcore_id), dead(false)
   {
     static uint32_t subtid = 1;
     tid = lcore_id + (subtid << 16);
     subtid++;
-
     lthread_create(&lt, lcore_id, _ssn_thread_spawner, this);
   }
   virtual ~ssn_green_thread() {}
 };
+std::vector<ssn_green_thread*> threads;
 
-class ssn_green_thread_manager {
-  friend void _green_thread_master_spawner(void* arg);
-  friend void _green_thread_gc(void* arg);
- private:
-  size_t lcore_id;
-  std::vector<ssn_green_thread*> threads;
-  bool gc_running;
-  mutable std::mutex m;
- public:
-  ssn_green_thread_manager(size_t i) : lcore_id(i), gc_running(false) {}
-  virtual ~ssn_green_thread_manager() { }
-  void sched_register();
-  void sched_unregister();
-  void debug_dump(FILE* fp);
-  void launch(ssn_function_t f, void* arg);
-};
-
-void ssn_green_thread_manager::sched_register()
+static void _ssn_thread_spawner(void* arg)
 {
-  ssn_native_thread_launch(_green_thread_master_spawner, this, lcore_id);
-  ssn_set_lcore_state(SSN_LS_RUNNING_GREEN, lcore_id);
+  ssn_green_thread* sl = reinterpret_cast<ssn_green_thread*>(arg);
+  sl->f(sl->arg);
+  sl->dead = true;
 }
 
-void ssn_green_thread_manager::sched_unregister()
+bool _green_thread_dummy_running[RTE_MAX_LCORE];
+static void _green_thread_dummy(void*)
 {
-  lthread_scheduler_force_shutdown(lcore_id);
-  ssn_set_lcore_state(SSN_LS_FINISHED, lcore_id);
-  std::vector<ssn_green_thread*>& vec = threads;
-  while (!vec.empty()) {
-    ssn_green_thread* sl = vec.back();
-    vec.pop_back();
-    delete sl;
+  size_t lcore_id = rte_lcore_id();
+  _green_thread_dummy_running[lcore_id] = true;
+  while (_green_thread_dummy_running[lcore_id]) {
+    ssn_sleep(1000);
+    ssn_yield();
   }
-  gc_running = false;
+}
+static void _green_thread_master(void*)
+{
+  size_t lcore_id = rte_lcore_id();
+  ssn_log(SSN_LOG_INFO, "_green_thread_master: call lthread_run() on lcore%zd\n", lcore_id);
+  lthread* lt;
+  lthread_create(&lt, lcore_id, _green_thread_dummy, nullptr);
+  lthread_run();
+  ssn_log(SSN_LOG_INFO, "_green_thread_master: ret lthread_run() on lcore%zd\n", lcore_id);
 }
 
-void ssn_green_thread_manager::launch(ssn_function_t f, void* arg)
+uint32_t ssn_green_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
 {
+  if (!is_green_thread(lcore_id))
+    throw slankdev::exception("is not green thread lcore");
+
   auto_lock lg(m);
   ssn_green_thread* sl = new ssn_green_thread(f, arg, lcore_id);
   threads.push_back(sl);
+  return sl->tid;
 }
 
-bool ssn_green_thread_joinable(uint32_t tid) { return false; }
-
-void ssn_green_thread_manager::debug_dump(FILE* fp)
+void ssn_green_thread_join(uint32_t tid)
 {
-#if 0
-  auto_lock lg(m);
-  if (!is_green_thread(lcore_id))
-    throw slankdev::exception("is not green thread");
-
-  std::vector<ssn_green_thread*>& vec = threads;
-  fprintf(fp, "green_thread lcore%zd \r\n", lcore_id);
-  fprintf(fp, " %5s: %-15s %-15s(%-15s) %-15s %-15s\r\n",
-      "idx", "lthread_t", "funcptr", "name", "arg", "dead");
-  fprintf(fp, " --------------------------------------");
-  fprintf(fp, "-----------------------------------\r\n");
-  for (size_t i=0; i<vec.size(); i++) {
-    Dl_info dli;
-    dladdr((void*)vec[i]->f, &dli);
-    fprintf(fp, " [%3zd]: %-15p %-15p(%-15s) %-15p %-15s\r\n", i, vec[i]->lt,
-        vec[i]->f,  dli.dli_sname, vec[i]->arg, vec[i]->dead?"true":"false");
+  while (true) {
+    if (ssn_green_thread_joinable(tid)) break;
   }
-#else
+
+  auto_lock lg(m);
+  size_t n_threads = threads.size();
+  for (size_t i=0; i<n_threads; i++) {
+    if (threads[i]->tid == tid) {
+      ssn_green_thread* sgt = threads[i];
+      threads.erase(threads.begin() + i);
+      delete sgt;
+      return ;
+    }
+  }
+  throw slankdev::exception("MITSUKARANAI TID");
+}
+
+bool ssn_green_thread_joinable(uint32_t tid)
+{
+  auto_lock lg(m);
+  size_t n_threads = threads.size();
+  for (size_t i=0; i<n_threads; i++) {
+    if (threads[i]->tid == tid) {
+      return threads[i]->dead;
+    }
+  }
+  throw slankdev::exception("MITSUKARANAI TID");
+}
+
+void ssn_green_thread_sched_register(size_t lcore_id)
+{
+  ssn_native_thread_launch(_green_thread_master, nullptr, lcore_id);
+  ssn_set_lcore_state(SSN_LS_RUNNING_GREEN, lcore_id);
+}
+
+void ssn_green_thread_sched_unregister(size_t lcore_id)
+{
+  if (!is_green_thread(lcore_id))
+    throw slankdev::exception("is not green thread lcore");
+
+  _green_thread_dummy_running[lcore_id] = false;
+  lthread_scheduler_force_shutdown(lcore_id);
+  ssn_set_lcore_state(SSN_LS_FINISHED, lcore_id);
+}
+
+void ssn_green_thread_debug_dump(FILE* fp)
+{
   fprintf(fp, "\r\n");
   fprintf(fp, " %-10s   %-10s   %-10s\r\n", "thread_id", "joinable", "state");
   fprintf(fp, " ----------------------------------------------------\r\n");
@@ -120,80 +139,9 @@ void ssn_green_thread_manager::debug_dump(FILE* fp)
         ssn_green_thread_joinable(tid)?"yes":"no");
   }
   fprintf(fp, "\r\n");
-#endif
 }
 
-
-static void _ssn_thread_spawner(void* arg)
-{
-  ssn_green_thread* sl = reinterpret_cast<ssn_green_thread*>(arg);
-  sl->f(sl->arg);
-  sl->dead = true;
-}
-
-static void _green_thread_master_spawner(void* arg)
-{
-  ssn_green_thread_manager* mgr = reinterpret_cast<ssn_green_thread_manager*>(arg);
-  mgr->gc_running = true;
-
-  ssn_green_thread* sl_gc = new ssn_green_thread(_green_thread_gc  , arg    , mgr->lcore_id);
-  lthread_run();
-  delete sl_gc;
-}
-
-static void _green_thread_gc(void* arg)
-{
-  ssn_green_thread_manager* mgr = reinterpret_cast<ssn_green_thread_manager*>(arg);
-  std::vector<ssn_green_thread*>& vec = mgr->threads;
-
-  while (mgr->gc_running) {
-    ssn_sleep(1000);
-    auto_lock lg(mgr->m);
-    size_t nb_th = vec.size();
-    for (size_t i=0; i<nb_th; i++) {
-      if (vec[i]->dead) {
-        ssn_green_thread* sl = vec[i];
-        vec.erase(vec.begin() + i);
-        delete sl;
-        break;
-      }
-    }
-    ssn_yield();
-  }
-}
-
-
-/*
- * SSN APIs are below
- */
-
-void ssn_green_thread_init()
-{
-  size_t nb = rte_lcore_count();
-  for (size_t i=0; i<nb; i++) slm[i] = new ssn_green_thread_manager(i);
-}
-void ssn_green_thread_fin()
-{
-  size_t nb = rte_lcore_count();
-  for (size_t i=0; i<nb; i++) delete slm[i];
-}
-uint32_t ssn_green_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
-{
-  if (!is_green_thread(lcore_id))
-    throw slankdev::exception("is not green thread lcore");
-
-  slm[lcore_id]->launch(f, arg);
-  return 0xffffffff;
-}
-
-void ssn_green_thread_debug_dump(FILE* fp, size_t lcore_id) { slm[lcore_id]->debug_dump(fp); }
-void ssn_green_thread_sched_register(size_t lcore_id) { slm[lcore_id]->sched_register(); }
-void ssn_green_thread_sched_unregister(size_t lcore_id)
-{
-  if (!is_green_thread(lcore_id))
-    throw slankdev::exception("is not green thread lcore");
-
-  slm[lcore_id]->sched_unregister();
-}
+void ssn_green_thread_init() {}
+void ssn_green_thread_fin() {}
 
 

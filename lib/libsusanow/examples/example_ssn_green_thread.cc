@@ -38,13 +38,12 @@
 
 size_t num1=1;
 size_t num2=2;
-constexpr size_t gt_lcore_id = 3;
 
 void test(void* arg)
 {
   size_t* n = (size_t*)arg;
   for (size_t i=0; i<5; i++) {
-    printf("test arg=%zd\n", *n);
+    printf("test arg=%zd lcore%zd\n", *n, ssn_lcore_id());
     ssn_sleep(1000);
   }
 }
@@ -54,7 +53,7 @@ void view(void*)
 {
   while (view_running) {
     printf("\n");
-    ssn_green_thread_debug_dump(stdout, gt_lcore_id);
+    ssn_green_thread_debug_dump(stdout);
     printf("\n");
     ssn_sleep(1000);
   }
@@ -62,18 +61,31 @@ void view(void*)
 
 int main(int argc, char** argv)
 {
+  constexpr size_t gt_lcore_id = 3;
   ssn_log_set_level(SSN_LOG_EMERG);
   ssn_init(argc, argv);
   ssn_green_thread_sched_register(gt_lcore_id);
+  ssn_green_thread_sched_register(gt_lcore_id+1);
 
   uint32_t tid0 = ssn_green_thread_launch(view, nullptr, gt_lcore_id);
   uint32_t tid1 = ssn_green_thread_launch(test, &num1, gt_lcore_id);
-  uint32_t tid2 = ssn_green_thread_launch(test, &num2, gt_lcore_id);
+  uint32_t tid2 = ssn_green_thread_launch(test, &num2, gt_lcore_id+1);
 
   getchar();
-  printf("fin...\n");
+  ssn_green_thread_join(tid2);
+  printf("joined tid=%x\n", tid2);
+
+  getchar();
+  ssn_green_thread_join(tid1);
+  printf("joined tid=%x\n", tid1);
+
+  getchar();
   view_running = false;
+  ssn_green_thread_join(tid0);
+  printf("joined tid=%x. fin...\n", tid0);
+
   ssn_green_thread_sched_unregister(gt_lcore_id);
+  ssn_green_thread_sched_unregister(gt_lcore_id+1);
   ssn_fin();
 }
 

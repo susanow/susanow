@@ -24,7 +24,7 @@ uint16_t ssn_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
     throw slankdev::exception("ssn_thread_launch: lcore_id is master's id");
 
   ssn_thread thread;
-  void (*thread_launcher)(ssn_function_t, void*, size_t) = nullptr;
+  uint32_t (*thread_launcher)(ssn_function_t, void*, size_t) = nullptr;
   if (is_green_thread(lcore_id)) {
 
     /*
