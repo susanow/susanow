@@ -131,10 +131,10 @@ void ssn_native_thread_debug_dump(FILE* fp)
   fprintf(fp, " ----------------------------------------------------\r\n");
   size_t n_threads = tids.size();
   for (size_t i=0; i<n_threads; i++) {
-    size_t lcore_id = tids[i].lcore_id;
-    auto state = ssn_get_lcore_state(lcore_id);
-    fprintf(fp, " 0x%08lx   %-10s   %-10s \r\n", i,
-        ssn_native_thread_joinable(lcore_id)?"yes":"no",
+    uint32_t tid = tids[i].lcore_id;
+    auto state = ssn_get_lcore_state(tid);
+    fprintf(fp, " 0x%08x   %-10s   %-10s \r\n", tid,
+        ssn_native_thread_joinable(tid)?"yes":"no",
         ssn_lcore_state2str(state));
   }
   fprintf(fp, "\r\n");
