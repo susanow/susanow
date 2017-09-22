@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <dpdk/dpdk.h>
 #include <slankdev/exception.h>
-
+#include "lib.h"
 
 size_t num0 = 0;
 size_t num1 = 1;
@@ -86,22 +86,7 @@ void print_all_thread_conf()
     printf("}\n");
   }
 }
-
-bool is_power_of2(size_t num)
-{
-  while (num != 1) {
-    int ret = num % 2;
-    if (ret == 0) {
-      num = num/2;
-      continue;
-    } else {
-      return false;
-    }
-  }
-  return true;
-}
-
-void get_config(std::vector<thread_conf>& confs, size_t nb_cores, size_t nb_ports, size_t nb_ques)
+void get_config(std::vector<thread_conf>& confs, size_t nb_cores, size_t nb_ports, size_t nb_ques, size_t)
 {
   if (!is_power_of2(nb_cores))
     throw slankdev::exception("nb_lcore is not support");
@@ -159,6 +144,89 @@ void imple(void* arg)
   ssn_log(SSN_LOG_INFO, "finish rx-thread \n");
 }
 
+/*
+ * SSN_SYSTEM CONFIG
+ */
+constexpr size_t green_thread_lcore_mask  = 0x01;
+constexpr size_t timer_thread_lcore_mask  = 0x02;
+constexpr size_t native_thread_lcore_mask = 0xfc;
+constexpr size_t n_rx_queues_per_port = 4;
+constexpr size_t n_tx_queues_per_port = 4;
+void INIT(int argc, char** argv)
+{
+  ssn_log_set_level(SSN_LOG_EMERG);
+  ssn_init(argc, argv);
+  ssn_green_thread_sched_register(1);
+
+  ssn_port_conf conf;
+  conf.nb_rxq = n_rx_queues_per_port;
+  conf.nb_txq = n_rx_queues_per_port;
+  conf.raw.rxmode.mq_mode = ETH_MQ_RX_RSS;
+  conf.raw.rx_adv_conf.rss_conf.rss_key = NULL;
+  conf.raw.rx_adv_conf.rss_conf.rss_hf = ETH_RSS_IP|ETH_RSS_TCP|ETH_RSS_UDP;
+  conf.debug_dump(stdout);
+
+  const size_t n_ports = ssn_dev_count();
+  if (n_ports != 2) throw slankdev::exception("num ports is not 2");
+  for (size_t i=0; i<n_ports; i++) {
+    ssn_port_configure(i, &conf);
+    ssn_port_dev_up(i);
+    ssn_port_promisc_on(i);
+  }
+
+  if (n_ports != 2) {
+    std::string err = slankdev::format("num ports is not 2 (current %zd)",
+        ssn_dev_count());
+    throw slankdev::exception(err.c_str());
+  }
+}
+
+void new_main(int argc, char** argv)
+{
+  /*-BOOT-BEGIN--------------------------------------------------------------*/
+  INIT(argc, argv);
+  /*-BOOT-END----------------------------------------------------------------*/
+
+  const size_t nb_ports = ssn_dev_count();
+  uint32_t tid0,tid1,tid2,tid3;
+
+  /* 1 thread */
+  getchar();
+  running = false;
+  get_config(confs, 1, nb_ports, n_rx_queues_per_port, n_tx_queues_per_port);
+  running = true;
+  tid0 = ssn_thread_launch(imple, &num0, 2);
+
+  /* 2 thread */
+  getchar();
+  running = false;
+  ssn_thread_join(tid0);
+  get_config(confs, 2, nb_ports, n_rx_queues_per_port, n_tx_queues_per_port);
+  running = true;
+  tid0 = ssn_thread_launch(imple, &num0, 2);
+  tid1 = ssn_thread_launch(imple, &num1, 3);
+
+  /* 4 thread */
+  getchar();
+  running = false;
+  ssn_thread_join(tid0);
+  ssn_thread_join(tid1);
+  get_config(confs, 4, nb_ports, n_rx_queues_per_port, n_tx_queues_per_port);
+  running = true;
+  tid0 = ssn_thread_launch(imple, &num0, 2);
+  tid1 = ssn_thread_launch(imple, &num1, 3);
+  tid2 = ssn_thread_launch(imple, &num2, 4);
+  tid3 = ssn_thread_launch(imple, &num3, 5);
+
+  getchar();
+  /*-FINI-BEGIN--------------------------------------------------------------*/
+  ssn_green_thread_sched_unregister(1);
+  ssn_wait_all_lcore();
+  ssn_fin();
+  /*-FINI-END----------------------------------------------------------------*/
+}
+
+
 int main(int argc, char** argv)
 {
   constexpr size_t nb_queues_per_port = 4;
@@ -190,7 +258,7 @@ int main(int argc, char** argv)
   /* 1 thread */
   getchar();
   running = false;
-  get_config(confs, 1, nb_ports, nb_queues_per_port);
+  get_config(confs, 1, nb_ports, n_rx_queues_per_port, n_tx_queues_per_port);
   running = true;
   tid0 = ssn_thread_launch(imple, &num0, 2);
 
@@ -198,7 +266,7 @@ int main(int argc, char** argv)
   getchar();
   running = false;
   ssn_thread_join(tid0);
-  get_config(confs, 2, nb_ports, nb_queues_per_port);
+  get_config(confs, 2, nb_ports, n_rx_queues_per_port, n_tx_queues_per_port);
   running = true;
   tid0 = ssn_thread_launch(imple, &num0, 2);
   tid1 = ssn_thread_launch(imple, &num1, 3);
@@ -208,7 +276,7 @@ int main(int argc, char** argv)
   running = false;
   ssn_thread_join(tid0);
   ssn_thread_join(tid1);
-  get_config(confs, 4, nb_ports, nb_queues_per_port);
+  get_config(confs, 4, nb_ports, n_rx_queues_per_port, n_tx_queues_per_port);
   running = true;
   tid0 = ssn_thread_launch(imple, &num0, 2);
   tid1 = ssn_thread_launch(imple, &num1, 3);
@@ -222,7 +290,5 @@ int main(int argc, char** argv)
   ssn_fin();
   /*-FINI-END----------------------------------------------------------------*/
 }
-
-
 
 
