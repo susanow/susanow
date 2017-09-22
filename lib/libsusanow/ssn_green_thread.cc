@@ -55,7 +55,7 @@ static void _green_thread_dummy(void*)
   size_t lcore_id = rte_lcore_id();
   _green_thread_dummy_running[lcore_id] = true;
   while (_green_thread_dummy_running[lcore_id]) {
-    ssn_sleep(1000);
+    ssn_sleep(100);
     ssn_yield();
   }
 }

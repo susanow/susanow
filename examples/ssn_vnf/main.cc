@@ -12,46 +12,35 @@
 #include <slankdev/exception.h>
 #include "lib.h"
 
-size_t num0 = 0;
-size_t num1 = 1;
-size_t num2 = 2;
-size_t num3 = 3;
-size_t num4 = 4;
-size_t num5 = 5;
-size_t num6 = 6;
-size_t num7 = 7;
-size_t num8 = 8;
+size_t num[] = {0,1,2,3,4,5,6,7,8};
 
-struct port {
+struct p_port {
   size_t rxques_idx;
   size_t txques_idx;
 
   size_t pid;
   std::vector<size_t> ques;
 
-  port() : rxques_idx(0), txques_idx(0) {}
-  size_t rx_burst(rte_mbuf** mbufs, size_t nb_bursts);
-  size_t tx_burst(rte_mbuf** mbufs, size_t nb_bursts);
+  p_port() : rxques_idx(0), txques_idx(0) {}
+  size_t rx_burst(rte_mbuf** mbufs, size_t nb_bursts)
+  {
+    rxques_idx = (rxques_idx + 1) % ques.size();
+    size_t nb_recv = ssn_port_rx_burst(pid, ques.at(rxques_idx), mbufs, nb_bursts);
+    return nb_recv;
+  }
+  size_t tx_burst(rte_mbuf** mbufs, size_t nb_bursts)
+  {
+    txques_idx = (txques_idx + 1) % ques.size();
+    size_t nb_send = ssn_port_tx_burst(pid, ques.at(txques_idx), mbufs, nb_bursts);
+    return nb_send;
+  }
 };
-
-size_t port::rx_burst(rte_mbuf** mbufs, size_t nb_bursts)
-{
-  rxques_idx = (rxques_idx + 1) % ques.size();
-  size_t nb_recv = ssn_port_rx_burst(pid, ques.at(rxques_idx), mbufs, nb_bursts);
-  return nb_recv;
-}
-size_t port::tx_burst(rte_mbuf** mbufs, size_t nb_bursts)
-{
-  txques_idx = (txques_idx + 1) % ques.size();
-  size_t nb_send = ssn_port_tx_burst(pid, ques.at(txques_idx), mbufs, nb_bursts);
-  return nb_send;
-}
 
 
 class thread_conf final {
  public:
   size_t lcore_id;
-  std::vector<port> ports;
+  std::vector<p_port> ports;
 
   virtual ~thread_conf() {}
   void clear()
@@ -86,6 +75,7 @@ void print_all_thread_conf()
     printf("}\n");
   }
 }
+
 void get_config(std::vector<thread_conf>& confs, size_t nb_cores, size_t nb_ports, size_t nb_ques, size_t)
 {
   if (!is_power_of2(nb_cores))
@@ -99,7 +89,7 @@ void get_config(std::vector<thread_conf>& confs, size_t nb_cores, size_t nb_port
   for (size_t i=0; i<nb_cores; i++) {
     confs[i].lcore_id = i;
     for (size_t pid=0; pid<nb_ports; pid++) {
-      port p;
+      p_port p;
       p.pid = pid;
       for (size_t qid=0; qid<nb_ques_per_core; qid++) {
         p.ques.push_back(qid+que_idx);
@@ -113,12 +103,8 @@ void get_config(std::vector<thread_conf>& confs, size_t nb_cores, size_t nb_port
 bool running = true;
 void imple(void* arg)
 {
-  size_t lid = *reinterpret_cast<size_t*>(arg);
-
-  printf("\n----------------------------\n");
   ssn_log(SSN_LOG_INFO, "start new thread \n");
-  print_all_thread_conf();
-  printf("----------------------------\n\n");
+  size_t lid = *reinterpret_cast<size_t*>(arg);
 
   size_t nb_ports = ssn_dev_count();
   while (running) {
@@ -144,151 +130,145 @@ void imple(void* arg)
   ssn_log(SSN_LOG_INFO, "finish rx-thread \n");
 }
 
-/*
- * SSN_SYSTEM CONFIG
- */
-constexpr size_t green_thread_lcore_mask  = 0x01;
-constexpr size_t timer_thread_lcore_mask  = 0x02;
-constexpr size_t native_thread_lcore_mask = 0xfc;
-constexpr size_t n_rx_queues_per_port = 4;
-constexpr size_t n_tx_queues_per_port = 4;
-void INIT(int argc, char** argv)
-{
-  ssn_log_set_level(SSN_LOG_EMERG);
-  ssn_init(argc, argv);
-  ssn_green_thread_sched_register(1);
+class ssn_vnf {
+  const size_t n_ports;
+  const size_t n_rx_queues_per_port;
+  const size_t n_tx_queues_per_port;
+  size_t n_threads;
+  size_t core_mask;
+  std::vector<uint32_t> tids;
 
-  ssn_port_conf conf;
-  conf.nb_rxq = n_rx_queues_per_port;
-  conf.nb_txq = n_rx_queues_per_port;
-  conf.raw.rxmode.mq_mode = ETH_MQ_RX_RSS;
-  conf.raw.rx_adv_conf.rss_conf.rss_key = NULL;
-  conf.raw.rx_adv_conf.rss_conf.rss_hf = ETH_RSS_IP|ETH_RSS_TCP|ETH_RSS_UDP;
-  conf.debug_dump(stdout);
+ public:
+  ssn_vnf(size_t np, size_t ntxq, size_t nrxq) :
+    n_ports(np),
+    n_rx_queues_per_port(nrxq),
+    n_tx_queues_per_port(ntxq) {}
 
-  const size_t n_ports = ssn_dev_count();
-  if (n_ports != 2) throw slankdev::exception("num ports is not 2");
-  for (size_t i=0; i<n_ports; i++) {
-    ssn_port_configure(i, &conf);
-    ssn_port_dev_up(i);
-    ssn_port_promisc_on(i);
+  void undeploy()
+  {
+    running = false;
+    for (size_t i=0; i<n_threads; i++) {
+      ssn_thread_join(tids[i]);
+    }
+    printf("UNDEPLOY SUCCESS\n");
   }
+  void reconf(size_t n_threads_, size_t core_mask_)
+  {
+    n_threads = n_threads_;
+    core_mask = core_mask_;
+    uint32_t tid0,tid1,tid2,tid3;
 
-  if (n_ports != 2) {
-    std::string err = slankdev::format("num ports is not 2 (current %zd)",
-        ssn_dev_count());
-    throw slankdev::exception(err.c_str());
+    get_config(confs, n_threads, n_ports, n_rx_queues_per_port, n_tx_queues_per_port);
+    printf("RECONF SUCCESS\n");
   }
-}
+  void showconf()
+  {
+    printf("\n----------------------------\n");
+    print_all_thread_conf();
+    printf("----------------------------\n\n");
+  }
+  void deploy()
+  {
+    std::vector<size_t> vcores = coremask2vecor(core_mask);
 
-void new_main(int argc, char** argv)
-{
-  /*-BOOT-BEGIN--------------------------------------------------------------*/
-  INIT(argc, argv);
-  /*-BOOT-END----------------------------------------------------------------*/
+    for (size_t i=0; i<vcores.size(); i++) {
+      printf("%zd, ", vcores[i]);
+    } printf("\n");
 
-  const size_t nb_ports = ssn_dev_count();
-  uint32_t tid0,tid1,tid2,tid3;
+    tids.clear();
+    tids.resize(n_threads);
+    running = true;
 
-  /* 1 thread */
-  getchar();
-  running = false;
-  get_config(confs, 1, nb_ports, n_rx_queues_per_port, n_tx_queues_per_port);
-  running = true;
-  tid0 = ssn_thread_launch(imple, &num0, 2);
+    for (size_t i=0; i<vcores.size(); i++) {
+      tids[i] = ssn_thread_launch(imple, &num[i], vcores[i]);
+    }
+    printf("DEPLOY SUCCESS\n");
+  }
+};
 
-  /* 2 thread */
-  getchar();
-  running = false;
-  ssn_thread_join(tid0);
-  get_config(confs, 2, nb_ports, n_rx_queues_per_port, n_tx_queues_per_port);
-  running = true;
-  tid0 = ssn_thread_launch(imple, &num0, 2);
-  tid1 = ssn_thread_launch(imple, &num1, 3);
+class ssn_nfvi {
+ public:
+  constexpr static size_t master_thread_lcore_mask = 0x01;
+  constexpr static size_t green_thread_lcore_mask  = 0x02;
+  constexpr static size_t timer_thread_lcore_mask  = 0x04;
+  constexpr static size_t native_thread_lcore_mask = 0xf8;
+  constexpr static size_t n_rx_queues_per_port = 4;
+  constexpr static size_t n_tx_queues_per_port = 4;
+  size_t n_ports;
 
-  /* 4 thread */
-  getchar();
-  running = false;
-  ssn_thread_join(tid0);
-  ssn_thread_join(tid1);
-  get_config(confs, 4, nb_ports, n_rx_queues_per_port, n_tx_queues_per_port);
-  running = true;
-  tid0 = ssn_thread_launch(imple, &num0, 2);
-  tid1 = ssn_thread_launch(imple, &num1, 3);
-  tid2 = ssn_thread_launch(imple, &num2, 4);
-  tid3 = ssn_thread_launch(imple, &num3, 5);
+  void INIT(int argc, char** argv)
+  {
+    ssn_init(argc, argv);
 
-  getchar();
-  /*-FINI-BEGIN--------------------------------------------------------------*/
-  ssn_green_thread_sched_unregister(1);
-  ssn_wait_all_lcore();
-  ssn_fin();
-  /*-FINI-END----------------------------------------------------------------*/
-}
+    std::vector<size_t> vec = coremask2vecor(green_thread_lcore_mask);
+    auto n_lcores = vec.size();
+    for (size_t i=0; i<n_lcores; i++) {
+      ssn_green_thread_sched_register(vec[i]);
+    }
+
+    ssn_port_conf conf;
+    conf.nb_rxq = n_rx_queues_per_port;
+    conf.nb_txq = n_rx_queues_per_port;
+    conf.raw.rxmode.mq_mode = ETH_MQ_RX_RSS;
+    conf.raw.rx_adv_conf.rss_conf.rss_key = NULL;
+    conf.raw.rx_adv_conf.rss_conf.rss_hf = ETH_RSS_IP|ETH_RSS_TCP|ETH_RSS_UDP;
+    /* conf.debug_dump(stdout); */
+
+    n_ports = ssn_dev_count();
+    if (n_ports != 2) throw slankdev::exception("num ports is not 2");
+    for (size_t i=0; i<n_ports; i++) {
+      ssn_port_configure(i, &conf);
+      ssn_port_dev_up(i);
+      ssn_port_promisc_on(i);
+    }
+
+    if (n_ports != 2) {
+      std::string err = slankdev::format("num ports is not 2 (current %zd)",
+          ssn_dev_count());
+      throw slankdev::exception(err.c_str());
+    }
+  }
+  void FINI()
+  {
+    std::vector<size_t> vec = coremask2vecor(green_thread_lcore_mask);
+    auto n_lcores = vec.size();
+    for (size_t i=0; i<n_lcores; i++) {
+      ssn_green_thread_sched_unregister(vec[i]);
+    }
+    ssn_wait_all_lcore();
+    ssn_fin();
+  }
+};
 
 
 int main(int argc, char** argv)
 {
-  constexpr size_t nb_queues_per_port = 4;
+  ssn_nfvi nfvi;
+  nfvi.INIT(argc, argv);
 
-  /*-BOOT-BEGIN--------------------------------------------------------------*/
-  ssn_log_set_level(SSN_LOG_EMERG);
-  ssn_init(argc, argv);
-  ssn_green_thread_sched_register(1);
-
-  const size_t nb_ports = ssn_dev_count();
-  if (nb_ports != 2) throw slankdev::exception("num ports is not 2");
-
-  ssn_port_conf conf;
-  conf.nb_rxq = nb_queues_per_port;
-  conf.nb_txq = nb_queues_per_port;
-  conf.raw.rxmode.mq_mode = ETH_MQ_RX_RSS;
-  conf.raw.rx_adv_conf.rss_conf.rss_key = NULL;
-  conf.raw.rx_adv_conf.rss_conf.rss_hf = ETH_RSS_IP|ETH_RSS_TCP|ETH_RSS_UDP;
-  conf.debug_dump(stdout);
-  for (size_t i=0; i<nb_ports; i++) {
-    ssn_port_configure(i, &conf);
-    ssn_port_dev_up(i);
-    ssn_port_promisc_on(i);
-  }
-  /*-BOOT-END----------------------------------------------------------------*/
-
-  uint32_t tid0,tid1,tid2,tid3;
-
-  /* 1 thread */
-  getchar();
-  running = false;
-  get_config(confs, 1, nb_ports, n_rx_queues_per_port, n_tx_queues_per_port);
-  running = true;
-  tid0 = ssn_thread_launch(imple, &num0, 2);
-
-  /* 2 thread */
-  getchar();
-  running = false;
-  ssn_thread_join(tid0);
-  get_config(confs, 2, nb_ports, n_rx_queues_per_port, n_tx_queues_per_port);
-  running = true;
-  tid0 = ssn_thread_launch(imple, &num0, 2);
-  tid1 = ssn_thread_launch(imple, &num1, 3);
-
-  /* 4 thread */
-  getchar();
-  running = false;
-  ssn_thread_join(tid0);
-  ssn_thread_join(tid1);
-  get_config(confs, 4, nb_ports, n_rx_queues_per_port, n_tx_queues_per_port);
-  running = true;
-  tid0 = ssn_thread_launch(imple, &num0, 2);
-  tid1 = ssn_thread_launch(imple, &num1, 3);
-  tid2 = ssn_thread_launch(imple, &num2, 4);
-  tid3 = ssn_thread_launch(imple, &num3, 5);
+  ssn_vnf vnf0( nfvi.n_ports,
+      nfvi.n_tx_queues_per_port,
+      nfvi.n_rx_queues_per_port);
 
   getchar();
-  /*-FINI-BEGIN--------------------------------------------------------------*/
-  ssn_green_thread_sched_unregister(1);
-  ssn_wait_all_lcore();
-  ssn_fin();
-  /*-FINI-END----------------------------------------------------------------*/
+  vnf0.reconf(1, 0x04);
+  vnf0.showconf();
+  vnf0.deploy();
+
+  getchar();
+  vnf0.undeploy();
+  vnf0.reconf(2, 0x0c);
+  vnf0.showconf();
+  vnf0.deploy();
+
+  getchar();
+  vnf0.undeploy();
+  vnf0.reconf(4, 0x3c);
+  vnf0.showconf();
+  vnf0.deploy();
+
+  getchar();
+  nfvi.FINI();
 }
 
 
