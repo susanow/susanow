@@ -37,6 +37,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+struct rte_mbuf;
+
 void ssn_vnf_port_debug_dump(FILE* fp);
 
 void ssn_vnf_port_link_up(size_t pid);
