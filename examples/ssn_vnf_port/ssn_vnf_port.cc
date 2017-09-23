@@ -1,5 +1,51 @@
 
+/*
+ * MIT License
+ *
+ * Copyright (c) 2017 Hiroki SHIROKURA
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+/**
+ * @file   ssn_vnf_port.cc
+ * @brief  ssn_vnf_port module.
+ *         Provide abstruction layer to access physical
+ *         dpdk port from multi-threads.
+ * @author Hiroki SHIROKURA
+ * @date   2017.9.24
+ */
+
+#include <stdio.h>
+
+#include <string>
+#include <vector>
+#include <utility>
+
 #include <ssn_vnf_port.h>
+#include <ssn_port.h>
+#include <ssn_log.h>
+#include <ssn_cpu.h>
+#include <ssn_common.h>
+#include <ssn_thread.h>
+#include <ssn_port_stat.h>
+
+#include <slankdev/exception.h>
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
 
