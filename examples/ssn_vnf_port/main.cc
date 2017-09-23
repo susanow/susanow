@@ -15,7 +15,8 @@
 
 #include <dpdk/dpdk.h>
 #include <slankdev/exception.h>
-#include "ssn_vnf_port.h"
+
+#include <ssn_vnf_port.h>
 
 /*-------------------User-Code-Below-------------------------*/
 
@@ -51,14 +52,14 @@ void l2fwd(void* acc_id_)
   ssn_log(SSN_LOG_INFO, "finish thread %s \n", __func__);
 }
 
-void INIT(int argc, char** argv, size_t n_que, size_t n_acc)
+void INIT(int argc, char** argv, size_t n_que)
 {
   ssn_init(argc, argv);
 
   size_t n_ports = ssn_dev_count();
   if (n_ports != 2) throw slankdev::exception("num ports is not 2");
   for (size_t i=0; i<n_ports; i++) {
-    p[i].configuration(i,n_que,n_acc,n_que,n_acc);
+    p[i].configure_hwqueue(i,n_que,n_que);
     p[i].dev_up();
     p[i].promisc_on();
   }
@@ -72,18 +73,42 @@ void INIT(int argc, char** argv, size_t n_que, size_t n_acc)
 
 int main(int argc, char** argv)
 {
-  size_t n_que = 4;
-  size_t n_acc = 1;
-  INIT(argc, argv, n_que, n_acc);
-
   uint32_t tid[4];
+  INIT(argc, argv, 4);
+
+  getchar();
+  p[0].configure_accessor(1, 1);
+  p[1].configure_accessor(1, 1);
+  l2fwd_running = true;
   tid[0] = ssn_thread_launch(l2fwd, &num[0], 1);
-  // tid[1] = ssn_thread_launch(l2fwd, &num[1], 2);
-  // tid[2] = ssn_thread_launch(l2fwd, &num[2], 3);
-  // tid[3] = ssn_thread_launch(l2fwd, &num[3], 4);
 
   getchar();
   l2fwd_running = false;
+  ssn_thread_join(tid[0]);
+  p[0].configure_accessor(2, 2);
+  p[1].configure_accessor(2, 2);
+  l2fwd_running = true;
+  tid[0] = ssn_thread_launch(l2fwd, &num[0], 1);
+  tid[1] = ssn_thread_launch(l2fwd, &num[1], 2);
+
+  getchar();
+  l2fwd_running = false;
+  ssn_thread_join(tid[0]);
+  ssn_thread_join(tid[1]);
+  p[0].configure_accessor(4, 4);
+  p[1].configure_accessor(4, 4);
+  l2fwd_running = true;
+  tid[0] = ssn_thread_launch(l2fwd, &num[0], 1);
+  tid[1] = ssn_thread_launch(l2fwd, &num[1], 2);
+  tid[2] = ssn_thread_launch(l2fwd, &num[2], 3);
+  tid[3] = ssn_thread_launch(l2fwd, &num[3], 4);
+
+  getchar();
+  l2fwd_running = false;
+  ssn_thread_join(tid[0]);
+  ssn_thread_join(tid[1]);
+  ssn_thread_join(tid[2]);
+  ssn_thread_join(tid[3]);
   ssn_fin();
 }
 

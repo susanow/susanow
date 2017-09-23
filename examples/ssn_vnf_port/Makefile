@@ -1,14 +1,15 @@
 
 include $(SSN_SDK)/mk/ssn.vars.mk
-CXXFLAGS += $(SSN_CXXFLAGS)
+CXXFLAGS += $(SSN_CXXFLAGS) -I.
 LDFLAGS  += $(SSN_LDFLAGS)
 
 CXXFLAGS += -Wno-format-security -I. -g -O0 -std=c++11
 CXXFLAGS += -fsanitize=address
 
+SRC = main.cc ssn_vnf_port.cc
 
 all:
-	@$(CXX) $(CXXFLAGS) main.cc $(LDFLAGS)
+	@$(CXX) $(CXXFLAGS) $(SRC) $(LDFLAGS)
 	@echo LD a.out
 
 clean:
