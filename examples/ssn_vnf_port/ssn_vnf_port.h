@@ -8,8 +8,7 @@
 #include <slankdev/exception.h>
 
 
-struct rte_mbuf {};
-
+struct rte_mbuf;
 
 class ssn_vnf_port_oneside {
  private:
@@ -46,14 +45,17 @@ class ssn_vnf_port_oneside {
  public:
   ssn_vnf_port_oneside() : n_queues(1), n_accessor(1), accessors(1) {}
 
-  virtual size_t burst(size_t aid, rte_mbuf* mbufs, size_t n_mbufs)
+  virtual size_t burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) = 0;
+#if 0
   {
     size_t qid = accessors[aid].get();
     printf("burst aid=%zd pid:qid=%zd:%zd\n", aid, dpdk_port_id, qid);
     return 0;
   }
+#endif
 
   virtual void configuration(size_t dpdk_pid, size_t n_que, size_t n_acc)
+#if 1
   {
     dpdk_port_id = dpdk_pid;
     n_queues   = n_que;
@@ -75,35 +77,69 @@ class ssn_vnf_port_oneside {
       accessors[aid].set(vec);
     }
   }
+#endif
 };
 
+class ssn_vnf_port_oneside_rx : public ssn_vnf_port_oneside {
+ public:
+  ssn_vnf_port_oneside_rx() : ssn_vnf_port_oneside() {}
+  virtual size_t burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override
+  {
+    size_t qid = accessors[aid].get();
+    // printf("rx burst aid=%zd pid:qid=%zd:%zd\n", aid, dpdk_port_id, qid);
+    return rte_eth_rx_burst(dpdk_port_id, qid, mbufs, n_mbufs);
+  }
+};
 
+class ssn_vnf_port_oneside_tx : public ssn_vnf_port_oneside {
+ public:
+  ssn_vnf_port_oneside_tx() : ssn_vnf_port_oneside() {}
+  virtual size_t burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override
+  {
+    size_t qid = accessors[aid].get();
+    // printf("tx burst aid=%zd pid:qid=%zd:%zd\n", aid, dpdk_port_id, qid);
+    return rte_eth_tx_burst(dpdk_port_id, qid, mbufs, n_mbufs);
+  }
+};
 
 class ssn_vnf_port {
-  ssn_vnf_port_oneside rx;
-  ssn_vnf_port_oneside tx;
+  size_t dpdk_pid;
+  ssn_vnf_port_oneside_rx rx;
+  ssn_vnf_port_oneside_tx tx;
+
  public:
-  void configuration(size_t dpdk_pid,
+  void configuration(size_t dpdk_pid_,
       size_t n_rxq, size_t n_rxacc,
       size_t n_txq, size_t n_txacc)
   {
+    dpdk_pid = dpdk_pid_;
+
+    ssn_port_conf conf;
+    conf.nb_rxq = n_rxq;
+    conf.nb_txq = n_txq;
+    conf.raw.rxmode.mq_mode = ETH_MQ_RX_RSS;
+    conf.raw.rx_adv_conf.rss_conf.rss_key = NULL;
+    conf.raw.rx_adv_conf.rss_conf.rss_hf = ETH_RSS_IP|ETH_RSS_TCP|ETH_RSS_UDP;
+    /* conf.debug_dump(stdout); */
+
+    ssn_port_configure(dpdk_pid, &conf);
+
     rx.configuration(dpdk_pid, n_rxq, n_rxacc);
     tx.configuration(dpdk_pid, n_txq, n_txacc);
   }
 
-  size_t rx_burst(size_t aid, rte_mbuf* mbufs, size_t nb_mbufs)
-  {
-    printf("rx ");
-    rx.burst(aid, mbufs, nb_mbufs);
-    return 0;
-  }
+  size_t rx_burst(size_t aid, rte_mbuf** mbufs, size_t nb_mbufs)
+  { return rx.burst(aid, mbufs, nb_mbufs); }
 
-  size_t tx_burst(size_t aid, rte_mbuf* mbufs, size_t nb_mbufs)
-  {
-    printf("tx ");
-    tx.burst(aid, mbufs, nb_mbufs);
-    return 0;
-  }
+  size_t tx_burst(size_t aid, rte_mbuf** mbufs, size_t nb_mbufs)
+  { return tx.burst(aid, mbufs, nb_mbufs); }
+
+  void link_up()       { ssn_port_link_up    (dpdk_pid); }
+  void link_down()     { ssn_port_link_down  (dpdk_pid); }
+  void promisc_on()  { ssn_port_promisc_on (dpdk_pid); }
+  void promisc_off() { ssn_port_promisc_off(dpdk_pid); }
+  void dev_up()      { ssn_port_dev_up     (dpdk_pid); }
+  void dev_down()    { ssn_port_dev_down   (dpdk_pid); }
 };
 
 
