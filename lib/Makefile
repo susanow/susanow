@@ -1,13 +1,14 @@
 
+
 all:
-	make -C liblthread_dpdk
-	make -C libvty
-	make -C libsusanow
+	$(MAKE) -C liblthread_dpdk
+	$(MAKE) -C libvty
+	$(MAKE) -C libsusanow
 
 clean:
-	make -C liblthread_dpdk clean
-	make -C libvty          clean
-	make -C libsusanow      clean
+	$(MAKE) -C liblthread_dpdk clean
+	$(MAKE) -C libvty          clean
+	$(MAKE) -C libsusanow      clean
 
 test:
-	make -C libsusanow      test
+	$(MAKE) -C libsusanow      test
