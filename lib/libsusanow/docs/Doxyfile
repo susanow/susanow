@@ -1,7 +1,5 @@
 
-
 # MIT License
-#
 # Copyright (c) 2017 Hiroki SHIROKURA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,41 +21,35 @@
 # SOFTWARE.
 
 
-include ../../mk/ssn.vars.mk
-include ../../mk/rules.mk
+INPUT = \
+		../../lib/libsusanow \
+		../../lib/libdpdk_cpp \
+		../../lib/libslankdev
 
-CXXFLAGS = $(SSN_LIB_CXXFLAGS) -Wno-format-security
-LDFLAGS  = $(SSN_LIB_LDFLAGS)
+PROJECT_NAME            = Susanow Lib
+PREDEFINED              = __DOXYGEN__  __attribute__(x)=
+OUTPUT_DIRECTORY        = /tmp/libsusanow/
+RECURSIVE               = YES
+OPTIMIZE_OUTPUT_FOR_C   = YES
+ENABLE_PREPROCESSING    = YES
+MACRO_EXPANSION         = YES
+EXPAND_ONLY_PREDEF      = YES
+EXTRACT_STATIC          = YES
+DISTRIBUTE_GROUP_DOC    = YES
+HIDE_UNDOC_MEMBERS      = YES
+HIDE_UNDOC_CLASSES      = YES
+HIDE_SCOPE_NAMES        = YES
+GENERATE_DEPRECATEDLIST = NO
+GENERATE_LATEX          = NO
+VERBATIM_HEADERS        = NO
+ALPHABETICAL_INDEX      = NO
+HTML_TIMESTAMP          = NO
+HTML_DYNAMIC_SECTIONS   = YES
+SEARCHENGINE            = NO
+SORT_MEMBER_DOCS        = NO
+SOURCE_BROWSER          = YES
+EXAMPLE_PATH            = examples
+EXAMPLE_PATTERNS        = *.cc
+EXAMPLE_RECURSIVE       = YES
 
-TARGET = libsusanow.a
-SRC = \
-			ssn_cpu.cc     \
-			ssn_vty.cc     \
-			ssn_config.cc  \
-			ssn_port.cc    \
-			ssn_timer.cc   \
-			ssn_log.cc     \
-			ssn_rest.cc    \
-			ssn_port.cc    \
-			ssn_port_stat.cc     \
-			ssn_green_thread.cc  \
-			ssn_native_thread.cc \
-			ssn_thread.cc        \
-			ssn_ring.cc          \
-			ssn_common.cc        \
-			ssn_vnf_port.cc
-OBJ = $(SRC:.cc=.o)
 
-$(TARGET): $(OBJ)
-	@ar rcs libsusanow.a $(OBJ)
-	@echo AR libsusanow.a
-
-doc:
-	$(MAKE) -C docs
-
-clean:
-	rm -rf *.o *.out *.a
-	make -C examples clean
-
-test:
-	make -C examples all
