@@ -1,0 +1,22 @@
+
+
+id       length   hight   locate    gen
+slot1:   full     full    CPU1      PCIe3 x16       (x 16コネクタ)
+slot2:   full     full    PCH       PCIe2 x4        (x  8コネクタ)
+slot3:   full     full    CPU1      PCIe3 x16       (x 16コネクタ)
+slot4:   halt     full    CPU2      PCIe3 x8        (x  8コネクタ)
+slot5:   full     full    CPU2      PCIe2(DMI)x4    (x  8コネクタ)
+slot6:   full     full    CPU2      PCIe3 x16       (x 16コネクタ)
+slot7:   full     full    CPU2      PCIe3 x16       (x 16コネクタ)
+slot8:   halt     full    CPU1      PCIe3 x8        (x  8コネクタ)
+
+ PCH   slot2:   
+
+ CPU1  slot1:   
+ CPU1  slot3:   
+ CPU1  slot8:   
+
+ CPU2  slot4:   
+ CPU2  slot5:   
+ CPU2  slot6:   
+ CPU2  slot7:   
