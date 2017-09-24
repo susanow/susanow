@@ -23,12 +23,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/**
- * @file   ssn_tiemr.cc
- * @brief  rte_timer wrapper
- * @author Hiroki SHIROKURA
- * @date   2017.9.20
- */
 
 #include <assert.h>
 #include <ssn_cpu.h>

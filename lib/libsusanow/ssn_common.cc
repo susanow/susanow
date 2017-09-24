@@ -22,18 +22,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/**
- * @file   ssn_common.cc
- * @brief  common api
- * @author Hiroki SHIROKURA
- * @date   2017.9.20
- */
 
 #include <unistd.h>
-
 #include <lthread.h>
 #include <dpdk/hdr.h>
-
 #include <ssn_cpu.h>
 #include <ssn_common.h>
 #include <ssn_types.h>
@@ -55,6 +47,7 @@ void ssn_init(int argc, char** argv)
   ssn_port_init();
   ssn_port_stat_init();
 }
+
 void ssn_fin()
 {
   ssn_native_thread_fin();
@@ -63,6 +56,7 @@ void ssn_fin()
   ssn_port_fin();
   ssn_port_stat_fin();
 }
+
 void ssn_wait_all_lcore()
 {
   ssn_log(SSN_LOG_INFO, "wait all lcore\n");

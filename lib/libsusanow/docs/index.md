@@ -36,39 +36,22 @@ API {#index}
 
 There are many libraries, so their headers may be grouped by topics:
 
-- **device**:
-  [dev]                (@ref rte_dev.h),
-  [ethdev]             (@ref rte_ethdev.h),
-  [ethctrl]            (@ref rte_eth_ctrl.h),
-  [rte_flow]           (@ref rte_flow.h),
-  [rte_flow_driver]    (@ref rte_flow_driver.h),
-  [cryptodev]          (@ref rte_cryptodev.h),
-  [eventdev]           (@ref rte_eventdev.h),
-  [devargs]            (@ref rte_devargs.h),
-  [PCI]                (@ref rte_pci.h)
+**base components**: <br>
+- [ssn_common       ]  (@ref ssn_common.h       )
+- [ssn_cpu          ]  (@ref ssn_cpu.h          )
+- [ssn_green_thread ]  (@ref ssn_green_thread.h )
+- [ssn_log          ]  (@ref ssn_log.h          )
+- [ssn_native_thread]  (@ref ssn_native_thread.h)
+- [ssn_port         ]  (@ref ssn_port.h         )
+- [ssn_port_stat    ]  (@ref ssn_port_stat.h    )
+- [ssn_ring         ]  (@ref ssn_ring.h         )
+- [ssn_thread       ]  (@ref ssn_thread.h       )
+- [ssn_timer        ]  (@ref ssn_timer.h        )
+- [ssn_types        ]  (@ref ssn_types.h        )
 
-- **device specific**:
-  [bond]               (@ref rte_eth_bond.h),
-  [vhost]              (@ref rte_vhost.h),
-  [KNI]                (@ref rte_kni.h),
-  [ixgbe]              (@ref rte_pmd_ixgbe.h),
-  [i40e]               (@ref rte_pmd_i40e.h),
-  [crypto_scheduler]   (@ref rte_cryptodev_scheduler.h)
-
-- **memory**:
-  [memseg]             (@ref rte_memory.h),
-  [memzone]            (@ref rte_memzone.h),
-  [mempool]            (@ref rte_mempool.h),
-  [malloc]             (@ref rte_malloc.h),
-  [memcpy]             (@ref rte_memcpy.h)
-
-- **timers**:
-  [cycles]             (@ref rte_cycles.h),
-  [timer]              (@ref rte_timer.h),
-  [alarm]              (@ref rte_alarm.h)
-
-- **locks**:
-  [atomic]             (@ref rte_atomic.h),
-  [rwlock]             (@ref rte_rwlock.h),
-  [spinlock]           (@ref rte_spinlock.h)
+**components for develop application**: <br>
+- [ssn_config       ]  (@ref ssn_config.h       )
+- [ssn_rest         ]  (@ref ssn_rest.h         )
+- [ssn_vnf_port     ]  (@ref ssn_vnf_port.h     )
+- [ssn_vty          ]  (@ref ssn_vty.h          )
 

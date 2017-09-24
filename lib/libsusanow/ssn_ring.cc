@@ -22,12 +22,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/**
- * @file   ssn_ring.cc
- * @brief  rte_ring wrapper
- * @author Hiroki SHIROKURA
- * @date   2017.9.20
- */
 
 #include <ssn_ring.h>
 #include <vector>

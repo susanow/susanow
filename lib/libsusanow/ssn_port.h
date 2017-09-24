@@ -22,12 +22,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/**
- * @file   ssn_port.h
- * @brief  port management
- * @author Hiroki SHIROKURA
- * @date   2017.9.20
- */
 
 #pragma once
 #include <stdint.h>

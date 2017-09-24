@@ -22,12 +22,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/**
- * @file   ssn_tiemr.h
- * @brief  rte_timer wrapper
- * @author Hiroki SHIROKURA
- * @date   2017.9.20
- */
 
 #pragma once
 #include <stdint.h>
@@ -57,6 +51,7 @@ class ssn_timer_sched {
   void debug_dump(FILE* fp);
   size_t lcore_id() const;
 };
+
 void ssn_timer_sched_poll_thread(void* arg);
 void ssn_timer_sched_poll_thread_stop();
 

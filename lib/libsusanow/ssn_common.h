@@ -23,18 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/**
- * @file   ssn_common.h
- * @brief  common api
- * @author Hiroki SHIROKURA
- * @date   2017.9.20
- */
 
 #pragma once
-#include <stdint.h>
-#include <stddef.h>
 
+/**
+ * @brief init susanow-base
+ * @param [in] argc command line argc
+ * @param [in] argv command line argv
+ * @details
+ *   User must run this function before using susanow-APIs
+ *   This function call many allocation functions inside this.
+ */
 void ssn_init(int argc, char** argv);
+
+/**
+ * @details
+ *   User must run this function after using susanow-APIs
+ *   This function call many free functions inside this.
+ */
 void ssn_fin();
+
+/**
+ * @detail
+ *   This function block that finish all native-threads.
+ *   however, developers plan remove this function...
+ */
 void ssn_wait_all_lcore();
+
 

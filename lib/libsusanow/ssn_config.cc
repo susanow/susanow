@@ -23,10 +23,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/**
- * @file ssn_config.cc
- * @author Hiroki SHIROKURA
- */
 
 #include <string.h>
 #include <ssn_config.h>

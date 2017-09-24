@@ -23,11 +23,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/**
- * @file ssn_config.h
- * @brief wrap rte_cfgfile.h
- * @author Hiroki SHIROKURA
- */
 
 #pragma once
 #include <vector>

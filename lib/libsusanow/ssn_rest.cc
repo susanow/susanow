@@ -22,12 +22,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/**
- * @file   ssn_rest.cc
- * @brief  rest api
- * @author Hiroki SHIROKURA
- * @date   2017.9.20
- */
 
 #include <ssn_log.h> // for ssn_log() only
 #include <ssn_cpu.h> // for ssn_sleep() only

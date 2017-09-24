@@ -22,12 +22,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/**
- * @file   ssn_port_stat.cc
- * @brief  port stat management
- * @author Hiroki SHIROKURA
- * @date   2017.9.20
- */
 
 #include <dpdk/hdr.h>
 #include <ssn_port_stat.h>

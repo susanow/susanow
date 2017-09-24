@@ -22,14 +22,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/**
- * @file   ssn_vty.cc
- * @brief  vty implementation
- * @author Hiroki SHIROKURA
- * @date   2017.7.12
- */
-
-
 
 #include <stdint.h>
 #include <stddef.h>

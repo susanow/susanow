@@ -24,12 +24,10 @@
  * SOFTWARE.
  */
 /**
- * @file   ssn_vnf_port.h
- * @brief  ssn_vnf_port module.
- *         Provide abstruction layer to access physical
- *         dpdk port from multi-threads.
- * @author Hiroki SHIROKURA
- * @date   2017.9.24
+ * @details
+ *   ssn_vnf_port module.
+ *   Provide abstruction layer to access physical
+ *   dpdk port from multi-threads.
  */
 
 #pragma once
