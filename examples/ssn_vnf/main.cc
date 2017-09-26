@@ -10,9 +10,25 @@
 #include <unistd.h>
 #include <dpdk/dpdk.h>
 #include <slankdev/exception.h>
-#include "lib.h"
+#include <stdint.h>
+#include <stddef.h>
+#include <vector>
+
 
 size_t num[] = {0,1,2,3,4,5,6,7,8};
+
+inline std::vector<size_t> coremask2vecor(uint8_t coremask)
+{
+  std::vector<size_t> vec;
+  size_t bitlength = sizeof(uint8_t) * 8;
+  for (size_t i=0; i<bitlength; i++) {
+    if ((coremask & uint8_t(1<<i)) != 0) {
+      vec.push_back(i);
+    }
+  }
+  return vec;
+}
+
 
 struct p_port {
   size_t rxques_idx;
