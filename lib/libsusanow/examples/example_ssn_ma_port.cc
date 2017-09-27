@@ -23,8 +23,8 @@
  * SOFTWARE.
  */
 /**
- * @file   example_ssn_vnf_port.cc
- * @brief  ssn_vnf_port module example
+ * @file   example_ssn_ma_port.cc
+ * @brief  ssn_ma_port module example
  * @author Hiroki SHIROKURA
  * @date   2017.9.24
  */
@@ -42,7 +42,7 @@
 #include <ssn_common.h>
 #include <ssn_thread.h>
 #include <ssn_port_stat.h>
-#include <ssn_vnf_port.h>
+#include <ssn_ma_port.h>
 
 #include <dpdk/dpdk.h>
 #include <slankdev/exception.h>
@@ -60,7 +60,7 @@ void l2fwd(void* acc_id_)
   while (l2fwd_running) {
     for (size_t pid=0; pid<nb_ports; pid++) {
       rte_mbuf* mbufs[32];
-      size_t nb_recv = ssn_vnf_port_rx_burst(pid, aid, mbufs, 32);
+      size_t nb_recv = ssn_ma_port_rx_burst(pid, aid, mbufs, 32);
       if (nb_recv == 0) continue;
 
       for (size_t i=0; i<nb_recv; i++) {
@@ -69,7 +69,7 @@ void l2fwd(void* acc_id_)
         size_t n=10;
         for (size_t j=0; j<100; j++) n++;
 
-        size_t nb_send = ssn_vnf_port_tx_burst(pid^1, aid, &mbufs[i], 1);
+        size_t nb_send = ssn_ma_port_tx_burst(pid^1, aid, &mbufs[i], 1);
         if (nb_send != 1)
           rte_pktmbuf_free(mbufs[i]);
       }
@@ -86,9 +86,9 @@ void INIT(int argc, char** argv, size_t n_que)
   size_t n_ports = ssn_dev_count();
   if (n_ports != 2) throw slankdev::exception("num ports is not 2");
   for (size_t i=0; i<n_ports; i++) {
-    ssn_vnf_port_configure_hw(i, n_que, n_que);
-    ssn_vnf_port_dev_up(i);
-    ssn_vnf_port_promisc_on(i);
+    ssn_ma_port_configure_hw(i, n_que, n_que);
+    ssn_ma_port_dev_up(i);
+    ssn_ma_port_promisc_on(i);
   }
 
   if (n_ports != 2) {
@@ -104,16 +104,16 @@ int main(int argc, char** argv)
   INIT(argc, argv, 4);
 
   getchar();
-  ssn_vnf_port_configure_acc(0, 1, 1);
-  ssn_vnf_port_configure_acc(1, 1, 1);
+  ssn_ma_port_configure_acc(0, 1, 1);
+  ssn_ma_port_configure_acc(1, 1, 1);
   l2fwd_running = true;
   tid[0] = ssn_thread_launch(l2fwd, &num[0], 1);
 
   getchar();
   l2fwd_running = false;
   ssn_thread_join(tid[0]);
-  ssn_vnf_port_configure_acc(0, 2, 2);
-  ssn_vnf_port_configure_acc(1, 2, 2);
+  ssn_ma_port_configure_acc(0, 2, 2);
+  ssn_ma_port_configure_acc(1, 2, 2);
   l2fwd_running = true;
   tid[0] = ssn_thread_launch(l2fwd, &num[0], 1);
   tid[1] = ssn_thread_launch(l2fwd, &num[1], 2);
@@ -122,8 +122,8 @@ int main(int argc, char** argv)
   l2fwd_running = false;
   ssn_thread_join(tid[0]);
   ssn_thread_join(tid[1]);
-  ssn_vnf_port_configure_acc(0, 4, 4);
-  ssn_vnf_port_configure_acc(1, 4, 4);
+  ssn_ma_port_configure_acc(0, 4, 4);
+  ssn_ma_port_configure_acc(1, 4, 4);
   l2fwd_running = true;
   tid[0] = ssn_thread_launch(l2fwd, &num[0], 1);
   tid[1] = ssn_thread_launch(l2fwd, &num[1], 2);

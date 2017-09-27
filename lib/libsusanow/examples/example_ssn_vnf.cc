@@ -11,7 +11,7 @@
 
 #include <ssn_port.h>
 #include <ssn_port_stat.h>
-#include <ssn_vnf_port.h>
+#include <ssn_ma_port.h>
 #include <ssn_log.h>
 #include <ssn_cpu.h>
 #include <ssn_common.h>
@@ -37,16 +37,16 @@ class ssn_vnf_port {
   ssn_vnf_port(size_t a_port_id, size_t a_n_rxq, size_t a_n_txq) :
     port_id(a_port_id), n_rxq(a_n_rxq), n_txq(a_n_txq)
   {
-    ssn_vnf_port_configure_hw(port_id, n_rxq, n_txq);
-    ssn_vnf_port_dev_up(port_id);
-    ssn_vnf_port_promisc_on(port_id);
+    ssn_ma_port_configure_hw(port_id, n_rxq, n_txq);
+    ssn_ma_port_dev_up(port_id);
+    ssn_ma_port_promisc_on(port_id);
   }
   void configure(size_t n_rxacc, size_t n_txacc)
-  { ssn_vnf_port_configure_acc(port_id, n_rxacc, n_txacc); }
+  { ssn_ma_port_configure_acc(port_id, n_rxacc, n_txacc); }
   size_t tx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs)
-  { return ssn_vnf_port_tx_burst(port_id, aid, mbufs, n_mbufs); }
+  { return ssn_ma_port_tx_burst(port_id, aid, mbufs, n_mbufs); }
   size_t rx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs)
-  { return ssn_vnf_port_rx_burst(port_id, aid, mbufs, n_mbufs); }
+  { return ssn_ma_port_rx_burst(port_id, aid, mbufs, n_mbufs); }
 };
 
 class ssn_vnf {

@@ -24,7 +24,7 @@
  */
 /**
  * @details
- *   ssn_vnf_port module.
+ *   ssn_ma_port module.
  *   Provide abstruction layer to access physical
  *         dpdk port from multi-threads.
  */
@@ -35,7 +35,7 @@
 #include <vector>
 #include <utility>
 
-#include <ssn_vnf_port.h>
+#include <ssn_ma_port.h>
 #include <ssn_port.h>
 #include <ssn_log.h>
 #include <ssn_cpu.h>
@@ -52,10 +52,10 @@
  * Class Definition are Below...
 \*****************************************************************************/
 
-class ssn_vnf_port {
+class ssn_ma_port {
  private:
 
-  class ssn_vnf_port_oneside {
+  class ssn_ma_port_oneside {
    private:
     class accessor {
       size_t accessor_idx;
@@ -65,7 +65,7 @@ class ssn_vnf_port {
       void set(std::vector<size_t>& vec);
       size_t get();
     };
-    class ssn_vnf_port_queue {
+    class ssn_ma_port_queue {
      public:
       size_t que_id;
       size_t acc_id;
@@ -74,38 +74,38 @@ class ssn_vnf_port {
     size_t dpdk_port_id;
     size_t n_queues_;
     size_t n_accessor;
-    std::vector<ssn_vnf_port_queue> queues;
+    std::vector<ssn_ma_port_queue> queues;
     std::vector<accessor> accessors;
    protected:
     std::vector<size_t> get_qids_from_aid(size_t aid) const;
     size_t n_queues_per_accessor() const;
     void show() const;
    public:
-    ssn_vnf_port_oneside() : n_queues_(1), n_accessor(1), accessors(1) {}
+    ssn_ma_port_oneside() : n_queues_(1), n_accessor(1), accessors(1) {}
     virtual size_t burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) = 0;
     size_t n_queues() const { return n_queues_; }
     void configure_queue_accessor(size_t dpdk_pid, size_t n_que, size_t n_acc);
   };
-  class ssn_vnf_port_oneside_rx : public ssn_vnf_port_oneside {
+  class ssn_ma_port_oneside_rx : public ssn_ma_port_oneside {
    public:
-    ssn_vnf_port_oneside_rx() : ssn_vnf_port_oneside() {}
+    ssn_ma_port_oneside_rx() : ssn_ma_port_oneside() {}
     virtual size_t burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override
     {
       size_t qid = accessors[aid].get();
       ssn_log(SSN_LOG_DEBUG,
-          "ssn_vnf_port: rx_burst(pid=%zd, qid=%zd, access_id=%zd)",
+          "ssn_ma_port: rx_burst(pid=%zd, qid=%zd, access_id=%zd)",
           dpdk_port_id, qid, aid);
       return rte_eth_rx_burst(dpdk_port_id, qid, mbufs, n_mbufs);
     }
   };
-  class ssn_vnf_port_oneside_tx : public ssn_vnf_port_oneside {
+  class ssn_ma_port_oneside_tx : public ssn_ma_port_oneside {
    public:
-    ssn_vnf_port_oneside_tx() : ssn_vnf_port_oneside() {}
+    ssn_ma_port_oneside_tx() : ssn_ma_port_oneside() {}
     virtual size_t burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override
     {
       size_t qid = accessors[aid].get();
       ssn_log(SSN_LOG_DEBUG,
-          "ssn_vnf_port: tx_burst(pid=%zd, qid=%zd, access_id=%zd)",
+          "ssn_ma_port: tx_burst(pid=%zd, qid=%zd, access_id=%zd)",
           dpdk_port_id, qid, aid);
       return rte_eth_tx_burst(dpdk_port_id, qid, mbufs, n_mbufs);
     }
@@ -115,8 +115,8 @@ class ssn_vnf_port {
   size_t dpdk_pid;
   size_t n_rxq;
   size_t n_txq;
-  ssn_vnf_port_oneside_rx rx;
-  ssn_vnf_port_oneside_tx tx;
+  ssn_ma_port_oneside_rx rx;
+  ssn_ma_port_oneside_tx tx;
 
  public:
   void configure_hwqueue(size_t dpdk_pid_, size_t n_rxq_i, size_t n_txq_i);
@@ -129,7 +129,7 @@ class ssn_vnf_port {
   void promisc_off() { ssn_port_promisc_off(dpdk_pid); }
   void dev_up()      { ssn_port_dev_up     (dpdk_pid); }
   void dev_down()    { ssn_port_dev_down   (dpdk_pid); }
-}; /* class ssn_vnf_port */
+}; /* class ssn_ma_port */
 
 
 
@@ -137,20 +137,20 @@ class ssn_vnf_port {
  * Instance Function are Below...
 \*****************************************************************************/
 
-void ssn_vnf_port::ssn_vnf_port_oneside::accessor::set(std::vector<size_t>& vec)
+void ssn_ma_port::ssn_ma_port_oneside::accessor::set(std::vector<size_t>& vec)
 {
   ques = vec;
   accessor_idx = 0;
 }
 
-size_t ssn_vnf_port::ssn_vnf_port_oneside::accessor::get()
+size_t ssn_ma_port::ssn_ma_port_oneside::accessor::get()
 {
   size_t ret = accessor_idx;
   accessor_idx = (accessor_idx+1) % ques.size();
   return ques[ret];
 }
 
-std::vector<size_t> ssn_vnf_port::ssn_vnf_port_oneside::get_qids_from_aid(size_t aid) const
+std::vector<size_t> ssn_ma_port::ssn_ma_port_oneside::get_qids_from_aid(size_t aid) const
 {
   std::vector<size_t> vec;
   size_t n_que = queues.size();
@@ -162,7 +162,7 @@ std::vector<size_t> ssn_vnf_port::ssn_vnf_port_oneside::get_qids_from_aid(size_t
   return vec;
 }
 
-size_t ssn_vnf_port::ssn_vnf_port_oneside::n_queues_per_accessor() const
+size_t ssn_ma_port::ssn_ma_port_oneside::n_queues_per_accessor() const
 {
   if ((n_queues() % n_accessor) != 0) {
     std::string err = slankdev::format("OKASHII n_que=%zd, n_acc=%zd", n_queues(), n_accessor);
@@ -172,7 +172,7 @@ size_t ssn_vnf_port::ssn_vnf_port_oneside::n_queues_per_accessor() const
   return ret;
 }
 
-void ssn_vnf_port::ssn_vnf_port_oneside::show() const
+void ssn_ma_port::ssn_ma_port_oneside::show() const
 {
   printf("\n");
 
@@ -213,7 +213,7 @@ void ssn_vnf_port::ssn_vnf_port_oneside::show() const
   printf("\n");
 }
 
-void ssn_vnf_port::ssn_vnf_port_oneside::configure_queue_accessor(size_t dpdk_pid, size_t n_que, size_t n_acc)
+void ssn_ma_port::ssn_ma_port_oneside::configure_queue_accessor(size_t dpdk_pid, size_t n_que, size_t n_acc)
 {
   dpdk_port_id = dpdk_pid;
   n_queues_   = n_que;
@@ -236,7 +236,7 @@ void ssn_vnf_port::ssn_vnf_port_oneside::configure_queue_accessor(size_t dpdk_pi
   }
 }
 
-void ssn_vnf_port::configure_hwqueue(size_t dpdk_pid_, size_t n_rxq_i, size_t n_txq_i)
+void ssn_ma_port::configure_hwqueue(size_t dpdk_pid_, size_t n_rxq_i, size_t n_txq_i)
 {
   dpdk_pid = dpdk_pid_;
   n_rxq = n_rxq_i;
@@ -253,16 +253,16 @@ void ssn_vnf_port::configure_hwqueue(size_t dpdk_pid_, size_t n_rxq_i, size_t n_
   ssn_port_configure(dpdk_pid, &conf);
 }
 
-void ssn_vnf_port::configure_accessor(size_t n_rxacc, size_t n_txacc)
+void ssn_ma_port::configure_accessor(size_t n_rxacc, size_t n_txacc)
 {
   rx.configure_queue_accessor(dpdk_pid, n_rxq, n_rxacc);
   tx.configure_queue_accessor(dpdk_pid, n_txq, n_txacc);
 }
 
-size_t ssn_vnf_port::rx_burst(size_t aid, rte_mbuf** mbufs, size_t nb_mbufs)
+size_t ssn_ma_port::rx_burst(size_t aid, rte_mbuf** mbufs, size_t nb_mbufs)
 { return rx.burst(aid, mbufs, nb_mbufs); }
 
-size_t ssn_vnf_port::tx_burst(size_t aid, rte_mbuf** mbufs, size_t nb_mbufs)
+size_t ssn_ma_port::tx_burst(size_t aid, rte_mbuf** mbufs, size_t nb_mbufs)
 { return tx.burst(aid, mbufs, nb_mbufs); }
 
 
@@ -271,48 +271,48 @@ size_t ssn_vnf_port::tx_burst(size_t aid, rte_mbuf** mbufs, size_t nb_mbufs)
  * SSN_APIs are Below...
 \*****************************************************************************/
 
-/* SSN_VNF_PORT Instances */
-ssn_vnf_port vnf_ports[RTE_MAX_ETHPORTS];
+/* ssn_ma_port Instances */
+ssn_ma_port vnf_ports[RTE_MAX_ETHPORTS];
 
-void ssn_vnf_port_link_up(size_t pid)     { ssn_port_link_up    (pid); }
-void ssn_vnf_port_link_down(size_t pid)   { ssn_port_link_down  (pid); }
-void ssn_vnf_port_promisc_on(size_t pid)  { ssn_port_promisc_on (pid); }
-void ssn_vnf_port_promisc_off(size_t pid) { ssn_port_promisc_off(pid); }
-void ssn_vnf_port_dev_up(size_t pid)      { ssn_port_dev_up     (pid); }
-void ssn_vnf_port_dev_down(size_t pid)    { ssn_port_dev_down   (pid); }
+void ssn_ma_port_link_up(size_t pid)     { ssn_port_link_up    (pid); }
+void ssn_ma_port_link_down(size_t pid)   { ssn_port_link_down  (pid); }
+void ssn_ma_port_promisc_on(size_t pid)  { ssn_port_promisc_on (pid); }
+void ssn_ma_port_promisc_off(size_t pid) { ssn_port_promisc_off(pid); }
+void ssn_ma_port_dev_up(size_t pid)      { ssn_port_dev_up     (pid); }
+void ssn_ma_port_dev_down(size_t pid)    { ssn_port_dev_down   (pid); }
 
-void ssn_vnf_port_configure_hw(size_t port_id, size_t n_rxq, size_t n_txq)
+void ssn_ma_port_configure_hw(size_t port_id, size_t n_rxq, size_t n_txq)
 {
   if (port_id >= ssn_dev_count()) {
-    std::string err = "ssn_vnf_port_configure_hw: ";
+    std::string err = "ssn_ma_port_configure_hw: ";
     err += slankdev::format("port_id is invalid pid=%zd", port_id);
     throw slankdev::exception(err.c_str());
   }
   vnf_ports[port_id].configure_hwqueue(port_id, n_rxq, n_txq);
 }
 
-void ssn_vnf_port_configure_acc(size_t port_id, size_t n_rxacc, size_t n_txacc)
+void ssn_ma_port_configure_acc(size_t port_id, size_t n_rxacc, size_t n_txacc)
 {
   if (port_id >= ssn_dev_count()) {
-    std::string err = "ssn_vnf_port_configure_acc: ";
+    std::string err = "ssn_ma_port_configure_acc: ";
     err += slankdev::format("port_id is invalid pid=%zd", port_id);
     throw slankdev::exception(err.c_str());
   }
   vnf_ports[port_id].configure_accessor(n_rxacc, n_txacc);
 }
 
-size_t ssn_vnf_port_rx_burst(size_t port_id, size_t aid, rte_mbuf** mbufs, size_t n_mbufs)
+size_t ssn_ma_port_rx_burst(size_t port_id, size_t aid, rte_mbuf** mbufs, size_t n_mbufs)
 {
   return vnf_ports[port_id].rx_burst(aid,  mbufs, n_mbufs);
 }
 
-size_t ssn_vnf_port_tx_burst(size_t port_id, size_t aid, rte_mbuf** mbufs, size_t n_mbufs)
+size_t ssn_ma_port_tx_burst(size_t port_id, size_t aid, rte_mbuf** mbufs, size_t n_mbufs)
 {
   return vnf_ports[port_id].tx_burst(aid,  mbufs, n_mbufs);
 }
 
-void ssn_vnf_port_debug_dump(FILE* fp)
+void ssn_ma_port_debug_dump(FILE* fp)
 {
-  fprintf(fp, " ssn_vnf_port_debug_dump \r\n");
+  fprintf(fp, " ssn_ma_port_debug_dump \r\n");
 }
 
