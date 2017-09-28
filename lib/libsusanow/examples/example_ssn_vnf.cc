@@ -6,9 +6,11 @@
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
 
+#include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
 #include <ssn_vnf.h>
+#include <dpdk/dpdk.h>
 
 void INIT(int argc, char** argv)
 {
