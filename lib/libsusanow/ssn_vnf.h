@@ -111,8 +111,8 @@ class ssn_vnf_port {
  * @brief VNF class
  */
 class ssn_vnf {
-  friend void _vnf_thread_spawner(void*);
  private:
+  friend void _vnf_thread_spawner(void*);
   std::vector<ssn_vnf_port*> ports; /*! VNF's port vector                  */
   std::vector<uint32_t> tids;       /*! thread-ids for running-information */
   std::vector<size_t> lcores;       /*! lcore-ids assined                  */
