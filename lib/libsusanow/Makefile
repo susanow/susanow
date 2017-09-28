@@ -29,6 +29,10 @@ include ../../mk/rules.mk
 CXXFLAGS = $(SSN_LIB_CXXFLAGS) -Wno-format-security
 LDFLAGS  = $(SSN_LIB_LDFLAGS)
 
+TESTDIR = test
+
+.PHONY: test clean doc
+
 TARGET = libsusanow.a
 SRC = \
 			ssn_cpu.cc     \
@@ -58,7 +62,7 @@ doc:
 
 clean:
 	rm -rf *.o *.out *.a
-	make -C examples clean
+	make -C $(TESTDIR) clean
 
 test:
-	make -C examples all
+	make -C $(TESTDIR) all
