@@ -29,6 +29,7 @@
 #include <stddef.h>
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
+#include <exception>
 
 #include <ssn_thread.h>
 #include <ssn_cpu.h>
@@ -39,13 +40,6 @@
 #include <dpdk/dpdk.h>
 
 #define NOTIMPL(str) slankdev::exception("NOT IMPLEMENT " #str)
-
-
-struct access_ids {
-  size_t rx_aid;
-  size_t tx_aid;
-};
-access_ids aids[RTE_MAX_LCORE];
 
 size_t popcnt(uint32_t n)
 {
@@ -67,20 +61,31 @@ class ssn_vnf_port_neo : public ssn_vnf_port {
   ssn_vnf_port_neo(size_t pid, size_t nrxq, size_t ntxq)
     : ssn_vnf_port(pid, nrxq, ntxq), port_id(pid), n_rxacc(0), n_txacc(0) {}
   void reset_acc() { n_rxacc = 0; n_txacc = 0; }
-  void request_rx_access(size_t n) { n_rxacc += n; }
-  void request_tx_access(size_t n) { n_txacc += n; }
+  size_t request_rx_access()
+  {
+    auto tmp = n_rxacc;
+    n_rxacc += 1;
+    return tmp;
+  }
+  size_t request_tx_access()
+  {
+    auto tmp = n_txacc;
+    n_txacc += 1;
+    return tmp;
+  }
   void config_acc()
   {
     printf("SSN_VNF_PORT_CONF(pid:%zd, n_rxac:%zd, n_txacc:%zd)\n", port_id, n_rxacc, n_txacc);
     this->configure(n_rxacc, n_txacc);
   }
 };
-ssn_vnf_port_neo* port[2];
 
 struct vnf_lcore {
   size_t lcore_id;
-  ssize_t rx_acc;
-  ssize_t tx_acc;
+  std::vector<size_t> port_rx_acc;
+  std::vector<size_t> port_tx_acc;
+  vnf_lcore(size_t lcoreid, size_t n_rx_port, size_t n_tx_port)
+    : lcore_id(lcoreid), port_rx_acc(n_rx_port), port_tx_acc(n_tx_port) {}
 };
 
 class vnf_impl {
@@ -91,13 +96,17 @@ class vnf_impl {
     vi->deploy_impl(nullptr);
   }
   std::vector<uint32_t> tids;
-  std::vector<vnf_lcore> lcores;
   uint32_t coremask;
+
+ public:
+  std::vector<vnf_lcore> lcores;
 
  protected:
   virtual void deploy_impl(void*) = 0;
   virtual void undeploy_impl() = 0;
   virtual void set_coremask_impl(uint32_t coremask) = 0;
+  virtual size_t n_rx_ports() const = 0;
+  virtual size_t n_tx_ports() const = 0;
 
   size_t tx_burst(size_t pid, size_t aid, rte_mbuf** mbufs, size_t n_mbufs)
   { return ports[pid]->tx_burst(aid, mbufs, n_mbufs); }
@@ -110,17 +119,18 @@ class vnf_impl {
   void set_coremask(uint32_t lcore_mask)
   {
     this->coremask = lcore_mask;
+
+    lcores.clear();
+    for (size_t i=0; i<32; i++) {
+      if ((coremask & (0x1<<i)) != 0)
+        lcores.push_back(vnf_lcore(i, n_rx_ports(), n_tx_ports()));
+    }
+    tids.resize(lcores.size());
+
     set_coremask_impl(coremask);
   }
   void deploy()
   {
-    lcores.clear();
-    for (size_t i=0; i<32; i++) {
-      if ((coremask & (0x1<<i)) != 0)
-        lcores.push_back({i,-1,-1});
-    }
-    tids.resize(lcores.size());
-
     for (size_t i=0; i<lcores.size(); i++) {
       tids[i] = ssn_thread_launch(_vnf_imple_spawner, this, lcores[i].lcore_id);
     }
@@ -135,39 +145,18 @@ class vnf_impl {
     }
     printf("undeploy succes\n");
   }
-  vnf_impl() { ports.resize(2); } // TODO
 
-  size_t get_rxaid_from_lcoreid(size_t lcore_id) const
+  size_t get_vlcore_id() const
   {
+    size_t lcore_id = ssn_lcore_id();
     for (size_t i=0; i<lcores.size(); i++) {
       if (lcores[i].lcore_id == lcore_id)
-        return lcores[i].rx_acc;
+        return i;
     }
-    std::string err = "vnf_impl::get_rxaid_from_lcoreid";
+    std::string err = "vnf_impl::get_vlcore_id";
     err += slankdev::format("(%zd): ", lcore_id);
     err += "not found aid (lcoreid is invalid?)";
     throw slankdev::exception(err.c_str());
-  }
-  size_t get_txaid_from_lcoreid(size_t lcore_id) const
-  {
-    for (size_t i=0; i<lcores.size(); i++) {
-      if (lcores[i].lcore_id == lcore_id)
-        return lcores[i].rx_acc;
-    }
-    std::string err = "vnf_impl::get_rxaid_from_lcoreid";
-    err += slankdev::format("(%zd): ", lcore_id);
-    err += "not found aid (lcoreid is invalid?)";
-    throw slankdev::exception(err.c_str());
-  }
-  size_t get_rxaid() const
-  {
-    size_t lcore_id = ssn_lcore_id();
-    get_rxaid_from_lcoreid(lcore_id);
-  }
-  size_t get_txaid() const
-  {
-    size_t lcore_id = ssn_lcore_id();
-    get_txaid_from_lcoreid(lcore_id);
   }
 
   /* To Be Implement */
@@ -180,24 +169,40 @@ class vnf_impl_port : public vnf_impl {
   const size_t n_ports = 2;
   bool running;
 
-  vnf_impl_port(size_t polling_port_id) : port_id(polling_port_id) {}
+  vnf_impl_port(size_t polling_port_id) : port_id(polling_port_id)
+  {
+    ports.resize(2);
+  }
+  virtual size_t n_rx_ports() const override { return 2; }
+  virtual size_t n_tx_ports() const override { return 2; }
   virtual void set_coremask_impl(uint32_t coremask) override
   {
     size_t n_lcores = popcnt(coremask);
-    ports[port_id  ]->request_rx_access(n_lcores);
-    ports[port_id  ]->request_tx_access(n_lcores);
-    ports[port_id^1]->request_tx_access(n_lcores);
+    for (size_t i=0; i<n_lcores; i++) {
+      size_t acc;
+
+      acc = ports.at(port_id)->request_rx_access();
+      lcores.at(i).port_rx_acc.at(port_id) = acc;
+
+      acc = ports[port_id]->request_tx_access();
+      lcores.at(i).port_tx_acc.at(port_id) = acc;
+
+      acc = ports[port_id^1]->request_tx_access();
+      lcores.at(i).port_tx_acc.at(port_id^1) = acc;
+    }
   }
   virtual void undeploy_impl() override { running = false; }
   virtual void deploy_impl(void*) override
   {
-    size_t rxaid = get_rxaid();
-    size_t txaid = get_txaid();
-    printf("running impl_port1\n");
+    size_t plid = ssn_lcore_id();
+    size_t vlid  = get_vlcore_id();
+    printf("running impl_port vlcore%zd plcore%zd  \n", vlid, plid);
     running = true;
+    // printf("BLOCKING with getcbar() for debug...\n"); getchar(); // TODO
     while (running) {
       rte_mbuf* mbufs[32];
-      size_t n_recv = port[port_id]->rx_burst(rxaid, mbufs, 32);
+      size_t rxaid = lcores[vlid].port_rx_acc[port_id];
+      size_t n_recv = ports[port_id]->rx_burst(rxaid, mbufs, 32);
       if (n_recv == 0) continue;
 
       for (size_t i=0; i<n_recv; i++) {
@@ -207,7 +212,8 @@ class vnf_impl_port : public vnf_impl {
         for (size_t j=0; j<100; j++) n++;
 
         size_t oport_id = get_oportid_from_iportid(port_id);
-        port[oport_id]->tx_burst(txaid, &mbufs[i], 1);
+        size_t txaid = lcores[vlid].port_tx_acc[oport_id];
+        ports[oport_id]->tx_burst(txaid, &mbufs[i], 1);
       }
     }
     printf("finnish impl_port1\n");
@@ -245,6 +251,7 @@ int main(int argc, char** argv)
   }
 
   printf("\n");
+  ssn_vnf_port_neo* port[2];
   port[0] = new ssn_vnf_port_neo(0, 2, 4); // dpdk0
   port[1] = new ssn_vnf_port_neo(1, 2, 4); // dpdk1
   printf("\n");
@@ -270,13 +277,20 @@ int main(int argc, char** argv)
   v0.impls[0]->undeploy();
   v0.impls[1]->undeploy();
 
-  // #<{(| configuration 2 |)}>#
-  // port[0]->configure(1, 2);
-  // port[1]->configure(1, 2);
-  // v0.impl[0].deploy(0x06);
-  // v0.impl[1].deploy(0x24);
-  // getchar();
-  // v0.undeploy();
+  /* Reset */
+  port[0]->reset_acc(); port[1]->reset_acc();
+
+  /* configuration 2 */
+  v0.impls[0]->set_coremask(0x06);
+  v0.impls[1]->set_coremask(0x18);
+  port[0]->config_acc();
+  port[1]->config_acc();
+  v0.impls[0]->deploy();
+  v0.impls[1]->deploy();
+  getchar();
+  v0.impls[0]->undeploy();
+  v0.impls[1]->undeploy();
+
 
   /*--------deploy-field-end------------------------------------------------*/
 
