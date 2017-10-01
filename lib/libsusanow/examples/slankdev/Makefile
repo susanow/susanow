@@ -20,4 +20,9 @@ run:
 		--vdev=net_tap0,iface=tap0 \
 		--vdev=net_tap1,iface=tap1
 
+runtap:
+	sudo ./a.out \
+		-b 01:00.0 -b 01:00.1 \
+		--vdev=net_tap0,iface=tap0 \
+		--vdev=net_tap1,iface=tap1
 

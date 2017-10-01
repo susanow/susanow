@@ -36,15 +36,15 @@ size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }
 class vnf_impl_port : public vnf_impl {
  public:
   bool running = false;
-  const size_t n_ports = 4;
+  const size_t n_ports = 2;
   const size_t port_id;
   const std::string name;
 
   vnf_impl_port(size_t polling_port_id, const char* n, std::vector<ssn_vnf_port_neo*>& ps)
-    : vnf_impl(ps), port_id(polling_port_id), name(n) { ports.resize(4); }
+    : vnf_impl(ps), port_id(polling_port_id), name(n) { /* ports.resize(4); */ }
   virtual bool is_running() const override { return running; }
-  virtual size_t n_rx_ports() const override { return 4; }
-  virtual size_t n_tx_ports() const override { return 4; }
+  virtual size_t n_rx_ports() const override { return n_ports; }
+  virtual size_t n_tx_ports() const override { return n_ports; }
   virtual void debug_dump(FILE* fp) const override
   {
     fprintf(fp, " %s \r\n", name.c_str());
@@ -97,16 +97,16 @@ class vnf_impl_port : public vnf_impl {
 };
 class vnf_test : public vnf {
  public:
-  vnf_test() : vnf(4)
+  vnf_test() : vnf(2)
   {
     vnf_impl* vnf_impl0 = new vnf_impl_port(0, "vnf_impl_port0", ports);
     vnf_impl* vnf_impl1 = new vnf_impl_port(1, "vnf_impl_port1", ports);
-    vnf_impl* vnf_impl2 = new vnf_impl_port(2, "vnf_impl_port2", ports);
-    vnf_impl* vnf_impl3 = new vnf_impl_port(3, "vnf_impl_port3", ports);
+    // vnf_impl* vnf_impl2 = new vnf_impl_port(2, "vnf_impl_port2", ports);
+    // vnf_impl* vnf_impl3 = new vnf_impl_port(3, "vnf_impl_port3", ports);
     this->add_impl(vnf_impl0);
     this->add_impl(vnf_impl1);
-    this->add_impl(vnf_impl2);
-    this->add_impl(vnf_impl3);
+    // this->add_impl(vnf_impl2);
+    // this->add_impl(vnf_impl3);
   }
 };
 
@@ -116,8 +116,8 @@ int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
   size_t n_ports = ssn_dev_count();
-  if (n_ports != 4) {
-    std::string err = slankdev::format("n_ports is not 4 (current %zd)",
+  if (n_ports != 2) {
+    std::string err = slankdev::format("n_ports is not 2 (current %zd)",
         ssn_dev_count());
     throw slankdev::exception(err.c_str());
   }
@@ -125,10 +125,10 @@ int main(int argc, char** argv)
   ssn_vnf_port_neo* port[4];
   port[0] = new ssn_vnf_port_neo(0, 1, 4); // dpdk0
   port[1] = new ssn_vnf_port_neo(1, 1, 4); // dpdk1
-  port[2] = new ssn_vnf_port_neo(2, 1, 4); // dpdk2
-  port[3] = new ssn_vnf_port_neo(3, 1, 4); // dpdk3
+  // port[2] = new ssn_vnf_port_neo(2, 1, 4); // dpdk2
+  // port[3] = new ssn_vnf_port_neo(3, 1, 4); // dpdk3
   printf("\n");
-#if 0
+#if 1
   port[0]->debug_dump(stdout); printf("\n");
   port[1]->debug_dump(stdout); printf("\n");
 #endif
@@ -138,14 +138,14 @@ int main(int argc, char** argv)
   vnf_test v0;
   v0.attach_port(0, port[0]);
   v0.attach_port(1, port[1]);
-  v0.attach_port(2, port[2]);
-  v0.attach_port(3, port[3]);
+  // v0.attach_port(2, port[2]);
+  // v0.attach_port(3, port[3]);
 
   /* configuration 2 */
   v0.set_coremask(0, 0x02); /* 0b00000010:0x02 */
   v0.set_coremask(1, 0x04); /* 0b00000100:0x04 */
-  v0.set_coremask(2, 0x08); /* 0b00001000:0x08 */
-  v0.set_coremask(3, 0x10); /* 0b00010000:0x0f */
+  // v0.set_coremask(2, 0x08); #<{(| 0b00001000:0x08 |)}>#
+  // v0.set_coremask(3, 0x10); #<{(| 0b00010000:0x0f |)}>#
   v0.config_port_acc();
   v0.deploy();
   v0.debug_dump(stdout);
@@ -182,8 +182,8 @@ int main(int argc, char** argv)
 
   delete port[0];
   delete port[1];
-  delete port[2];
-  delete port[3];
+  // delete port[2];
+  // delete port[3];
   ssn_fin();
 }
 
