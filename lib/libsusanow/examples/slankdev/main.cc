@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <ssn_ma_port.h>
 #include "ssn_vnf_neo.h"
 #define NOTIMPL(str) slankdev::exception("NOT IMPLEMENT " #str)
 
@@ -78,6 +79,12 @@ class vnf_impl_port : public vnf_impl {
     while (running) {
       rte_mbuf* mbufs[32];
       size_t rxaid = lcores[vlid].port_rx_acc[port_id];
+
+      if (false) { /* DEBUG CODE */
+        size_t next_qid = ssn_ma_port_get_next_rxqid_from_aid(port_id, rxaid);
+        printf("rxburst pid=%zd, qid=%zd \n", port_id, next_qid);
+      }
+
       size_t n_recv = ports[port_id]->rx_burst(rxaid, mbufs, 32);
       if (n_recv == 0) continue;
 
@@ -123,8 +130,8 @@ int main(int argc, char** argv)
   }
 
   ssn_vnf_port_neo* port[4];
-  port[0] = new ssn_vnf_port_neo(0, 1, 4); // dpdk0
-  port[1] = new ssn_vnf_port_neo(1, 1, 4); // dpdk1
+  port[0] = new ssn_vnf_port_neo(0, 4, 8); // dpdk0
+  port[1] = new ssn_vnf_port_neo(1, 4, 8); // dpdk1
   // port[2] = new ssn_vnf_port_neo(2, 1, 4); // dpdk2
   // port[3] = new ssn_vnf_port_neo(3, 1, 4); // dpdk3
   printf("\n");
