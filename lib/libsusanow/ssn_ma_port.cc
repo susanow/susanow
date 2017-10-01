@@ -165,7 +165,8 @@ std::vector<size_t> ssn_ma_port::ssn_ma_port_oneside::get_qids_from_aid(size_t a
 size_t ssn_ma_port::ssn_ma_port_oneside::n_queues_per_accessor() const
 {
   if ((n_queues() % n_accessor) != 0) {
-    std::string err = slankdev::format("OKASHII n_que=%zd, n_acc=%zd", n_queues(), n_accessor);
+    std::string err = "ssn_ma_port::ssn_ma_port_oneside::n_queues_per_accessor: ";
+    err += slankdev::format("n_que=%zd, n_acc=%zd", n_queues(), n_accessor);
     throw slankdev::exception(err.c_str());
   }
   size_t ret = n_queues() / n_accessor;
