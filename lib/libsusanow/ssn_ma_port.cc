@@ -64,7 +64,7 @@ class ssn_ma_port {
       accessor() {}
       void set(std::vector<size_t>& vec);
       size_t get();
-      size_t get_current() const { return accessor_idx; }
+      size_t get_current() const { return ques[accessor_idx]; }
     };
     class ssn_ma_port_queue {
      public:
@@ -98,7 +98,6 @@ class ssn_ma_port {
       ssn_log(SSN_LOG_DEBUG,
           "ssn_ma_port: rx_burst(pid=%zd, qid=%zd, access_id=%zd)",
           dpdk_port_id, qid, aid);
-      printf("DEBUi: port %zd:%zd \n", dpdk_port_id, qid);
       return rte_eth_rx_burst(dpdk_port_id, qid, mbufs, n_mbufs);
     }
   };

@@ -61,11 +61,8 @@ void l2fwd(void* acc_id_)
   while (l2fwd_running) {
     for (size_t pid=0; pid<nb_ports; pid++) {
       rte_mbuf* mbufs[32];
-#if 1
-      printf("DEBUG: port %zd:%zd \n", pid, ssn_ma_port_get_next_rxqid_from_aid(pid, aid));
-#endif
+
       size_t nb_recv = ssn_ma_port_rx_burst(pid, aid, mbufs, 32);
-      printf("\n");
       if (nb_recv == 0) continue;
 
       for (size_t i=0; i<nb_recv; i++) {
@@ -114,6 +111,8 @@ int main(int argc, char** argv)
 {
   uint32_t tid[4];
   INIT(argc, argv, 4);
+  constexpr size_t gt_lcore_id = 1;
+  ssn_green_thread_sched_register(gt_lcore_id);
 
   waitmsg("waiting deploy with 1 threads");
   ssn_ma_port_configure_acc(0, 1, 1);
@@ -137,10 +136,10 @@ int main(int argc, char** argv)
   ssn_ma_port_configure_acc(0, 4, 4);
   ssn_ma_port_configure_acc(1, 4, 4);
   l2fwd_running = true;
-  tid[0] = ssn_thread_launch(l2fwd, &num[0], 1);
-  tid[1] = ssn_thread_launch(l2fwd, &num[1], 2);
-  tid[2] = ssn_thread_launch(l2fwd, &num[2], 3);
-  tid[3] = ssn_thread_launch(l2fwd, &num[3], 4);
+  tid[0] = ssn_thread_launch(l2fwd, &num[0], gt_lcore_id);
+  tid[1] = ssn_thread_launch(l2fwd, &num[1], gt_lcore_id);
+  tid[2] = ssn_thread_launch(l2fwd, &num[2], gt_lcore_id);
+  tid[3] = ssn_thread_launch(l2fwd, &num[3], gt_lcore_id);
 
   waitmsg("waiting finish");
   l2fwd_running = false;
