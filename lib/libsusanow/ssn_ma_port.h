@@ -52,4 +52,13 @@ void ssn_ma_port_configure_acc(size_t dpdk_port_id, size_t n_rxacc, size_t n_txa
 size_t ssn_ma_port_rx_burst(size_t port_id, size_t aid, rte_mbuf** mbufs, size_t n_mbufs);
 size_t ssn_ma_port_tx_burst(size_t port_id, size_t aid, rte_mbuf** mbufs, size_t n_mbufs);
 
+size_t ssn_ma_port_get_num_rx_hw(size_t port_id);
+size_t ssn_ma_port_get_num_tx_hw(size_t port_id);
+size_t ssn_ma_port_get_num_rx_acc(size_t port_id);
+size_t ssn_ma_port_get_num_tx_acc(size_t port_id);
+
+size_t ssn_ma_port_get_next_rxqid_from_aid(size_t port_id, size_t aid);
+size_t ssn_ma_port_get_next_txqid_from_aid(size_t port_id, size_t aid);
+
+
 

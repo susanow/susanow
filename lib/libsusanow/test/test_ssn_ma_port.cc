@@ -44,8 +44,9 @@
 #include <ssn_port_stat.h>
 #include <ssn_ma_port.h>
 
-#include <dpdk/dpdk.h>
+#include <slankdev/string.h>
 #include <slankdev/exception.h>
+#include <dpdk/dpdk.h>
 
 
 size_t num[] = {0,1,2,3,4,5,6,7,8};
@@ -60,7 +61,11 @@ void l2fwd(void* acc_id_)
   while (l2fwd_running) {
     for (size_t pid=0; pid<nb_ports; pid++) {
       rte_mbuf* mbufs[32];
+#if 1
+      printf("DEBUG: port %zd:%zd \n", pid, ssn_ma_port_get_next_rxqid_from_aid(pid, aid));
+#endif
       size_t nb_recv = ssn_ma_port_rx_burst(pid, aid, mbufs, 32);
+      printf("\n");
       if (nb_recv == 0) continue;
 
       for (size_t i=0; i<nb_recv; i++) {
@@ -98,18 +103,25 @@ void INIT(int argc, char** argv, size_t n_que)
   }
 }
 
+static void waitmsg(const char* msg)
+{
+  printf("\n\n");
+  printf("press [Enter]...: %s ", msg);
+  getchar();
+}
+
 int main(int argc, char** argv)
 {
   uint32_t tid[4];
   INIT(argc, argv, 4);
 
-  getchar();
+  waitmsg("waiting deploy with 1 threads");
   ssn_ma_port_configure_acc(0, 1, 1);
   ssn_ma_port_configure_acc(1, 1, 1);
   l2fwd_running = true;
   tid[0] = ssn_thread_launch(l2fwd, &num[0], 1);
 
-  getchar();
+  waitmsg("waiting redeploy with 2 threads");
   l2fwd_running = false;
   ssn_thread_join(tid[0]);
   ssn_ma_port_configure_acc(0, 2, 2);
@@ -118,7 +130,7 @@ int main(int argc, char** argv)
   tid[0] = ssn_thread_launch(l2fwd, &num[0], 1);
   tid[1] = ssn_thread_launch(l2fwd, &num[1], 2);
 
-  getchar();
+  waitmsg("waiting redeploy with 4 threads");
   l2fwd_running = false;
   ssn_thread_join(tid[0]);
   ssn_thread_join(tid[1]);
@@ -130,7 +142,7 @@ int main(int argc, char** argv)
   tid[2] = ssn_thread_launch(l2fwd, &num[2], 3);
   tid[3] = ssn_thread_launch(l2fwd, &num[3], 4);
 
-  getchar();
+  waitmsg("waiting finish");
   l2fwd_running = false;
   ssn_thread_join(tid[0]);
   ssn_thread_join(tid[1]);

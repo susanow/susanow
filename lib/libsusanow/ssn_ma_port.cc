@@ -64,6 +64,7 @@ class ssn_ma_port {
       accessor() {}
       void set(std::vector<size_t>& vec);
       size_t get();
+      size_t get_current() const { return accessor_idx; }
     };
     class ssn_ma_port_queue {
      public:
@@ -78,12 +79,14 @@ class ssn_ma_port {
     std::vector<accessor> accessors;
    protected:
     std::vector<size_t> get_qids_from_aid(size_t aid) const;
-    size_t n_queues_per_accessor() const;
-    void show() const;
    public:
     ssn_ma_port_oneside() : n_queues_(1), n_accessor(1), accessors(1) {}
     virtual size_t burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) = 0;
+    size_t get_next_qid_from_aid(size_t aid) const { return accessors[aid].get_current(); }
+    size_t get_n_accessor() const { return n_accessor; }
     size_t n_queues() const { return n_queues_; }
+    size_t n_queues_per_accessor() const;
+    void show() const;
     void configure_queue_accessor(size_t dpdk_pid, size_t n_que, size_t n_acc);
   };
   class ssn_ma_port_oneside_rx : public ssn_ma_port_oneside {
@@ -95,6 +98,7 @@ class ssn_ma_port {
       ssn_log(SSN_LOG_DEBUG,
           "ssn_ma_port: rx_burst(pid=%zd, qid=%zd, access_id=%zd)",
           dpdk_port_id, qid, aid);
+      printf("DEBUi: port %zd:%zd \n", dpdk_port_id, qid);
       return rte_eth_rx_burst(dpdk_port_id, qid, mbufs, n_mbufs);
     }
   };
@@ -129,6 +133,14 @@ class ssn_ma_port {
   void promisc_off() { ssn_port_promisc_off(dpdk_pid); }
   void dev_up()      { ssn_port_dev_up     (dpdk_pid); }
   void dev_down()    { ssn_port_dev_down   (dpdk_pid); }
+
+ public:
+  size_t n_rx_queue() const { return n_rxq; }
+  size_t n_tx_queue() const { return n_txq; }
+  size_t n_rx_accessor() const { return rx.get_n_accessor(); }
+  size_t n_tx_accessor() const { return tx.get_n_accessor(); }
+  size_t get_next_rxqid_from_aid(size_t rxaid) const { return rx.get_next_qid_from_aid(rxaid); }
+  size_t get_next_txqid_from_aid(size_t txaid) const { return tx.get_next_qid_from_aid(txaid); }
 }; /* class ssn_ma_port */
 
 
@@ -316,4 +328,15 @@ void ssn_ma_port_debug_dump(FILE* fp)
 {
   fprintf(fp, " ssn_ma_port_debug_dump \r\n");
 }
+
+size_t ssn_ma_port_get_num_rx_hw(size_t port_id) { return vnf_ports[port_id].n_rx_queue(); }
+size_t ssn_ma_port_get_num_tx_hw(size_t port_id) { return vnf_ports[port_id].n_tx_queue(); }
+size_t ssn_ma_port_get_num_rx_acc(size_t port_id) { return vnf_ports[port_id].n_rx_accessor(); }
+size_t ssn_ma_port_get_num_tx_acc(size_t port_id) { return vnf_ports[port_id].n_tx_accessor(); }
+
+size_t ssn_ma_port_get_next_rxqid_from_aid(size_t port_id, size_t aid)
+{ return vnf_ports[port_id].get_next_rxqid_from_aid(aid); }
+
+size_t ssn_ma_port_get_next_txqid_from_aid(size_t port_id, size_t aid)
+{ return vnf_ports[port_id].get_next_txqid_from_aid(aid); }
 
