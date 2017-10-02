@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <ssn_ma_port.h>
-#include "ssn_vnf_neo.h"
+#include <ssn_vnf.h>
 #define NOTIMPL(str) slankdev::exception("NOT IMPLEMENT " #str)
 
 size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }
@@ -40,7 +40,7 @@ class vnf_impl_port : public vnf_impl {
   const std::string name;
 
   vnf_impl_port(size_t polling_port_id, const char* n,
-      fixed_size_vector<ssn_vnf_port_neo*>& ports)
+      fixed_size_vector<ssn_vnf_port*>& ports)
     : vnf_impl(ports), port_id(polling_port_id), name(n) {}
   virtual bool is_running() const override { return running; }
   virtual void debug_dump(FILE* fp) const override
@@ -128,11 +128,11 @@ int main(int argc, char** argv)
     throw slankdev::exception(err.c_str());
   }
 
-  ssn_vnf_port_neo* port[4];
-  port[0] = new ssn_vnf_port_neo(0, n_rxq, n_txq); // dpdk0
-  port[1] = new ssn_vnf_port_neo(1, n_rxq, n_txq); // dpdk1
-  port[2] = new ssn_vnf_port_neo(2, n_rxq, n_txq); // dpdk2
-  port[3] = new ssn_vnf_port_neo(3, n_rxq, n_txq); // dpdk3
+  ssn_vnf_port* port[4];
+  port[0] = new ssn_vnf_port(0, n_rxq, n_txq); // dpdk0
+  port[1] = new ssn_vnf_port(1, n_rxq, n_txq); // dpdk1
+  port[2] = new ssn_vnf_port(2, n_rxq, n_txq); // dpdk2
+  port[3] = new ssn_vnf_port(3, n_rxq, n_txq); // dpdk3
   printf("\n");
   port[0]->debug_dump(stdout); printf("\n");
   port[1]->debug_dump(stdout); printf("\n");
