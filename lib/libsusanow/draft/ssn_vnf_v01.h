@@ -1,4 +1,29 @@
 
+/*
+ * MIT License
+ *
+ * Copyright (c) 2017 Susanow
+ * Copyright (c) 2017 Hiroki SHIROKURA
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #pragma once
 #include <assert.h>
 #include <stdio.h>
@@ -148,15 +173,15 @@ class ssn_vnf_vcore {
     : lcore_id(lcoreid), port_rx_acc(n_rx_port), port_tx_acc(n_tx_port) {}
 };
 
-class vnf_impl {
+class ssn_vnf_block {
  private:
-  static void _vnf_imple_spawner(void* instance_)
+  static void _vnf_piece_spawner(void* instance_)
   {
-    vnf_impl* vi = reinterpret_cast<vnf_impl*>(instance_);
+    ssn_vnf_block* vi = reinterpret_cast<ssn_vnf_block*>(instance_);
     vi->deploy_impl(nullptr);
   }
   std::vector<uint32_t> tids;
-  std::vector<ssn_vnf_vcore> lcores;
+  std::vector<ssn_vnf_vcore> vcores;
   fixed_size_vector<ssn_vnf_port*>& ports;
   uint32_t coremask;
 
@@ -176,23 +201,23 @@ class vnf_impl {
   { return ports.at(pid)->request_tx_access(); }
 
   void set_lcore_port_rxaid(size_t lcoreid, size_t pid, size_t aid)
-  { lcores.at(lcoreid).port_rx_acc.at(pid) = aid; }
+  { vcores.at(lcoreid).port_rx_acc.at(pid) = aid; }
   void set_lcore_port_txaid(size_t lcoreid, size_t pid, size_t aid)
-  { lcores.at(lcoreid).port_tx_acc.at(pid) = aid; }
+  { vcores.at(lcoreid).port_tx_acc.at(pid) = aid; }
 
   size_t get_lcore_port_rxaid(size_t vcore_id, size_t pid) const
-  { return lcores.at(vcore_id).port_rx_acc.at(pid); }
+  { return vcores.at(vcore_id).port_rx_acc.at(pid); }
   size_t get_lcore_port_txaid(size_t vcore_id, size_t pid) const
-  { return lcores.at(vcore_id).port_tx_acc.at(pid); }
+  { return vcores.at(vcore_id).port_tx_acc.at(pid); }
 
-  size_t vcore_id_2_lcore_id(size_t vcore_id) const { return lcores[vcore_id].lcore_id; }
-  size_t n_vcores() const { return lcores.size(); }
+  size_t vcore_id_2_lcore_id(size_t vcore_id) const { return vcores.at(vcore_id).lcore_id; }
+  size_t n_vcores() const { return vcores.size(); }
   size_t n_ports() const { return ports.size(); }
   size_t get_vlcore_id() const
   {
     size_t lcore_id = ssn_lcore_id();
-    for (size_t i=0; i<lcores.size(); i++) {
-      if (lcores.at(i).lcore_id == lcore_id)
+    for (size_t i=0; i<vcores.size(); i++) {
+      if (vcores.at(i).lcore_id == lcore_id)
         return i;
     }
     std::string err = "vnf_impl::get_vlcore_id";
@@ -202,7 +227,7 @@ class vnf_impl {
   }
 
  public:
-  vnf_impl(fixed_size_vector<ssn_vnf_port*>& p) : ports(p) {}
+  ssn_vnf_block(fixed_size_vector<ssn_vnf_port*>& p) : ports(p) {}
   virtual void debug_dump(FILE* fp) const = 0;
   virtual bool is_running() const = 0;
 
@@ -210,50 +235,50 @@ class vnf_impl {
   void set_coremask(uint32_t lcore_mask)
   {
     this->coremask = lcore_mask;
-    lcores.clear();
+    vcores.clear();
     for (size_t i=0; i<32; i++) {
       if ((coremask & (0x1<<i)) != 0)
-        lcores.push_back(ssn_vnf_vcore(i, ports.size(), ports.size()));
+        vcores.push_back(ssn_vnf_vcore(i, ports.size(), ports.size()));
     }
-    tids.resize(lcores.size());
+    tids.resize(vcores.size());
     set_coremask_impl(coremask);
   }
   void deploy()
   {
-    for (size_t i=0; i<lcores.size(); i++) {
-      tids.at(i) = ssn_thread_launch(_vnf_imple_spawner, this, lcores[i].lcore_id);
+    for (size_t i=0; i<vcores.size(); i++) {
+      tids.at(i) = ssn_thread_launch(_vnf_piece_spawner, this, vcores.at(i).lcore_id);
     }
   }
   void undeploy()
   {
-    assert(tids.size() == lcores.size());
+    assert(tids.size() == vcores.size());
     undeploy_impl();
-    for (size_t i=0; i<lcores.size(); i++) {
+    for (size_t i=0; i<vcores.size(); i++) {
       ssn_thread_join(tids.at(i));
     }
   }
-}; /* class vnf_impl */
+}; /* class ssn_vnf_block */
 
 
-class vnf {
+class ssn_vnf {
  protected:
   fixed_size_vector<ssn_vnf_port*> ports;
-  std::vector<vnf_impl*> impls;
+  std::vector<ssn_vnf_block*> blocks;
 
  public:
-  vnf(size_t nport) : ports(nport) {}
+  ssn_vnf(size_t nport) : ports(nport) {}
 
-  void add_impl(vnf_impl* impl) { impls.push_back(impl); }
+  void add_block(ssn_vnf_block* impl) { blocks.push_back(impl); }
 
   void set_coremask(size_t impl_id, uint32_t cmask)
-  { impls.at(impl_id)->set_coremask(cmask); }
+  { blocks.at(impl_id)->set_coremask(cmask); }
 
   void attach_port(size_t pid, ssn_vnf_port* port)
   {
     ports.at(pid) = port;
-    auto n = impls.size();
+    auto n = blocks.size();
     for (size_t i=0; i<n; i++) {
-      impls[i]->attach_port(pid, port);
+      blocks.at(i)->attach_port(pid, port);
     }
   }
 
@@ -268,29 +293,29 @@ class vnf {
   void debug_dump(FILE* fp) const
   {
     fprintf(fp, "\r\n");
-    auto n = impls.size();
+    auto n = blocks.size();
     for (size_t i=0; i<n; i++) {
-      impls.at(i)->debug_dump(fp);
+      blocks.at(i)->debug_dump(fp);
     }
     fprintf(fp, "\r\n");
   }
 
   void deploy()
   {
-    auto n_impl = impls.size();
+    auto n_impl = blocks.size();
     for (size_t i=0; i<n_impl; i++) {
-      this->impls.at(i)->deploy();
+      this->blocks.at(i)->deploy();
     }
   }
 
   void undeploy()
   {
-    auto n_impl = impls.size();
+    auto n_impl = blocks.size();
     for (size_t i=0; i<n_impl; i++) {
-      this->impls.at(i)->undeploy();
+      this->blocks.at(i)->undeploy();
     }
   }
-}; /* class vnf */
+}; /* class ssn_vnf */
 
 
 

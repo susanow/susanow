@@ -28,29 +28,24 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <ssn_ma_port.h>
-#include <ssn_vnf.h>
+#include <draft/ssn_vnf_v01.h>
 #define NOTIMPL(str) slankdev::exception("NOT IMPLEMENT " #str)
 
 size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }
 
-class vnf_impl_port : public vnf_impl {
+class vnf_block_port : public ssn_vnf_block {
  public:
   bool running = false;
   const size_t port_id;
   const std::string name;
 
-  vnf_impl_port(size_t polling_port_id, const char* n,
-      fixed_size_vector<ssn_vnf_port*>& ports)
-    : vnf_impl(ports), port_id(polling_port_id), name(n) {}
+  vnf_block_port(size_t poll_pid, fixed_size_vector<ssn_vnf_port*>& ports)
+    : ssn_vnf_block(ports)
+    , port_id(poll_pid)
+    , name(slankdev::format("vnf_block_port%zd", port_id)) {}
+
   virtual bool is_running() const override { return running; }
-  virtual void debug_dump(FILE* fp) const override
-  {
-    fprintf(fp, " %s \r\n", name.c_str());
-    size_t n_lcores = n_vcores();
-    for (size_t i=0; i<n_lcores; i++) {
-      fprintf(fp, "  vlcore[%zd]: plcore%zd \r\n", i, vcore_id_2_lcore_id(i));
-    }
-  }
+  virtual void undeploy_impl() override { running = false; }
   virtual void set_coremask_impl(uint32_t coremask) override
   {
     size_t n_lcores = slankdev::popcnt32(coremask);
@@ -65,7 +60,6 @@ class vnf_impl_port : public vnf_impl {
       }
     }
   }
-  virtual void undeploy_impl() override { running = false; }
   virtual void deploy_impl(void*) override
   {
     size_t plid = ssn_lcore_id();
@@ -96,19 +90,27 @@ class vnf_impl_port : public vnf_impl {
       }
     }
   }
-};
-class vnf_test : public vnf {
- public:
-  vnf_test(size_t n_ports) : vnf(n_ports)
+  virtual void debug_dump(FILE* fp) const override
   {
-    vnf_impl* vnf_impl0 = new vnf_impl_port(0, "vnf_impl_port0", ports);
-    vnf_impl* vnf_impl1 = new vnf_impl_port(1, "vnf_impl_port1", ports);
-    vnf_impl* vnf_impl2 = new vnf_impl_port(2, "vnf_impl_port2", ports);
-    vnf_impl* vnf_impl3 = new vnf_impl_port(3, "vnf_impl_port3", ports);
-    this->add_impl(vnf_impl0);
-    this->add_impl(vnf_impl1);
-    this->add_impl(vnf_impl2);
-    this->add_impl(vnf_impl3);
+    fprintf(fp, " %s \r\n", name.c_str());
+    size_t n_lcores = n_vcores();
+    for (size_t i=0; i<n_lcores; i++) {
+      fprintf(fp, "  vlcore[%zd]: plcore%zd \r\n", i, vcore_id_2_lcore_id(i));
+    }
+  }
+};
+class vnf_test : public ssn_vnf {
+ public:
+  vnf_test(size_t n_ports) : ssn_vnf(n_ports)
+  {
+    ssn_vnf_block* vnf_block0 = new vnf_block_port(0, ports);
+    ssn_vnf_block* vnf_block1 = new vnf_block_port(1, ports);
+    ssn_vnf_block* vnf_block2 = new vnf_block_port(2, ports);
+    ssn_vnf_block* vnf_block3 = new vnf_block_port(3, ports);
+    this->add_block(vnf_block0);
+    this->add_block(vnf_block1);
+    this->add_block(vnf_block2);
+    this->add_block(vnf_block3);
   }
 };
 
@@ -133,12 +135,10 @@ int main(int argc, char** argv)
   port[1] = new ssn_vnf_port(1, n_rxq, n_txq); // dpdk1
   port[2] = new ssn_vnf_port(2, n_rxq, n_txq); // dpdk2
   port[3] = new ssn_vnf_port(3, n_rxq, n_txq); // dpdk3
-  printf("\n");
-  port[0]->debug_dump(stdout); printf("\n");
-  port[1]->debug_dump(stdout); printf("\n");
 
   /*--------deploy-field-begin----------------------------------------------*/
 
+  printf("\n");
   vnf_test v0(4);
   v0.attach_port(0, port[0]);
   v0.attach_port(1, port[1]);
