@@ -9,7 +9,7 @@ CXXFLAGS += -fsanitize=address
 
 
 all:
-	@$(CXX) $(CXXFLAGS) main.cc ssn_vnf_ext.cc $(LDFLAGS)
+	@$(CXX) $(CXXFLAGS) main.cc $(LDFLAGS)
 	@echo LD a.out
 
 clean:
