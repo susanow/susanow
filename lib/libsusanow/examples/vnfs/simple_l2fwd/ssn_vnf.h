@@ -2,6 +2,7 @@
 /*
  * MIT License
  *
+ * Copyright (c) 2017 Susanow Project
  * Copyright (c) 2017 Hiroki SHIROKURA
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,6 +25,7 @@
  */
 
 #pragma once
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -105,6 +107,7 @@ class ssn_vnf_port {
    */
   void debug_dump(FILE* fp) const;
 };
+
 
 
 /**

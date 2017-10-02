@@ -14,7 +14,7 @@
 #include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
-#include <ssn_vnf.h>
+#include <ssn_vnf_port.h>
 #include <dpdk/dpdk.h>
 
 

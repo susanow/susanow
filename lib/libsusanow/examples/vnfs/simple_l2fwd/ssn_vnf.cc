@@ -2,6 +2,7 @@
 /*
  * MIT License
  *
+ * Copyright (c) 2017 Susanow Project
  * Copyright (c) 2017 Hiroki SHIROKURA
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -41,12 +42,6 @@
 #include <slankdev/exception.h>
 
 
-void _vnf_thread_spawner(void* vnf_instance_)
-{
-  ssn_vnf* vnf = reinterpret_cast<ssn_vnf*>(vnf_instance_);
-  vnf->deploy_imple(nullptr);
-}
-
 ssn_vnf_port::ssn_vnf_port(size_t a_port_id, size_t a_n_rxq, size_t a_n_txq) :
   port_id(a_port_id), n_rxq(a_n_rxq), n_txq(a_n_txq), n_rxacc(0), n_txacc(0)
 {
@@ -75,6 +70,13 @@ void ssn_vnf_port::debug_dump(FILE* fp) const
   fprintf(fp, " n_txq  : %zd\r\n", n_txq  );
   fprintf(fp, " n_rxacc: %zd\r\n", n_rxacc);
   fprintf(fp, " n_txacc: %zd\r\n", n_txacc);
+}
+
+
+void _vnf_thread_spawner(void* vnf_instance_)
+{
+  ssn_vnf* vnf = reinterpret_cast<ssn_vnf*>(vnf_instance_);
+  vnf->deploy_imple(nullptr);
 }
 
 size_t ssn_vnf::tx_burst(size_t pid, size_t aid, rte_mbuf** mbufs, size_t n_mbufs)
