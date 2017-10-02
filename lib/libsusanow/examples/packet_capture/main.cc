@@ -49,8 +49,8 @@ size_t num[] = {0,1,2,3,4,5,6,7,8};
 void operate_packet(rte_mbuf* mbuf, size_t pid, size_t aid, size_t qid)
 {
   printf("Port%zd:%zd accessid=%zd \n", pid, qid, aid);
-  dpdk::hexdump_mbuf(stdout, mbuf);
-  printf("\n");
+  // dpdk::hexdump_mbuf(stdout, mbuf);
+  // printf("\n");
 }
 
 bool running = true;
@@ -80,8 +80,10 @@ void packet_capture(void* acc_id_)
 
 int main(int argc, char** argv)
 {
-  constexpr size_t n_queue = 8;
-  constexpr size_t n_acc   = 4;
+  constexpr size_t n_rxq = 8;
+  constexpr size_t n_txq = 8;
+  constexpr size_t n_rxacc = 4;
+  constexpr size_t n_txacc = 4;
   constexpr size_t wanted_n_ports = 1;
   uint32_t tid[4];
   ssn_init(argc, argv);
@@ -97,7 +99,7 @@ int main(int argc, char** argv)
   ssn_green_thread_sched_register(gt_lcore_id);
 
   for (size_t i=0; i<n_ports; i++) {
-    ssn_ma_port_configure_hw(i, n_queue, n_queue);
+    ssn_ma_port_configure_hw(i, n_rxq, n_txq);
     ssn_ma_port_dev_up(i);
     ssn_ma_port_promisc_on(i);
   }
@@ -106,7 +108,7 @@ int main(int argc, char** argv)
   slankdev::waitmsg("press [Enter] to Deploy...");
   printf("\n\n");
 
-  ssn_ma_port_configure_acc(0, n_acc, n_acc);
+  ssn_ma_port_configure_acc(0, n_rxacc, n_txacc);
   tid[0] = ssn_thread_launch(packet_capture, &num[0], gt_lcore_id);
   tid[1] = ssn_thread_launch(packet_capture, &num[1], gt_lcore_id);
   tid[2] = ssn_thread_launch(packet_capture, &num[2], gt_lcore_id);
