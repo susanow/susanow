@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <ssn_ma_port.h>
-#include <draft/ssn_vnf_v01.h>
+#include <ssn_vnf_v01.h>
 #define NOTIMPL(str) slankdev::exception("NOT IMPLEMENT " #str)
 
 size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }

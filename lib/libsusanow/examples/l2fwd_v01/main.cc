@@ -33,7 +33,7 @@
 #include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
-#include <draft/ssn_vnf_v01.h>
+#include <ssn_vnf_v01.h>
 #include <dpdk/dpdk.h>
 
 
