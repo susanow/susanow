@@ -20,8 +20,7 @@ SRC = \
 			test_ssn_timer.cc         \
 			test_ssn_port.cc          \
 			test_ssn_port_stat.cc     \
-			test_ssn_ma_port.cc       \
-			test_ssn_vnf.cc
+			test_ssn_ma_port.cc       
 OBJ = $(SRC:.cc=.out)
 
 # poc: clean
