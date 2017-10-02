@@ -117,30 +117,35 @@ int main(int argc, char** argv)
   v.attach_port(0, port0);
   v.attach_port(1, port1);
 
+  //-------------------------------------------------------
+
+  port0->reset_acc();
+  port1->reset_acc();
   v.set_coremask(0, 0x02); /* 0b00000010:0x02 */
   v.config_port_acc();
   v.deploy();
   getchar();
   v.undeploy();
 
+  //-------------------------------------------------------
+
   port0->reset_acc();
   port1->reset_acc();
-
   v.set_coremask(0, 0x06); /* 0b00000110:0x06 */
   v.config_port_acc();
   v.deploy();
   getchar();
   v.undeploy();
 
+  //-------------------------------------------------------
+
   port0->reset_acc();
   port1->reset_acc();
-
   v.set_coremask(0, 0x1e); /* 0b00011110:0x1e */
   v.config_port_acc();
   v.deploy();
   getchar();
   v.undeploy();
-
 
 fin:
   delete port0;
