@@ -2,6 +2,7 @@
 /*
  * MIT License
  *
+ * Copyright (c) 2017 Susanow
  * Copyright (c) 2017 Hiroki SHIROKURA
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -32,59 +33,69 @@
 #include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
-#include <draft/ssn_vnf_v00.h>
+#include <draft/ssn_vnf_v01.h>
 #include <dpdk/dpdk.h>
 
 
-class vnf_test : public ssn_vnf {
-  bool l2fwd_running;
-  virtual bool is_running() const override { return l2fwd_running; }
-  virtual void undeploy_imple() override { l2fwd_running=false; }
-  virtual void deploy_imple(void*) override
+size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }
+
+class vnf_block : public ssn_vnf_block {
+  bool running = false;
+ public:
+  vnf_block(fixed_size_vector<ssn_vnf_port*>& ports) : ssn_vnf_block(ports) {}
+  virtual bool is_running() const override { return running; }
+  virtual void undeploy_impl() override { running = false; }
+  virtual void debug_dump(FILE* fp) const override { throw slankdev::exception("NOTIMPL"); }
+  virtual void set_coremask_impl(uint32_t coremask) override
   {
-    l2fwd_running = true;
-    size_t aid = get_aid();
-    ssn_log(SSN_LOG_INFO, "start new thread %s, access_id=%zd\n", __func__, aid);
+    size_t n_vcores = slankdev::popcnt32(coremask);
+    for (size_t i=0; i<n_vcores; i++) {
+      size_t n_port = n_ports();
+      for (size_t pid=0; pid<n_port; pid++) {
+        size_t rxaid = port_request_rx_access(pid);
+        set_lcore_port_rxaid(i, pid, rxaid);
+        size_t txaid = port_request_tx_access(pid);
+        set_lcore_port_txaid(i, pid, txaid);
+      }
+    }
+  }
+  virtual void deploy_impl(void*) override
+  {
+    size_t lcore_id = ssn_lcore_id();
+    size_t vcore_id  = get_vlcore_id();
 
-    size_t nb_ports = n_ports();
-    while (l2fwd_running) {
-      for (size_t pid=0; pid<nb_ports; pid++) {
+    running = true;
+    while (running) {
+      size_t n_port = this->n_ports();
+      for (size_t pid=0; pid<n_port; pid++) {
         rte_mbuf* mbufs[32];
-        size_t nb_recv = rx_burst(pid, aid, mbufs, 32);
-        if (nb_recv == 0) continue;
+        size_t rxaid = get_lcore_port_rxaid(vcore_id, pid);
+        size_t txaid = get_lcore_port_txaid(vcore_id, pid^1);
 
-        for (size_t i=0; i<nb_recv; i++) {
+        size_t n_recv = rx_burst(pid, rxaid, mbufs, 32);
+        if (n_recv == 0) continue;
+
+        for (size_t i=0; i<n_recv; i++) {
 
           /* Delay Block begin */
           size_t n=10;
           for (size_t j=0; j<100; j++) n++;
 
-          size_t nb_send = tx_burst(pid^1, aid, &mbufs[i], 1);
-          if (nb_send != 1)
-            rte_pktmbuf_free(mbufs[i]);
+          tx_burst(pid^1, txaid, &mbufs[i], 1);
         }
-      }
-    } /* while */
-
-    ssn_log(SSN_LOG_INFO, "finish thread %s \n", __func__);
+      } //for
+    } /* while (running) */
   }
- public:
-  vnf_test(size_t np) : ssn_vnf(np), l2fwd_running(false) {}
 };
 
-char waitmsg(const char* msg)
-{
-  printf(msg);
-  return getchar();
-}
-
-void VNF_DUMP(ssn_vnf* vnf)
-{
-  printf("\n");
-  printf("vnfptr: %p \r\n", vnf);
-  vnf->debug_dump(stdout);
-  printf("\n");
-}
+class vnf : public ssn_vnf {
+ public:
+  vnf() : ssn_vnf(2)
+  {
+    ssn_vnf_block* block = new vnf_block(ports);
+    this->add_block(block);
+  }
+}; /* class vnf */
 
 int main(int argc, char** argv)
 {
@@ -102,36 +113,36 @@ int main(int argc, char** argv)
   port0->debug_dump(stdout); printf("\n");
   port1->debug_dump(stdout); printf("\n");
 
-  vnf_test* vnf0 = new vnf_test(n_ports);
-  vnf0->attach_port(0, port0); // attach dpdk0 to vnf0
-  vnf0->attach_port(1, port1); // attach dpdk1 to vnf0
-  VNF_DUMP(vnf0);
+  vnf v;
+  v.attach_port(0, port0);
+  v.attach_port(1, port1);
 
-  /* run with 1 cores */
-  waitmsg("press [enter] to deploy with 1 lcores...\n");
-  vnf0->undeploy();
-  vnf0->deploy(0x04);
-  VNF_DUMP(vnf0);
+  v.set_coremask(0, 0x02); /* 0b00000010:0x02 */
+  v.config_port_acc();
+  v.deploy();
+  getchar();
+  v.undeploy();
 
-  /* run with 2 cores */
-  waitmsg("press [enter] to deploy with 2 lcores...\n");
-  vnf0->undeploy();
-  vnf0->deploy(0x0c);
-  VNF_DUMP(vnf0);
+  port0->reset_acc();
+  port1->reset_acc();
 
-  /* run with 4 cores */
-  waitmsg("press [enter] to deploy with 4 lcores...\n");
-  vnf0->undeploy();
-  vnf0->deploy(0x3c);
-  VNF_DUMP(vnf0);
+  v.set_coremask(0, 0x06); /* 0b00000110:0x06 */
+  v.config_port_acc();
+  v.deploy();
+  getchar();
+  v.undeploy();
 
-  /* undeploy */
-  waitmsg("press [enter] to undeploy ");
-  vnf0->undeploy();
-  VNF_DUMP(vnf0);
+  port0->reset_acc();
+  port1->reset_acc();
+
+  v.set_coremask(0, 0x1e); /* 0b00011110:0x1e */
+  v.config_port_acc();
+  v.deploy();
+  getchar();
+  v.undeploy();
+
 
 fin:
-  delete vnf0;
   delete port0;
   delete port1;
   ssn_fin();

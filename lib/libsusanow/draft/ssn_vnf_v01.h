@@ -34,6 +34,7 @@
 #include <slankdev/util.h>
 #include <exception>
 
+#include <ssn_ma_port.h>
 #include <ssn_thread.h>
 #include <ssn_cpu.h>
 #include <ssn_port.h>
