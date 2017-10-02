@@ -20,7 +20,7 @@ runtap2:
 		--vdev=net_tap0,iface=tap0 \
 		--vdev=net_tap1,iface=tap1
 
-runtap4:
+run:
 	sudo ./a.out \
 		--vdev=net_tap0,iface=tap0 \
 		--vdev=net_tap1,iface=tap1 \
