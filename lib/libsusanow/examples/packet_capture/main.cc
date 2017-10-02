@@ -50,7 +50,7 @@ bool running = true;
 void packet_capture(void* acc_id_)
 {
   size_t aid = *((size_t*)acc_id_);
-  ssn_log(SSN_LOG_INFO, "start new thread %s, access_id=%zd\n", __func__, aid);
+  printf("IMPORTANT: start new thread %s, access_id=%zd\n", __func__, aid);
 
   size_t nb_ports = ssn_dev_count();
   while (running) {
@@ -71,28 +71,30 @@ void packet_capture(void* acc_id_)
 
 int main(int argc, char** argv)
 {
+  constexpr size_t n_queue = 4;
+  constexpr size_t n_acc   = 2;
+  constexpr size_t wanted_n_ports = 1;
   uint32_t tid[4];
   ssn_init(argc, argv);
 
   auto n_ports = ssn_dev_count();
-  if (n_ports != 1) {
-    std::string err = slankdev::format("num ports is not 2 (current %zd)",
-        ssn_dev_count());
+  if (n_ports != wanted_n_ports) {
+    std::string err = slankdev::format("num ports is not %zd (current %zd)",
+        wanted_n_ports, ssn_dev_count());
     throw slankdev::exception(err.c_str());
   }
 
   for (size_t i=0; i<n_ports; i++) {
-    ssn_ma_port_configure_hw(i, 4, 4);
+    ssn_ma_port_configure_hw(i, n_queue, n_queue);
     ssn_ma_port_dev_up(i);
     ssn_ma_port_promisc_on(i);
   }
 
-  constexpr size_t gt_lcore_id = 1;
-  ssn_green_thread_sched_register(gt_lcore_id);
-
-  ssn_ma_port_configure_acc(0, 2, 2);
-  tid[0] = ssn_thread_launch(packet_capture, &num[0], gt_lcore_id);
-  tid[1] = ssn_thread_launch(packet_capture, &num[1], gt_lcore_id);
+  getchar();
+  printf("\n\n");
+  ssn_ma_port_configure_acc(0, n_acc, n_acc);
+  tid[0] = ssn_thread_launch(packet_capture, &num[0], 1);
+  tid[1] = ssn_thread_launch(packet_capture, &num[1], 2);
   getchar();
   running = false;
   ssn_thread_join(tid[0]);

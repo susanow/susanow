@@ -15,7 +15,7 @@ all:
 clean:
 	rm -rf *.out *.o
 
-runtap:
+run:
 	sudo ./a.out \
 		--vdev=net_tap0,iface=tap0
 
