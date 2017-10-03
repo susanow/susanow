@@ -30,27 +30,53 @@
 int main(int argc, char** argv)
 {
   constexpr size_t n_que = 8;
-  constexpr size_t n_acc = 4;
+  constexpr size_t n_enq_acc = 4;
+  constexpr size_t n_deq_acc = 2;
   ssn_init(argc, argv);
 
   ssn_ma_ring ring0;
   ring0.configure_que(n_que);
-  ring0.configure_acc(n_acc);
-
+  ring0.configure_acc(n_enq_acc, n_deq_acc);
   ring0.debug_dump(stdout);
 
-  /* access to ring */
-  size_t* array[32] = {
-    (size_t*)(0x01),
-    (size_t*)(0x02),
-    (size_t*)(0x03),
-    (size_t*)(0x04),
-  };
-  size_t n_enq = ring0.enqueue_burst(0, (void**)array, 32);
-  n_enq = ring0.enqueue_burst(0, (void**)array, 32);
-  n_enq = ring0.enqueue_burst(1, (void**)array, 32);
-  n_enq = ring0.enqueue_burst(0, (void**)array, 32);
+  size_t n_enq;
+  size_t n_deq;
+  size_t* send_buf[1] = { nullptr };
+  size_t* recv_buf[32];
 
+  slankdev::waitmsg("phase 1");
+  n_enq = ring0.enqueue_burst(0, (void**)send_buf, 1);
+  printf("n_enq: %zd \n", n_enq);
+  ring0.debug_dump(stdout);
+
+  slankdev::waitmsg("phase 2");
+  n_enq = ring0.enqueue_burst(0, (void**)send_buf, 1);
+  printf("n_enq: %zd \n", n_enq);
+  ring0.debug_dump(stdout);
+
+  slankdev::waitmsg("phase 3");
+  n_enq = ring0.enqueue_burst(1, (void**)send_buf, 1);
+  printf("n_enq: %zd \n", n_enq);
+  ring0.debug_dump(stdout);
+
+  slankdev::waitmsg("phase 4");
+  n_deq = ring0.dequeue_burst(0, (void**)recv_buf, 32);
+  printf("n_deq: %zd \n", n_deq);
+  ring0.debug_dump(stdout);
+
+  slankdev::waitmsg("phase 4");
+  n_deq = ring0.dequeue_burst(0, (void**)recv_buf, 32);
+  printf("n_deq: %zd \n", n_deq);
+  ring0.debug_dump(stdout);
+
+  slankdev::waitmsg("phase 4");
+  n_deq = ring0.dequeue_burst(0, (void**)recv_buf, 32);
+  printf("n_deq: %zd \n", n_deq);
+  ring0.debug_dump(stdout);
+
+  slankdev::waitmsg("phase 5");
+  n_enq = ring0.enqueue_burst(0, (void**)send_buf, 1);
+  printf("n_enq: %zd \n", n_enq);
   ring0.debug_dump(stdout);
 }
 
