@@ -64,6 +64,12 @@ class vnf : public ssn_vnf {
   vnf(const char* name) : ssn_vnf(2)
   {
     ssn_vnf_block* block = new vnf_block(ports, name);
-    this->add_block(block);
+    blocks.push_back(block);
+  }
+  ~vnf()
+  {
+    auto* p = blocks.at(blocks.size()-1);
+    delete p;
+    blocks.pop_back();
   }
 }; /* class vnf */

@@ -234,8 +234,11 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
 }; /* class ssn_vnf_port_dpdk */
 
 
+class ssn_vnf_port_patch_panel;
+
 class ssn_vnf_port_virt : public ssn_vnf_port {
 
+  friend class ssn_vnf_port_patch_panel;
   fixed_size_vector<rte_ring*> rxq;
   fixed_size_vector<rte_ring*> txq;
 
@@ -257,6 +260,42 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
   }
   virtual void config_acc() override { throw NI("vnfportvirt::config_acc"); }
 }; /* class ssn_vnf_port_virt */
+
+
+
+/**
+ * @brief Provide 1 patch panel between a pair of ssn_vnf_port_virts
+ */
+class ssn_vnf_port_patch_panel {
+  ssn_vnf_port_virt* right;
+  ssn_vnf_port_virt* left;
+ public:
+  ssn_vnf_port_patch_panel(ssn_vnf_port_virt* r, ssn_vnf_port_virt* l)
+    : right(r), left(l)
+  {
+    if (!(r && l)) {
+      std::string err = "ssn_vnf_port_patch_panel::ssn_vnf_port_patch_panel: ";
+      err += "invalid argument (nullptr)";
+      throw slankdev::exception(err.c_str());
+    }
+
+    bool c0 = left->get_n_rxq() == right->get_n_txq();
+    bool c1 = left->get_n_txq() == right->get_n_rxq();
+    if (!(c0 && c1)) {
+      std::string err = "ssn_vnf_port_patch_panel::ssn_vnf_port_patch_panel: ";
+      err += "patch panel is not support ";
+      err += "(n_rxq,n_txq are invalid)";
+      throw slankdev::exception(err.c_str());
+    }
+
+    printf("patch panel create success\n");
+  }
+  ~ssn_vnf_port_patch_panel()
+  {
+    /* Free All rte_ring(s) included this patch panel */
+
+  }
+}; /* class ssn_vnf_port_patch_panel */
 
 
 class ssn_vnf_vcore {
@@ -362,8 +401,6 @@ class ssn_vnf {
 
  public:
   ssn_vnf(size_t nport) : ports(nport) {}
-
-  void add_block(ssn_vnf_block* impl) { blocks.push_back(impl); }
 
   void set_coremask(size_t impl_id, uint32_t cmask)
   { blocks.at(impl_id)->set_coremask(cmask); }
