@@ -48,15 +48,24 @@ int main(int argc, char** argv)
     throw slankdev::exception(err.c_str());
   }
 
-  ssn_vnf_port* port0 = new ssn_vnf_port(0, 4, 4); // dpdk0
-  ssn_vnf_port* port1 = new ssn_vnf_port(1, 4, 4); // dpdk1
-  ssn_vnf_port* port2 = new ssn_vnf_port(2, 4, 4); // dpdk2
-  ssn_vnf_port* port3 = new ssn_vnf_port(3, 4, 4); // dpdk3
-  printf("\n");
+  /*-------------------------------------------------------------------------*/
+
+  ssn_vnf_port_dpdk* dpdk0 = new ssn_vnf_port_dpdk(0, 4, 4); // dpdk0
+  ssn_vnf_port_dpdk* dpdk1 = new ssn_vnf_port_dpdk(1, 4, 4); // dpdk1
+  ssn_vnf_port_virt* virt0 = new ssn_vnf_port_virt(4, 4); // virt
+  ssn_vnf_port_virt* virt1 = new ssn_vnf_port_virt(4, 4); // virt
+
+  ssn_vnf_port* port0 = dpdk0;
+  ssn_vnf_port* port1 = virt0;
+  ssn_vnf_port* port2 = virt1;
+  ssn_vnf_port* port3 = dpdk1;
+
   port0->debug_dump(stdout); printf("\n");
   port1->debug_dump(stdout); printf("\n");
   port2->debug_dump(stdout); printf("\n");
   port3->debug_dump(stdout); printf("\n");
+
+  /*-------------------------------------------------------------------------*/
 
   vnf v0("vnf0");
   v0.attach_port(0, port0);
@@ -66,7 +75,7 @@ int main(int argc, char** argv)
   v1.attach_port(0, port2);
   v1.attach_port(1, port3);
 
-  //-------------------------------------------------------
+  /*-------------------------------------------------------------------------*/
 
   port0->reset_acc();
   port1->reset_acc();
@@ -80,6 +89,7 @@ int main(int argc, char** argv)
   v1.config_port_acc();
   v1.deploy();
 
+  /*-------------------------------------------------------------------------*/
 
   getchar();
   v0.undeploy();

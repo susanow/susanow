@@ -42,6 +42,7 @@
 #include <ssn_log.h>
 #include <dpdk/dpdk.h>
 #include <vector>
+#define NI(str) slankdev::exception("notimplement "#str);
 
 
 template <class T>
@@ -62,10 +63,13 @@ class fixed_size_vector {
  * @details
  *   Now, this class implement for only dpdk-phy-port. but we are going to
  *   extend this class to support virtual-port for NF-chaining.
+ *   This class is abstract class.
+ *   There are some classes inherrit this,
+ *   ssn_vnf_port_dpdk and ssn_vnf_port_virt.
  */
 class ssn_vnf_port {
+ protected:
 
-  const size_t port_id; /*! dpdk port id */
   const size_t n_rxq;   /*! num of rx queues (hardware) */
   const size_t n_txq;   /*! num of tx queues (hardware) */
   size_t n_rxacc;       /*! num of rx accessor */
@@ -84,7 +88,8 @@ class ssn_vnf_port {
    *   - num of rx queues (hardware multiqueues)
    *   - num of tx queues (hardware multiqueues)
    */
-  ssn_vnf_port(size_t a_port_id, size_t a_n_rxq, size_t a_n_txq);
+  ssn_vnf_port(size_t i_n_rxq, size_t i_n_txq)
+    : n_rxq(i_n_rxq), n_txq(i_n_txq), n_rxacc(0), n_txacc(0) {}
 
   /**
    * @brief Send a burst of output packets of an Ethernet device
@@ -97,7 +102,7 @@ class ssn_vnf_port {
    *   before of calling this function.
    *   This function calls ssn_ma_port_tx_burst internally
    */
-  size_t tx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs);
+  virtual size_t tx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) = 0;
 
   /**
    * @brief Receive a burst of output packets from an Ethernet device
@@ -111,13 +116,13 @@ class ssn_vnf_port {
    *   before of calling this function.
    *   This function calls ssn_ma_port_rx_burst internally
    */
-  size_t rx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs);
+  virtual size_t rx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) = 0;
 
   /**
    * @brief Debug output
    * @param fp FILE* file pointer to output
    */
-  void debug_dump(FILE* fp) const;
+  virtual void debug_dump(FILE* fp) const = 0;
 
   /**
    * @brief Configure form accessors
@@ -126,8 +131,7 @@ class ssn_vnf_port {
    *   for Susanow Dynamic Auto NF Optimization.
    *   This function calls ssn_ma_port_configure_acc internally
    */
-  void config_acc()
-  { ssn_ma_port_configure_acc(port_id, n_rxacc, n_txacc); }
+  virtual void config_acc() = 0;
 
   /*
    * @brief Rx acccess request
@@ -162,7 +166,97 @@ class ssn_vnf_port {
   size_t get_n_txq() const { return n_txq; }
   size_t get_n_rxacc() const { return n_rxacc; }
   size_t get_n_txacc() const { return n_txacc; }
+
 }; /* class ssn_vnf_port */
+
+class ssn_vnf_port_dpdk : public ssn_vnf_port {
+
+  const size_t port_id; /*! dpdk port id */
+
+ public:
+
+  /**
+   * @brief constructor
+   * @param [in] a_port_id dpdk port id
+   * @param [in] a_n_rxq number of rx queues for RSS multiqueues
+   * @param [in] a_n_txq number of tx queues for RSS multiqueues
+   * @details
+   *   User must specilize following information when construct this instance.
+   *   - dpdk port id
+   *   - num of rx queues (hardware multiqueues)
+   *   - num of tx queues (hardware multiqueues)
+   */
+  ssn_vnf_port_dpdk(size_t a_port_id, size_t a_n_rxq, size_t a_n_txq);
+
+  /**
+   * @brief Send a burst of output packets of an Ethernet device
+   * @param [in] aid Access ID
+   * @param [in] mbufs The address of an array of nb_pkts pointers
+   *             to rte_mbuf structures which contain the output packets.
+   * @param [in] n_mbufs The maximum number of packets to transmit.
+   * @details
+   *   User need to configure ssn_vnf_port instance with configure_acc()
+   *   before of calling this function.
+   *   This function calls ssn_ma_port_tx_burst internally
+   */
+  virtual size_t tx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override;
+
+  /**
+   * @brief Receive a burst of output packets from an Ethernet device
+   * @param [in] aid Access ID
+   * @param [in] mbufs The address of an array of pointers to rte_mbuf
+   *             structures that must be large enough to store nb_pkts
+   *             pointers in it.
+   * @param [in] n_mbufs The maximum number of packets to retrieve
+   * @details
+   *   User need to configure ssn_vnf_port instance with configure_acc()
+   *   before of calling this function.
+   *   This function calls ssn_ma_port_rx_burst internally
+   */
+  virtual size_t rx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override;
+
+  /**
+   * @brief Debug output
+   * @param fp FILE* file pointer to output
+   */
+  virtual void debug_dump(FILE* fp) const override;
+
+  /**
+   * @brief Configure form accessors
+   * @details
+   *   This configuration can be changed while running dynamicaly
+   *   for Susanow Dynamic Auto NF Optimization.
+   *   This function calls ssn_ma_port_configure_acc internally
+   */
+  virtual void config_acc() override
+  { ssn_ma_port_configure_acc(port_id, n_rxacc, n_txacc); }
+
+}; /* class ssn_vnf_port_dpdk */
+
+
+class ssn_vnf_port_virt : public ssn_vnf_port {
+
+  fixed_size_vector<rte_ring*> rxq;
+  fixed_size_vector<rte_ring*> txq;
+
+ public:
+
+  ssn_vnf_port_virt(size_t n_rxq, size_t n_txq)
+    : ssn_vnf_port(n_rxq, n_txq), rxq(n_rxq), txq(n_txq) {}
+
+  virtual size_t tx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override { throw NI("vnfportvirt::rx_burst"); }
+  virtual size_t rx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override { throw NI("vnfportvirt::rx_burst"); }
+  virtual void debug_dump(FILE* fp) const override
+  {
+    fprintf(fp, " rxqs_ptr: %p\r\n", &rxq);
+    fprintf(fp, " txqs_ptr: %p\r\n", &txq);
+    fprintf(fp, " n_rxq   : %zd\r\n", n_rxq  );
+    fprintf(fp, " n_txq   : %zd\r\n", n_txq  );
+    fprintf(fp, " n_rxacc : %zd\r\n", n_rxacc);
+    fprintf(fp, " n_txacc : %zd\r\n", n_txacc);
+  }
+  virtual void config_acc() override { throw NI("vnfportvirt::config_acc"); }
+}; /* class ssn_vnf_port_virt */
 
 
 class ssn_vnf_vcore {
@@ -320,7 +414,6 @@ class ssn_vnf {
 
 
 
-
 /*****************************************************************************\
  * Bellow are Implementation
 \*****************************************************************************/
@@ -342,21 +435,21 @@ class ssn_vnf {
 #include <slankdev/exception.h>
 
 
-ssn_vnf_port::ssn_vnf_port(size_t a_port_id, size_t a_n_rxq, size_t a_n_txq) :
-  port_id(a_port_id), n_rxq(a_n_rxq), n_txq(a_n_txq), n_rxacc(0), n_txacc(0)
+ssn_vnf_port_dpdk::ssn_vnf_port_dpdk(size_t a_port_id, size_t a_n_rxq, size_t a_n_txq) :
+  ssn_vnf_port(a_n_rxq, a_n_txq), port_id(a_port_id)
 {
   ssn_ma_port_configure_hw(port_id, n_rxq, n_txq);
   ssn_ma_port_dev_up(port_id);
   ssn_ma_port_promisc_on(port_id);
 }
 
-size_t ssn_vnf_port::tx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs)
+size_t ssn_vnf_port_dpdk::tx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs)
 { return ssn_ma_port_tx_burst(port_id, aid, mbufs, n_mbufs); }
 
-size_t ssn_vnf_port::rx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs)
+size_t ssn_vnf_port_dpdk::rx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs)
 { return ssn_ma_port_rx_burst(port_id, aid, mbufs, n_mbufs); }
 
-void ssn_vnf_port::debug_dump(FILE* fp) const
+void ssn_vnf_port_dpdk::debug_dump(FILE* fp) const
 {
   fprintf(fp, " port_id: %zd\r\n", port_id);
   fprintf(fp, " n_rxq  : %zd\r\n", n_rxq  );
