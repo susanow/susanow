@@ -29,9 +29,28 @@
 
 int main(int argc, char** argv)
 {
+  constexpr size_t n_que = 8;
+  constexpr size_t n_acc = 4;
   ssn_init(argc, argv);
 
-  ssn_ma_ring ring0(4);
+  ssn_ma_ring ring0;
+  ring0.configure_que(n_que);
+  ring0.configure_acc(n_acc);
+
+  ring0.debug_dump(stdout);
+
+  /* access to ring */
+  size_t* array[32] = {
+    (size_t*)(0x01),
+    (size_t*)(0x02),
+    (size_t*)(0x03),
+    (size_t*)(0x04),
+  };
+  size_t n_enq = ring0.enqueue_burst(0, (void**)array, 32);
+  n_enq = ring0.enqueue_burst(0, (void**)array, 32);
+  n_enq = ring0.enqueue_burst(1, (void**)array, 32);
+  n_enq = ring0.enqueue_burst(0, (void**)array, 32);
+
   ring0.debug_dump(stdout);
 }
 
