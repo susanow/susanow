@@ -56,10 +56,11 @@ class ssn_ma_ring {
   std::vector<rte_ring*> rings;
   std::vector<accessor> enq_accessors;
   std::vector<accessor> deq_accessors;
+  std::string name_prefix;
 
  public:
 
-  ssn_ma_ring() {}
+  ssn_ma_ring(const char* np) : name_prefix(np) {}
   ~ssn_ma_ring() { reset_que(); }
 
   size_t get_num_que() const { return rings.size(); }
@@ -68,40 +69,19 @@ class ssn_ma_ring {
 
   void configure_acc(size_t n_enq_acc, size_t n_deq_acc)
   {
-    enq_accessors.resize(n_enq_acc);
-    deq_accessors.resize(n_deq_acc);
+    configure_deq_acc(n_deq_acc);
+    configure_enq_acc(n_enq_acc);
+  }
 
-    if ((rings.size() % n_enq_acc) != 0) {
-      std::string err = "configure_acc: ";
-      err += "invalid enq argument or state ";
-      err += slankdev::format("(n_enq_acc=%zd, n_que=%zd)", n_enq_acc, rings.size());
-      throw slankdev::exception(err);
-    }
+  void configure_deq_acc(size_t n_deq_acc)
+  {
+    deq_accessors.resize(n_deq_acc);
 
     if ((rings.size() % n_deq_acc) != 0) {
       std::string err = "configure_acc: ";
       err += "invalid deq argument or state ";
       err += slankdev::format("(n_deq_acc=%zd, n_que=%zd)", n_deq_acc, rings.size());
       throw slankdev::exception(err);
-    }
-
-    /*
-     * enq configuration
-     */
-    const size_t n_enq_queues_per_accessor = rings.size() / n_enq_acc;
-    size_t enq_c=0;
-    for (size_t a=0; a<n_enq_acc; a++) {
-      std::vector<size_t> vec;
-      for (size_t i=0; i<n_enq_queues_per_accessor; i++) {
-        vec.push_back(i+enq_c);
-      }
-      enq_accessors.at(a).set(vec);
-      enq_c += n_enq_queues_per_accessor;
-
-      // printf("vec{");
-      // for (size_t j=0; j<vec.size(); j++) {
-      //   printf("%zd%s", vec[j], j+1<vec.size()?",":"");
-      // } printf("}\n");
     }
 
     /*
@@ -124,12 +104,43 @@ class ssn_ma_ring {
     }
   }
 
+  void configure_enq_acc(size_t n_enq_acc)
+  {
+    enq_accessors.resize(n_enq_acc);
+
+    if ((rings.size() % n_enq_acc) != 0) {
+      std::string err = "configure_acc: ";
+      err += "invalid enq argument or state ";
+      err += slankdev::format("(n_enq_acc=%zd, n_que=%zd)", n_enq_acc, rings.size());
+      throw slankdev::exception(err);
+    }
+
+    /*
+     * enq configuration
+     */
+    const size_t n_enq_queues_per_accessor = rings.size() / n_enq_acc;
+    size_t enq_c=0;
+    for (size_t a=0; a<n_enq_acc; a++) {
+      std::vector<size_t> vec;
+      for (size_t i=0; i<n_enq_queues_per_accessor; i++) {
+        vec.push_back(i+enq_c);
+      }
+      enq_accessors.at(a).set(vec);
+      enq_c += n_enq_queues_per_accessor;
+
+      // printf("vec{");
+      // for (size_t j=0; j<vec.size(); j++) {
+      //   printf("%zd%s", vec[j], j+1<vec.size()?",":"");
+      // } printf("}\n");
+    }
+  }
+
   void configure_que(size_t n_que)
   {
     rings.resize(n_que);
     const size_t n_rings = n_que;
     for (size_t i=0; i<n_rings; i++) {
-      auto name = slankdev::format("name%zd", i);
+      auto name = slankdev::format("%s-ring%zd", name_prefix.c_str(), i);
       rings.at(i) = dpdk::ring_alloc(name.c_str(), 1024);
     }
   }

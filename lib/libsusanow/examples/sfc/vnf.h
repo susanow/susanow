@@ -45,15 +45,19 @@ class vnf_block : public ssn_vnf_block {
         size_t n_recv = rx_burst(pid, rxaid, mbufs, 32);
         if (n_recv == 0) continue;
 
+#if 0
         for (size_t i=0; i<n_recv; i++) {
-          printf("%s recv port=%zd \n", name.c_str(), pid);
+          // printf("%s recv port=%zd \n", name.c_str(), pid);
 
-          /* Delay Block begin */
-          size_t n=10;
-          for (size_t j=0; j<100; j++) n++;
+          // #<{(| Delay Block begin |)}>#
+          // size_t n=10;
+          // for (size_t j=0; j<100; j++) n++;
 
           tx_burst(pid^1, txaid, &mbufs[i], 1);
         }
+#else
+        tx_burst(pid^1, txaid, mbufs, n_recv);
+#endif
       } //for
     } /* while (running) */
   }

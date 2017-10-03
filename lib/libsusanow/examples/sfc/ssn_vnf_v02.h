@@ -35,6 +35,7 @@
 #include <exception>
 
 #include <ssn_ma_port.h>
+#include <ssn_ma_ring.h>
 #include <ssn_thread.h>
 #include <ssn_cpu.h>
 #include <ssn_port.h>
@@ -42,7 +43,6 @@
 #include <ssn_log.h>
 #include <dpdk/dpdk.h>
 #include <vector>
-#define NI(str) slankdev::exception("notimplement "#str);
 
 
 template <class T>
@@ -239,26 +239,40 @@ class ssn_vnf_port_patch_panel;
 class ssn_vnf_port_virt : public ssn_vnf_port {
 
   friend class ssn_vnf_port_patch_panel;
-  fixed_size_vector<rte_ring*> rxq;
-  fixed_size_vector<rte_ring*> txq;
+  ssn_ma_ring* tx;
+  ssn_ma_ring* rx;
 
  public:
 
-  ssn_vnf_port_virt(size_t n_rxq, size_t n_txq)
-    : ssn_vnf_port(n_rxq, n_txq), rxq(n_rxq), txq(n_txq) {}
+  ssn_vnf_port_virt(size_t n_rxq_, size_t n_txq_)
+    : ssn_vnf_port(n_rxq_, n_txq_) {}
 
-  virtual size_t tx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override { throw NI("vnfportvirt::rx_burst"); }
-  virtual size_t rx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override { throw NI("vnfportvirt::rx_burst"); }
+  virtual size_t tx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override
+  {
+    size_t ret = 0;
+    ret = tx->enqueue_burst(aid, (void**)mbufs, n_mbufs);
+    return ret;
+  }
+  virtual size_t rx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override
+  {
+    size_t ret = 0;
+    ret = rx->dequeue_burst(aid, (void**)mbufs, n_mbufs);
+    return ret;
+  }
   virtual void debug_dump(FILE* fp) const override
   {
-    fprintf(fp, " rxqs_ptr: %p\r\n", &rxq);
-    fprintf(fp, " txqs_ptr: %p\r\n", &txq);
+    fprintf(fp, " rxqs_ptr: %p\r\n", rx);
+    fprintf(fp, " txqs_ptr: %p\r\n", tx);
     fprintf(fp, " n_rxq   : %zd\r\n", n_rxq  );
     fprintf(fp, " n_txq   : %zd\r\n", n_txq  );
     fprintf(fp, " n_rxacc : %zd\r\n", n_rxacc);
     fprintf(fp, " n_txacc : %zd\r\n", n_txacc);
   }
-  virtual void config_acc() override { throw NI("vnfportvirt::config_acc"); }
+  virtual void config_acc() override
+  {
+    rx->configure_deq_acc(get_n_rxacc());
+    tx->configure_enq_acc(get_n_txacc());
+  }
 }; /* class ssn_vnf_port_virt */
 
 
@@ -267,11 +281,17 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
  * @brief Provide 1 patch panel between a pair of ssn_vnf_port_virts
  */
 class ssn_vnf_port_patch_panel {
-  ssn_vnf_port_virt* right;
+
   ssn_vnf_port_virt* left;
+  ssn_vnf_port_virt* right;
+
+  ssn_ma_ring left_enq;
+  ssn_ma_ring right_enq;
+
  public:
-  ssn_vnf_port_patch_panel(ssn_vnf_port_virt* r, ssn_vnf_port_virt* l)
-    : right(r), left(l)
+
+  ssn_vnf_port_patch_panel(ssn_vnf_port_virt* r, ssn_vnf_port_virt* l, size_t n_que)
+    : right(r), left(l), left_enq("slankdev"), right_enq("slankdedf")
   {
     if (!(r && l)) {
       std::string err = "ssn_vnf_port_patch_panel::ssn_vnf_port_patch_panel: ";
@@ -288,13 +308,19 @@ class ssn_vnf_port_patch_panel {
       throw slankdev::exception(err.c_str());
     }
 
+    left_enq.configure_que(n_que);
+    right_enq.configure_que(n_que);
+
+    left->tx  = &left_enq;
+    left->rx  = &right_enq;
+    right->tx = &right_enq;
+    right->rx = &left_enq;
+
     printf("patch panel create success\n");
   }
-  ~ssn_vnf_port_patch_panel()
-  {
-    /* Free All rte_ring(s) included this patch panel */
 
-  }
+  ~ssn_vnf_port_patch_panel() {}
+
 }; /* class ssn_vnf_port_patch_panel */
 
 

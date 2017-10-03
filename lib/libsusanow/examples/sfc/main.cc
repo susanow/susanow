@@ -70,7 +70,7 @@ int main(int argc, char** argv)
   v1.attach_port(0, virt1);
   v1.attach_port(1, dpdk1);
 
-  ssn_vnf_port_patch_panel pp(virt0, virt1);
+  ssn_vnf_port_patch_panel pp(virt0, virt1, 8);
 
   /*-------------------------------------------------------------------------*/
 
