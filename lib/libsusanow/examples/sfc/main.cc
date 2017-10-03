@@ -29,12 +29,12 @@
 #include <stddef.h>
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
+#include <dpdk/dpdk.h>
 
 #include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
-#include <dpdk/dpdk.h>
-#include "vnf.h"
+#include <ssn_vnf_l2fwd_v02.h>
 
 
 int main(int argc, char** argv)
@@ -54,37 +54,26 @@ int main(int argc, char** argv)
   ssn_vnf_port_dpdk* dpdk1 = new ssn_vnf_port_dpdk(1, 4, 4); // dpdk1
   ssn_vnf_port_virt* virt0 = new ssn_vnf_port_virt(4, 4); // virt
   ssn_vnf_port_virt* virt1 = new ssn_vnf_port_virt(4, 4); // virt
-
-  dpdk0->debug_dump(stdout); printf("\n");
-  dpdk1->debug_dump(stdout); printf("\n");
-  virt0->debug_dump(stdout); printf("\n");
-  virt1->debug_dump(stdout); printf("\n");
-
-  /*-------------------------------------------------------------------------*/
-
-  vnf v0("vnf0");
-  v0.attach_port(0, dpdk0);
-  v0.attach_port(1, virt0);
-
-  vnf v1("vnf1");
-  v1.attach_port(0, virt1);
-  v1.attach_port(1, dpdk1);
-
   ssn_vnf_port_patch_panel pp(virt0, virt1, 8);
 
   /*-------------------------------------------------------------------------*/
 
-#if 1
+  ssn_vnf_l2fwd v0("vnf0");
+  v0.attach_port(0, dpdk0);
+  v0.attach_port(1, dpdk1);
   dpdk0->reset_acc();
   virt1->reset_acc();
-  v0.set_coremask(0, 0x02); /* 0b00000010:0x02 */
-  v0.config_port_acc();
+  v0.set_coremask(0, 0x02);
+  v0.configre_acc();
   v0.deploy();
 
+  ssn_vnf_l2fwd v1("vnf1");
+  v1.attach_port(0, virt1);
+  v1.attach_port(1, dpdk1);
   virt1->reset_acc();
   dpdk1->reset_acc();
-  v1.set_coremask(0, 0x04); /* 0b00000100:0x04 */
-  v1.config_port_acc();
+  v1.set_coremask(0, 0x04);
+  v1.configre_acc();
   v1.deploy();
 
   /*-------------------------------------------------------------------------*/
@@ -92,7 +81,6 @@ int main(int argc, char** argv)
   getchar();
   v0.undeploy();
   v1.undeploy();
-#endif
 
 fin:
   delete dpdk0;
