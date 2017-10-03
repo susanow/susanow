@@ -34,7 +34,7 @@
 #include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
-#include <ssn_vnf_l2fwd_v02.h>
+#include <ssn_vnf_v02_l2fwd.h>
 
 
 int main(int argc, char** argv)
