@@ -53,5 +53,6 @@ There are many libraries, so their headers may be grouped by topics:
 - [ssn_config       ]  (@ref ssn_config.h       )
 - [ssn_rest         ]  (@ref ssn_rest.h         )
 - [ssn_ma_port      ]  (@ref ssn_ma_port.h      )
+- [ssn_ma_ring      ]  (@ref ssn_ma_ring.h      )
 - [ssn_vty          ]  (@ref ssn_vty.h          )
 
