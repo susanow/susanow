@@ -150,4 +150,26 @@ int main(int argc, char** argv)
   ssn_fin();
 }
 
+void main_neo(int argc, char** argv)
+{
+  constexpr size_t n_rxq = 4;
+  constexpr size_t n_txq = 4;
+  constexpr size_t n_ports_want = 1;
+
+  ssn_init(argc, argv);
+  size_t n_ports = ssn_dev_count();
+  if (n_ports != n_ports_want) {
+    std::string err = slankdev::format("n_ports is not %zd (current %zd)",
+        n_ports_want, n_ports);
+    throw slankdev::exception(err);
+  }
+  for (size_t i=0; i<n_ports; i++) {
+    ssn_ma_port_configure_hw(i, n_rxq, n_txq);
+    ssn_ma_port_dev_up(i);
+    ssn_ma_port_promisc_on(i);
+  }
+
+  ssn_ma_port_configure_acc(0, 2, 2);
+}
+
 

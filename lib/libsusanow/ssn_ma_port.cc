@@ -57,6 +57,7 @@ class ssn_ma_port {
 
   class ssn_ma_port_oneside {
    private:
+
     class accessor {
       size_t accessor_idx;
       std::vector<size_t> ques;
@@ -65,20 +66,24 @@ class ssn_ma_port {
       void set(std::vector<size_t>& vec);
       size_t get();
       size_t get_current() const { return ques[accessor_idx]; }
-    };
+    }; /* class accessor */
+
     class ssn_ma_port_queue {
      public:
       size_t que_id;
       size_t acc_id;
-    };
+    }; /* class ssn_ma_port_queue */
+
    protected:
     size_t dpdk_port_id;
     size_t n_queues_;
     size_t n_accessor;
     std::vector<ssn_ma_port_queue> queues;
     std::vector<accessor> accessors;
+
    protected:
     std::vector<size_t> get_qids_from_aid(size_t aid) const;
+
    public:
     ssn_ma_port_oneside() : n_queues_(1), n_accessor(1), accessors(1) {}
     virtual size_t burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) = 0;
@@ -88,7 +93,9 @@ class ssn_ma_port {
     size_t n_queues_per_accessor() const;
     void show() const;
     void configure_queue_accessor(size_t dpdk_pid, size_t n_que, size_t n_acc);
-  };
+
+  }; /* class ssn_ma_port_oneside */
+
   class ssn_ma_port_oneside_rx : public ssn_ma_port_oneside {
    public:
     ssn_ma_port_oneside_rx() : ssn_ma_port_oneside() {}
@@ -100,7 +107,7 @@ class ssn_ma_port {
           dpdk_port_id, qid, aid);
       return rte_eth_rx_burst(dpdk_port_id, qid, mbufs, n_mbufs);
     }
-  };
+  }; /* class  ssn_ma_port_oneside_rx */
   class ssn_ma_port_oneside_tx : public ssn_ma_port_oneside {
    public:
     ssn_ma_port_oneside_tx() : ssn_ma_port_oneside() {}
@@ -112,7 +119,7 @@ class ssn_ma_port {
           dpdk_port_id, qid, aid);
       return rte_eth_tx_burst(dpdk_port_id, qid, mbufs, n_mbufs);
     }
-  };
+  }; /* class  ssn_ma_port_oneside_tx */
 
  private:
   size_t dpdk_pid;
