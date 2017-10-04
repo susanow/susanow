@@ -34,7 +34,7 @@ int main(int argc, char** argv)
   constexpr size_t n_deq_acc = 2;
   ssn_init(argc, argv);
 
-  ssn_ma_ring ring0;
+  ssn_ma_ring ring0("test_ring");
   ring0.configure_que(n_que);
   ring0.configure_acc(n_enq_acc, n_deq_acc);
   ring0.debug_dump(stdout);
