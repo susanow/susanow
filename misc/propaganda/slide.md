@@ -83,6 +83,8 @@ Moduler Design
   - ssn_green_thread
 - etc...
 
+<p><img src="./img/system_overview.jpg" width="50%"/></p>
+
 ---
 ## DPDKのラップ: Thread, Timer, Port (実装の話)
 
@@ -109,6 +111,9 @@ Stageに必要な機能
 - 逆多重化機能(dec)
 - 統計情報取得機能(性能,状態)
 - 入出力ポート定義(物理,仮想)
+
+VNFクラスの設計
+<p><img src="./img/vnf_class.jpg" width="100%"/></p>
 
 ---
 ## 自動最適化概要
