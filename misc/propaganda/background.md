@@ -104,6 +104,42 @@ SFC: 複数のNFを数珠つなぎすることでフレキシブルにNFをカ�
 - DPDKのCPUpinningの効果が低減
 - VM上で動くVNFが一般的なDPDK VNFならまとめて管理をできる
 
+## 高性能パケット処理に必要な性能とは
+
+- 小さいパケットほどbpsを稼ぐのが難しい.
+- ethernetの最小パケットサイズは64Byte
+
+64Byte 10GbE
+- 64byteと仮定すると 10Gbps == 14Mpps
+- CPU動作周波数を3GHzとすると
+- 3G clk === 1sec == 14M packet
+- 14M packet === 3G clk
+- 1 packet === 214 clk === 71ns
+
+Short Packet時
+- 10GbE: 71ns
+- 40GbE: 17ns
+- 100GbE: 7.1ns !!!
+
+VM Entry/Exit はそれぞれCorei7-6700Kで約1000サイクルかかる [1]
+RAMのコピ-はどれくらい?: [TBD]
+
+## 並列/並行処理
+
+この二つは似ていて違う
+- 並列: 複数の動作を同時に出来るなら、並列(parallel)
+- 並行: 実行状態を複数保てるなら、並行(concurrent)
+
+x86の並列並行処理はいくつかある
+- HyperThreading (どっちだ..)
+- pthread (カーネル空間で切り替えるスレッド)
+- lthread (DPDK API, ユーザ空間で切り替えるスレッド)
+
+マルチタスクのための切り替えにも種類がある
+- 協調的Multi Tasking (pre-enptive multi task) pthreadはこれ
+- 非協調的Multi Tasking (non-pre-enptive multi task) lthreadはこれ
+
+これらのベンチマークは?: [TBD]
 
 ## DPDK (Data Plane Development Kit)
 
@@ -147,6 +183,16 @@ SFC: 複数のNFを数珠つなぎすることでフレキシブルにNFをカ�
 
 <p><img src="./img/fig4.vm.png" width="100%"/></p>
 
+## VMオーバヘッド
+
+- VMX root, VMX non-rootの状態をCPUについか(VT-x)
+- VM Entry/ExitでVMの状態を退避 (追加された命令)
+- Entry/Exitは1000サイクルほど [1]
+- VM Exitを起こさないようにするべき
+- VM Exitを起こす原因だいたい決まっている(設定可能)
+	- Page fault
+	- preenptive-timer割り込み
+
 ## Vhost-user
 
 - 最近導入されたKVMのvNICバックエンド　
@@ -170,4 +216,7 @@ SFC: 複数のNFを数珠つなぎすることでフレキシブルにNFをカ�
 - 高度に仮想化がすすみつつある現代ではHSPCRを実装しただけではだめ
 - それを利用するフィールドの整備まで行わなければならない
 
+## References
+
+- [1] https://www.nic.ad.jp/ja/materials/iw/2016/proceedings/t03/t3-asai.pdf
 
