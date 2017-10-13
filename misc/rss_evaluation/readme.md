@@ -100,9 +100,20 @@ size            0064   0128   0256   0512   1024
 BaseLine        9998   9998   9998   9998   9998
 ```
 
-## Reference 
+## Reference
 
 - http://pktgen-dpdk.readthedocs.io/en/latest/index.html
 - https://www.miraclelinux.com/tech-blog/dpdk-open-vswitch-study-5
+- 82599 datasheet
+	- http://www.intel.co.jp/content/dam/www/public/us/en/documents/datasheets/82599-10-gbe-controller-datasheet.pdf
+	- 7.1.2 Rx Queue Assgnment
+	- 7.1.2.8 Receive-Side Scaling
 
+## RSS Configuration in DPDK
+
+```
+rxmode.mqmod = ETH_MQ_RX_RSS
+conf.rx_adv_conf.rss_conf.rss_key = NULL
+conf.rx_adv_conf.rss_conf.rss_hf   = ETH_RSS_IP
+```
 
