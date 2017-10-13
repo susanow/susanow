@@ -1,12 +1,18 @@
 
-Introduction and Motivation
-===========================
+.. Susanow documentation master file, created by
+   sphinx-quickstart on Fri Oct 13 12:33:10 2017.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+
+DPDK を用いた高性能通信
+===================================
 
 Motivation
 ^^^^^^^^^^
 Motivation
 
-Using DPDK is the smartest way to implement
+Using DPDK is the best way to implement
 High Performance Networking (HPN) software on x86/x64 architecture.
 That have very very powerful APIs to operate low layer architecture,
 ex. to occupy CPU logical cores and polling each NICs queues.
@@ -74,6 +80,8 @@ High Performance/Network/Packet/DPDK/Reconfigurable
 /JIT/Assembler/C++11/Multi Core/Many Core/Multi Thread
 /Tuning Less/Low latency/SW Optimization/Multiqueue NIC
 /Soft Router/Soft Switch/Scalable
+
+
 
 
 

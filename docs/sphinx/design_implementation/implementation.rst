@@ -1,6 +1,9 @@
 
+実装
+===================================
+
 Implementation
-==============
+^^^^^^^^^^^^^^
 
 Rules
 ^^^^^
@@ -26,11 +29,11 @@ User have to use .at() when random accsess and iterator when fast iteration.
 
 To write efficient code easily, Susanow is conposed as following.
 
-.. image:: ./img/susanow-design.png
+.. image:: ./susanow-design.png
 
-.. image:: ./img/susanow-design2.png
+.. image:: ./susanow-design2.png
 
-.. image:: ./img/threadpattern.png
+.. image:: ./threadpattern.png
 
 libsusanow wraps dpdk APIs to add interfaces as following
 
@@ -87,5 +90,6 @@ You can access us from the following information.
 
 if you are little compassionate, please tell us that you saw our GithubPages.
 because there are many emails (most of spam) coming mu emailbox.
+
 
 

@@ -3,7 +3,7 @@
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build
+SPHINXBUILD   = python3 -msphinx
 SPHINXPROJ    = Susanow
 SOURCEDIR     = .
 BUILDDIR      = _build
@@ -11,10 +11,6 @@ BUILDDIR      = _build
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-
-install:
-	make html
-	cp -rf _build/html/* ../susanow.github.io/
 
 .PHONY: help Makefile
 

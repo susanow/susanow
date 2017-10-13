@@ -1,6 +1,11 @@
 
-How to Use Susanow
-==================
+.. Susanow documentation master file, created by
+   sphinx-quickstart on Fri Oct 13 12:33:10 2017.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Susanowセットアップ
+===================================
 
 Install
 ^^^^^^^^
@@ -62,3 +67,17 @@ API documentation
 More usage about Susanow lib, please see
 `API Documentation  <https://susanow.github.io/api/>`_ .
 That is generated thanks to `doxygen <http://www.stack.nl/~dimitri/doxygen/>`_ .
+
+
+
+Quic Setup Guide
+^^^^^^^^^^^^^^^^^
+
+.. code-block:: text
+
+  $ export SSN_SDK=/path/to/ssn
+  $ git clone http://github.com/susanow/susanow $SSN_SDK
+  $ cd $SSN_SDK
+  $ setup.sh
+  $ build.sh
+
