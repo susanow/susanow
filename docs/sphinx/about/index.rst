@@ -10,6 +10,6 @@ Susanow計画とは
 .. toctree::
 
   about
-  background
+  background/index
 
 

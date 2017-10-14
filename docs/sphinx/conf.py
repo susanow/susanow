@@ -41,6 +41,10 @@ templates_path = ['_templates']
 #
 # source_suffix = ['.rst', '.md']
 source_suffix = ['.rst', '.md']
+from recommonmark.parser import CommonMarkParser
+source_parsers = {
+    '.md': CommonMarkParser,
+}
 
 # The master toctree document.
 master_doc = 'index'
@@ -84,7 +88,9 @@ todo_include_todos = True
 # a list of builtin themes.
 #
 # html_theme = 'alabaster'
-html_theme = 'sphinx_rtd_theme'
+# html_theme = 'sphinx_rtd_theme'
+html_theme = 'classic'
+
 html_logo = '../logo/logo_bar.png'
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -147,6 +153,8 @@ latex_documents = [
     (master_doc, 'Susanow.tex', 'Susanow Documentation',
      'Hiroki SHIROKURA', 'manual'),
 ]
+
+latex_docclas = {'manual': 'jsbook'}
 
 
 # -- Options for manual page output ---------------------------------------

@@ -15,7 +15,7 @@ Susanw(スサノオ)計画は”環境に対して自動最適化する高性能
 
   about/index
   technology/index
-  technical_report/index
+  report/index
   examples/index
   getting_start/index
   design_implementation/index
@@ -23,8 +23,7 @@ Susanw(スサノオ)計画は”環境に対して自動最適化する高性能
   references
 
 
-Powerd by IPA未踏事業
-=====================
+**Powerd by IPA未踏事業**
 
 本プロジェクトは2017年IPA未踏IT人材育成事業に採択され, 開発を行なっています.
 多くの方の協力に感謝いたします. 
