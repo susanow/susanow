@@ -9,6 +9,7 @@
 hoge
 
 .. toctree::
+  :maxdepth: 1
 
   thread_optimization
   service_function
