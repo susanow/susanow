@@ -1,5 +1,5 @@
 
-# Pipeline 段数による性能の変化測定
+# [WIP] Pipeline 段数による性能の変化測定
 
 ![img](img/fig0.png)
 

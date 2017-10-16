@@ -11,16 +11,17 @@ Susanw(スサノオ)計画は”環境に対して自動最適化する高性能
 プロジェクトです. 
 
 .. toctree::
-  :maxdepth: 1
+	:maxdepth: 1
 
-  about/index
-  technology/index
-  report/index
-  examples/index
-  getting_start/index
-  design_implementation/index
-  progress
-  references
+	about/index
+	tech_report/index
+	problem_report/index
+	examples/index
+	getting_start/index
+	design_implementation/index
+	survey/index
+	testbed/index
+	references
 
 
 **Powerd by IPA未踏事業**

@@ -1,9 +1,11 @@
 
-# RSS Evaluation
+# [WIP] RSS Evaluation
 
 - Hiroki SHIROKURA
 - slank.dev [at] gmail.com
 - 2017.10.5
+
+**TODO: 実験環境の説明をより詳細に書くこと**
 
 ![fig1](./screenshot.png)
 

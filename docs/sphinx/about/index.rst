@@ -9,7 +9,9 @@ Susanow計画とは
 
 .. toctree::
 
-  about
-  background/index
+	about
+	background/index
+	progress
+	features/index
 
 
