@@ -8,6 +8,15 @@ SPHINXPROJ    = Susanow
 SOURCEDIR     = .
 BUILDDIR      = _build
 
+def:
+	make html
+
+re:
+	make clean && make html
+
+open:
+	open _build/html/index.html
+
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
