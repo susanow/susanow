@@ -182,5 +182,5 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
-
+numfig = True
 
