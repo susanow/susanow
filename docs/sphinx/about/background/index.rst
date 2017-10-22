@@ -75,7 +75,8 @@ VMに追加する方法の場合, ハイパーバイザとVMでのパケット�
   行わなくてはいけない. この高コストな処理をパケットごとに行なっている
   わけには行かないのである.
 
-  現状(2017Q3)では,VMの仮想NICのバックエンドでvhost-userをを採用することで,
+  現状(2017Q3)では,KVM/QEMUの通常の機能で仮想NICを使用する場合,
+  仮想NICのバックエンドでvhost-userをを採用することで,
   1コピー転送でVM Entry/Exit呼び出しももっとも少なくすることができる.
 
 
@@ -97,155 +98,33 @@ SDNはソフトウェアによりネットワーク制御を行うことで様�
 Network Functions Virtualization (NFV)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-ネットワーク機能を仮想化技術で実現すること.
-SFC: 複数のNFを数珠つなぎすることでフレキシブルにNFをカスタマイズ.
+NFVはネットワーク機能を仮想化技術で実現するという考え方である.
+汎用のIAサーバの高性能化, 低価格化により仮想化技術が実現可能になり,
+これまで高価な専用物理機器を用いていたネットワークアプライアンスも
+仮想的(ソフトウェアやVMなど)で実現可能になったことがNFVの背景である.
 
-利点
+簡単に言うと以下に示すような利点がある
 
-- コストダウン
+- CAPEX/OPEXの低減
+- 迅速なサービス変形 (Rapid Service Transform)
 
-	- 値段(汎用サーバ << 専用HW)
-	- 保守運用(統一的インターフェース,自動化)
-	- サービスチェインによるオンデマンドなネットワーク構築
+従来では物理ネットワークアプライアンスを用いて, NF (Network Function: この場合,
+ルータやFirewallを示す)を用意していた. これらのNFをデプロイする場合,
+現場に物理アプライアンスを用意し, 配線などを個別に行わなくてはいけなかった.
+NFVを導入すると, NFはすべてIAサーバ上のソフトウェアで実現するため, 設備に物理
+的な作業がなくなる場合が多い. また物理アプライアンスのNFと比べ, 汎用のIAサーバ
+はより低価格であり, 設備コストも低下させることが期待できる.
 
-- 迅速
-
-	- サービスの拡大/縮小
-	- デプロイ, 機能拡張
-
-可能になった背景
-
-- 高速マルチコアCPUを搭載した高性能なパケット処理が可能
-
-	- DPDK (No need to develop NOS)
-
-- クラウドインフラは、リソースの可用性と使用を向上させる方法を提供
-- 管理,制御APIのオープン化
-- 業界標準の大容量サーバ
-
-課題
-- Portability/Interoperability
-- Performance Trade-Off
-- Manage & Orchestration
-- Automation
+NFVの利点はコストダウンだけではない.
+迅速性もNFVのキーワードである. NFを仮想媒体として管理するため, 遠隔地にNFを移動
+する場合も従来と比べ, 簡単に行える. NFをVMなどの統一的な形式で保管することで、
+移動先との互換性(Compatibility)も高めることができる.
+また, Serivce Function Chainingのような動的なNF ChainもNFVによって迅速に
+制御可能である.
 
 .. figure:: img/fig1.nfv.png
 
-Virtualization
-^^^^^^^^^^^^^^
-
-利点
-- 省電力
-- メンテナンスの省力化
-- インストール済みソフトウェアの使用期限の延長
-- 予測可能なコスト
-- スペースの節約
-- 障害回復
-
-
-SFC (Service Function Chaining)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- 汎用機で複数のNFを繋げてうごかす
-- 迅速にサービスを拡大/縮小
-- ex) Router → Router+IDS
-- 多くがVMを用いてVNFを実現
-- DPDKとVMの相性は?
-
-
-.. figure:: img/sfc.png
-
-現状の接続ポイント例
-
-- KVMをHVとしたNFV
-
-	- OvS-dpdk
-	- BESS
-	- SR-IOV
-
-- non KVMのNFV
-
-	- NetVM
-	- Susanow
-
-.. figure:: img/fig3.chaining.png
-
-関連技術など
-- NSH (Network Service Header): SFC Chaing designのためのプロトコル
-
-
-OpenDaylight
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- not only OpenFlow Controller
-- Supports: BGP, OpenFlow, NETCONF
-- Controllerとしては世界でもっとも知名度が高い?
-- 商用サポートあり
-
-Open vSwitch (OvS)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- OpenFlow vSwitch developed as OSS
-- Linuxのbridgeと互換性あり
-- DPDK利用可能
-
-OvS-DPDK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- パケット処理をDPDKによってアクセラレーション
-- VM上, HV上の両方でDPDKを使うことが高性能化の条件
-- ただ使うだけでなく, VMの仮装NICの種類によって性能が変化する
-
-仮装NIC
-- virtio, e1000
-- vhost\_user
-- vhost\_net
-
-.. figure:: img/fig7.ovs.png
-
-- OVS用にいくつかのCPUを使用する
-- {sum of vCPU} > {num of cores}になったら, vm\_entry, vm\_exitの数が上昇?
-- DPDKのCPUpinningの効果が低減
-- VM上で動くVNFが一般的なDPDK VNFならまとめて管理をできる
-
-高性能パケット処理に必要な性能とは
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- 小さいパケットほどbpsを稼ぐのが難しい.
-- ethernetの最小パケットサイズは64Byte
-
-64Byte 10GbE
-- 64byteと仮定すると 10Gbps == 14Mpps
-- CPU動作周波数を3GHzとすると
-- 3G clk === 1sec == 14M packet
-- 14M packet === 3G clk
-- 1 packet === 214 clk === 71ns
-
-Short Packet時
-- 10GbE: 71ns
-- 40GbE: 17ns
-- 100GbE: 7.1ns !!!
-
-VM Entry/Exit はそれぞれCorei7-6700Kで約1000サイクルかかる [1]
-RAMのコピ-はどれくらい?: [TBD]
-
-並列/並行処理
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-この二つは似ていて違う
-- 並列: 複数の動作を同時に出来るなら、並列(parallel)
-- 並行: 実行状態を複数保てるなら、並行(concurrent)
-
-x86の並列並行処理はいくつかある
-- HyperThreading (どっちだ..)
-- pthread (カーネル空間で切り替えるスレッド)
-- lthread (DPDK API, ユーザ空間で切り替えるスレッド)
-
-マルチタスクのための切り替えにも種類がある
-- 協調的Multi Tasking (pre-enptive multi task) pthreadはこれ
-- 非協調的Multi Tasking (non-pre-enptive multi task) lthreadはこれ
-
-これらのベンチマークは?: [TBD]
+  Network Functions Virtualization Architecuture
 
 
 NFVの課題
@@ -264,6 +143,118 @@ NFVの課題
 	- 実行中に決まる情報
 - 高度に仮想化がすすみつつある現代ではHSPCRを実装しただけではだめ
 - それを利用するフィールドの整備まで行わなければならない
+
+
+Service Function Chaining (SFC)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SFCとはサービス機能に合わせて, NFを適切に数珠つなぎにする技術
+Function Chain(数珠つなぎにしたNF達)をNFV/SDNで制御することで迅速に
+サービスを拡大/縮小が実現可能になる. (ex. Router → Router+IDS)
+
+.. figure:: img/sfc.png
+
+  Service Function Chaining Architecuture
+
+IETFやETSIではSFCを標準化するために多数の議論を行っている.
+(ex. NSH,Network Service Header: SFC Chaing designのためのプロトコル)
+日本での近況事例としては, SFCはInteropで2017も導入され目玉機能として
+デモンストレーションを行われた.
+
+現状のSFCの実現方法(ソフトウェアスタックレベル, not Protocol level)としては
+以下のようなパターンがある.
+
+- OvS-dpdk
+- BESS
+- SR-IOV
+- NetVM
+- Susanow
+
+.. figure:: img/fig3.chaining.png
+
+  SFCの構成例
+
+
+関連するOSS
+^^^^^^^^^^^^^
+
+OpenDaylight
+
+- not only OpenFlow Controller
+- Supports: BGP, OpenFlow, NETCONF
+- Controllerとしては世界でもっとも知名度が高い?
+- 商用サポートあり
+
+Open vSwitch (OvS)
+
+- OpenFlow vSwitch developed as OSS
+- Linuxのbridgeと互換性あり
+- DPDK利用可能
+
+OvS-DPDK
+
+- パケット処理をDPDKによってアクセラレーション
+- VM上, HV上の両方でDPDKを使うことが高性能化の条件
+- ただ使うだけでなく, VMの仮装NICの種類によって性能が変化する
+
+.. figure:: img/fig7.ovs.png
+
+- OVS用にいくつかのCPUを使用する
+- {sum of vCPU} > {num of cores}になったら, vm\_entry, vm\_exitの数が上昇?
+- DPDKのCPUpinningの効果が低減
+- VM上で動くVNFが一般的なDPDK VNFならまとめて管理をできる
+
+
+高性能パケット処理
+------------------
+
+- 小さいパケットほどbpsを稼ぐのが難しい.
+- ethernetの最小パケットサイズは64Byte
+
+.. code-block:: none
+
+  64Byte 10GbE
+  64byteと仮定すると 10Gbps == 14Mpps
+  CPU動作周波数を3GHzとすると
+  3G clk === 1sec == 14M packet
+  14M packet === 3G clk
+  1 packet === 214 clk === 71ns
+
+Short Packet時
+- 10GbE: 71ns
+- 40GbE: 17ns
+- 100GbE: 7.1ns !!!
+
+VM Entry/Exit はそれぞれCorei7-6700Kで約1000サイクルかかる [1]
+RAMのコピ-はどれくらい?: [TBD]
+
+
+並列/並行処理
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+この二つは似ていて違う
+- 並列: 複数の動作を同時に出来るなら、並列(parallel)
+- 並行: 実行状態を複数保てるなら、並行(concurrent)
+
+x86の並列並行処理はいくつかある
+
+- HyperThreading (どっちだ..)
+- pthread (カーネル空間で切り替えるスレッド)
+- lthread (DPDK API, ユーザ空間で切り替えるスレッド)
+
+マルチタスクのための切り替えにも種類がある
+
+- 協調的Multi Tasking (pre-enptive multi task) pthreadはこれ
+- 非協調的Multi Tasking (non-pre-enptive multi task) lthreadはこれ
+
+.. todo:: これらのベンチマークは?
+
+
+まとめ
+------
+
+.. todo:: 背景についてまとめる
+
 
 References
 ----------

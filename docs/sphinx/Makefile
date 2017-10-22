@@ -17,6 +17,9 @@ re:
 open:
 	open _build/html/index.html
 
+openlin:
+	chromium-browser _build/html/index.html
+
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
