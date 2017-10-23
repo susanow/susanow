@@ -107,3 +107,24 @@ SSNによって1server上での最適化は可能になったが、複数のサ�
   Slow Link(NUMA), Fast Link(別Host)みたいに
 
 
+## NFVに関連するOSS
+
+OpenDaylight
+- not only OpenFlow Controller
+- Supports: BGP, OpenFlow, NETCONF
+- Controllerとしては世界でもっとも知名度が高い?
+- 商用サポートあり
+
+Open vSwitch (OvS)
+- OpenFlow vSwitch developed as OSS
+- Linuxのbridgeと互換性あり
+- DPDK利用可能
+
+OvS-DPDK
+- パケット処理をDPDKによってアクセラレーション
+- VM上, HV上の両方でDPDKを使うことが高性能化の条件
+- ただ使うだけでなく, VMの仮装NICの種類によって性能が変化する
+- OVS用にいくつかのCPUを使用する
+- {sum of vCPU} > {num of cores}になったら, vm\_entry, vm\_exitの数が上昇?
+- DPDKのCPUpinningの効果が低減
+- VM上で動くVNFが一般的なDPDK VNFならまとめて管理をできる
