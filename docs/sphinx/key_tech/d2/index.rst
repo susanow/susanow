@@ -8,6 +8,9 @@ D2: Dynamic Thread Optimize(動的スレッド最適化)はSusanow計画でも�
 計算機資源を柔軟に使うことを可能にする. このパートではD2について例を用いて
 説明をしていく.
 
+.. note::
+  名前の由来はDynamic Thread Optimize: DTO: (TO->2): D2である.
+
 ここではもっともシンプルなNFであるLyer2 Forwarder(l2fwd)を例に考えていく.
 l2fwdはポートを2つ持っており, 一方からうけとったパケットを他方のポートから
 送信するだけの非常にシンプルなNFである. 以下にコアを1つ割り当てたl2fwdの
