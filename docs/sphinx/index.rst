@@ -7,16 +7,19 @@ Susanow(スサノオ)計画は高度に動的で高性能にNFVを実現する�
 
 
 .. toctree::
-	:maxdepth: 1
+  :maxdepth: 1
 
-	about/index
-	tech_report/index
-	examples/index
-	getting_start/index
-	design_implementation/index
-	survey/index
-	testbed/index
-	references
+  about/index
+  background/index
+  key_tech/index
+  getting_start/index
+  examples/index
+  design_implementation/index
+  tech_report/index
+  survey/index
+  testbed/index
+  progress/index
+  references
 
 
 **Powered by IPA未踏事業**
