@@ -68,7 +68,12 @@ VMに追加する方法の場合, ハイパーバイザとVMでのパケット�
 参考: panda_iw2016_
 
 このような場合ベアメタルのDPDK VNFをKVM上で動作させるだけで大幅な性能低下が
-起きてしまう.
+起きてしまう. 以下の図はDPDKをVMで用いた場合でのボトルネックを示している.
+
+.. figure:: img/vm_overhead.png
+
+  DPDKをVM上で使用した場合でのボトルネック
+
 
 .. todo:: 証拠の性証拠の性能比較結果を示す.
 
@@ -128,7 +133,7 @@ NFVの利点はコストダウンだけではない.
 また, Serivce Function Chainingのような動的なNF ChainもNFVによって迅速に
 制御可能である.
 
-.. figure:: img/fig1.nfv.png
+.. figure:: img/nfv.png
 
   Network Functions Virtualization Architecuture
 
@@ -155,7 +160,7 @@ OvS_ を用いる方法や, NICのHW支援機構であるSR-IOVを用いる方�
 ゼロコピーで渡しあう構造を提案する NetVM_ なども存在する.
 以下のその構造を示した図を示す.
 
-.. figure:: img/fig3.chaining.png
+.. figure:: img/vm_sfc.png
 
   SFCの構成例
 
