@@ -128,3 +128,11 @@ OvS-DPDK
 - {sum of vCPU} > {num of cores}になったら, vm\_entry, vm\_exitの数が上昇?
 - DPDKのCPUpinningの効果が低減
 - VM上で動くVNFが一般的なDPDK VNFならまとめて管理をできる
+
+
+```
+コンピュータリソース100%10G
+A33%10Gbps B33%05Gbps C33%20Gbps
+A33%10Gbps B66%10Gbps C16%10Gbps
+とする、アルゴリズムを開発する
+```
