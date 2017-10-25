@@ -1,4 +1,5 @@
 
+.. _d2:
 
 D2: Dynamic Thread Optimize
 ===========================
