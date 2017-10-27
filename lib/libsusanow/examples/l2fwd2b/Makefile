@@ -15,9 +15,13 @@ all:
 clean:
 	rm -rf *.out *.o
 
-run:
+runtap2:
 	sudo ./a.out \
 		--vdev=net_tap0,iface=tap0 \
 		--vdev=net_tap1,iface=tap1
 
+run:
+	sudo ./a.out \
+		--vdev=net_tap0,iface=tap0 \
+		--vdev=net_tap1,iface=tap1
 
