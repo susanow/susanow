@@ -78,7 +78,7 @@ class vnf_block : public ssn_vnf_block {
         for (size_t i=0; i<n_recv; i++) {
 
           /* Delay Block begin */
-          size_t n=10;
+          size_t n=0;
           for (size_t j=0; j<100; j++) n++;
 
           tx_burst(pid^1, txaid, &mbufs[i], 1);

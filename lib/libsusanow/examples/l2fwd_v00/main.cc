@@ -56,7 +56,7 @@ class vnf_test : public ssn_vnf {
         for (size_t i=0; i<nb_recv; i++) {
 
           /* Delay Block begin */
-          size_t n=10;
+          size_t n=0;
           for (size_t j=0; j<100; j++) n++;
 
           size_t nb_send = tx_burst(pid^1, aid, &mbufs[i], 1);
@@ -78,14 +78,6 @@ char waitmsg(const char* msg)
   return getchar();
 }
 
-void VNF_DUMP(ssn_vnf* vnf)
-{
-  printf("\n");
-  printf("vnfptr: %p \r\n", vnf);
-  vnf->debug_dump(stdout);
-  printf("\n");
-}
-
 int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
@@ -105,30 +97,45 @@ int main(int argc, char** argv)
   vnf_test* vnf0 = new vnf_test(n_ports);
   vnf0->attach_port(0, port0); // attach dpdk0 to vnf0
   vnf0->attach_port(1, port1); // attach dpdk1 to vnf0
-  VNF_DUMP(vnf0);
+  printf("\n");
+  printf("vnfptr: %p \r\n", vnf0);
+  vnf0->debug_dump(stdout);
+  printf("\n");
 
   /* run with 1 cores */
   waitmsg("press [enter] to deploy with 1 lcores...\n");
   vnf0->undeploy();
   vnf0->deploy(0x04);
-  VNF_DUMP(vnf0);
+  printf("\n");
+  printf("vnfptr: %p \r\n", vnf0);
+  vnf0->debug_dump(stdout);
+  printf("\n");
 
   /* run with 2 cores */
   waitmsg("press [enter] to deploy with 2 lcores...\n");
   vnf0->undeploy();
   vnf0->deploy(0x0c);
-  VNF_DUMP(vnf0);
+  printf("\n");
+  printf("vnfptr: %p \r\n", vnf0);
+  vnf0->debug_dump(stdout);
+  printf("\n");
 
   /* run with 4 cores */
   waitmsg("press [enter] to deploy with 4 lcores...\n");
   vnf0->undeploy();
   vnf0->deploy(0x3c);
-  VNF_DUMP(vnf0);
+  printf("\n");
+  printf("vnfptr: %p \r\n", vnf0);
+  vnf0->debug_dump(stdout);
+  printf("\n");
 
   /* undeploy */
   waitmsg("press [enter] to undeploy ");
   vnf0->undeploy();
-  VNF_DUMP(vnf0);
+  printf("\n");
+  printf("vnfptr: %p \r\n", vnf0);
+  vnf0->debug_dump(stdout);
+  printf("\n");
 
 fin:
   delete vnf0;
