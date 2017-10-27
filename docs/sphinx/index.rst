@@ -13,11 +13,9 @@ Susanow(スサノオ)計画は高度に動的で高性能にNFVを実現する�
   about/index
   background/index
   key_tech/index
-  performance/index
-  getting_start/index
+  user_guide/index
   examples/index
-  testbed/index
-  progress/index
+  roadmap/index
 
 
 本計画は以下の主要技術を鍵にして進めています.
@@ -28,11 +26,14 @@ Susanow(スサノオ)計画は高度に動的で高性能にNFVを実現する�
   key_tech/d2/index
   key_tech/nonvm_nfvi/index
 
-以下では本計画を進める上で収集できた性能計測結果や問題を報告しています.
+以下では本計画を進める上で収集できた性能計測結果やその環境の詳細,
+発生した問題とその対処について報告しています.
 
 .. toctree::
   :maxdepth: 1
 
+  testbed/index
+  performance/index
   tech_report/index
   survey/index
   references

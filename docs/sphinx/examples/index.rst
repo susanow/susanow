@@ -1,12 +1,7 @@
 
-サンプルアプリケーション
-===================================
+Sample Application
+==================
 
-hoge
-
-.. toctree::
-
-  l2fwd
-  acl
+write soon.
 
 
