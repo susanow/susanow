@@ -37,12 +37,10 @@ class ssn_vnf_l2fwd2b_block_port : public ssn_vnf_block {
  public:
   bool running = false;
   const size_t port_id;
-  const std::string name;
 
-  ssn_vnf_l2fwd2b_block_port(size_t poll_pid, slankdev::fixed_size_vector<ssn_vnf_port*>& ports)
-    : ssn_vnf_block(ports)
-    , port_id(poll_pid)
-    , name(slankdev::format("vnf_block_port%zd", port_id)) {}
+  ssn_vnf_l2fwd2b_block_port(size_t poll_pid, slankdev::fixed_size_vector<ssn_vnf_port*>& ports, const char* n)
+    : ssn_vnf_block(ports, n)
+    , port_id(poll_pid) {}
 
   virtual bool is_running() const override { return running; }
   virtual void undeploy_impl() override { running = false; }
@@ -94,10 +92,12 @@ class ssn_vnf_l2fwd2b_block_port : public ssn_vnf_block {
 };
 class ssn_vnf_l2fwd2b : public ssn_vnf {
  public:
-  ssn_vnf_l2fwd2b() : ssn_vnf(2)
+  ssn_vnf_l2fwd2b(const char* n) : ssn_vnf(2, n)
   {
-    ssn_vnf_block* vnf_block0 = new ssn_vnf_l2fwd2b_block_port(0, ports);
-    ssn_vnf_block* vnf_block1 = new ssn_vnf_l2fwd2b_block_port(1, ports);
+    std::string name0 = slankdev::format("%sblockport0", n);
+    std::string name1 = slankdev::format("%sblockport1", n);
+    ssn_vnf_block* vnf_block0 = new ssn_vnf_l2fwd2b_block_port(0, ports, name0.c_str());
+    ssn_vnf_block* vnf_block1 = new ssn_vnf_l2fwd2b_block_port(1, ports, name1.c_str());
     this->blocks.push_back(vnf_block0);
     this->blocks.push_back(vnf_block1);
   }

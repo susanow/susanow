@@ -447,6 +447,8 @@ class ssn_vnf_block {
 
  protected:
 
+  const std::string name;
+
   /**
    * @brief vnf implementation
    * @details
@@ -585,7 +587,7 @@ class ssn_vnf_block {
 
  public:
 
-  ssn_vnf_block(slankdev::fixed_size_vector<ssn_vnf_port*>& p) : ports(p) {}
+  ssn_vnf_block(slankdev::fixed_size_vector<ssn_vnf_port*>& p, const char* n) : ports(p), name(n) {}
 
   virtual void debug_dump(FILE* fp) const = 0;
 
@@ -631,6 +633,7 @@ class ssn_vnf {
 
   slankdev::fixed_size_vector<ssn_vnf_port*> ports;
   std::vector<ssn_vnf_block*> blocks;
+  const std::string name;
 
  public:
 
@@ -638,7 +641,7 @@ class ssn_vnf {
    * @brief constructor
    * @param [in] nport number of ports included vnf.
    */
-  ssn_vnf(size_t nport) : ports(nport) {}
+  ssn_vnf(size_t nport, const char* n) : ports(nport), name(n) {}
 
   /**
    * @brief set logical coremask to Block

@@ -54,7 +54,7 @@ int main(int argc, char** argv)
   /*--------deploy-field-begin----------------------------------------------*/
 
   printf("\n");
-  ssn_vnf_l2fwd2b v0;
+  ssn_vnf_l2fwd2b v0("vnf0");
   v0.attach_port(0, port[0]);
   v0.attach_port(1, port[1]);
 
