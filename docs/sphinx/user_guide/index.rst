@@ -9,6 +9,7 @@ VNFを開発するための情報を公開するドキュメントである.
   :maxdepth: 1
 
   installation/index
+  deploy_nfvi/index
   develop_vnf/index
 
 
