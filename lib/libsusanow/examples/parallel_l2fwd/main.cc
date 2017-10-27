@@ -28,7 +28,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <ssn_ma_port.h>
-#include <ssn_vnf_v01.h>
+#include <ssn_vnf_v02.h>
+#include <slankdev/vector.h>
 #define NOTIMPL(str) slankdev::exception("NOT IMPLEMENT " #str)
 
 size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }
@@ -39,7 +40,7 @@ class vnf_block_port : public ssn_vnf_block {
   const size_t port_id;
   const std::string name;
 
-  vnf_block_port(size_t poll_pid, fixed_size_vector<ssn_vnf_port*>& ports)
+  vnf_block_port(size_t poll_pid, slankdev::fixed_size_vector<ssn_vnf_port*>& ports)
     : ssn_vnf_block(ports)
     , port_id(poll_pid)
     , name(slankdev::format("vnf_block_port%zd", port_id)) {}
@@ -62,23 +63,16 @@ class vnf_block_port : public ssn_vnf_block {
   }
   virtual void deploy_impl(void*) override
   {
-    size_t plid = ssn_lcore_id();
-    size_t vlid  = get_vlcore_id();
+    size_t vlid = get_vlcore_id();
     running = true;
     while (running) {
       rte_mbuf* mbufs[32];
       size_t rxaid = get_lcore_port_rxaid(vlid, port_id);
-
-      if (false) { /* DEBUG CODE */
-        size_t next_qid = ssn_ma_port_get_next_rxqid_from_aid(port_id, rxaid);
-        printf("rxburst pid=%zd, qid=%zd \n", port_id, next_qid);
-      }
-
       size_t n_recv = rx_burst(port_id, rxaid, mbufs, 32);
       if (n_recv == 0) continue;
 
       for (size_t i=0; i<n_recv; i++) {
-        printf("recv port%zd \n", port_id);
+        // printf("recv port%zd \n", port_id);
 
         /* Delay Block begin */
         size_t n=10;
@@ -101,16 +95,12 @@ class vnf_block_port : public ssn_vnf_block {
 };
 class vnf_test : public ssn_vnf {
  public:
-  vnf_test(size_t n_ports) : ssn_vnf(n_ports)
+  vnf_test() : ssn_vnf(2)
   {
     ssn_vnf_block* vnf_block0 = new vnf_block_port(0, ports);
     ssn_vnf_block* vnf_block1 = new vnf_block_port(1, ports);
-    ssn_vnf_block* vnf_block2 = new vnf_block_port(2, ports);
-    ssn_vnf_block* vnf_block3 = new vnf_block_port(3, ports);
-    this->add_block(vnf_block0);
-    this->add_block(vnf_block1);
-    this->add_block(vnf_block2);
-    this->add_block(vnf_block3);
+    this->blocks.push_back(vnf_block0);
+    this->blocks.push_back(vnf_block1);
   }
 };
 
@@ -118,7 +108,7 @@ class vnf_test : public ssn_vnf {
 
 int main(int argc, char** argv)
 {
-  constexpr size_t n_ports_wanted = 4;
+  constexpr size_t n_ports_wanted = 2;
   constexpr size_t n_rxq = 8;
   constexpr size_t n_txq = 8;
 
@@ -131,63 +121,45 @@ int main(int argc, char** argv)
   }
 
   ssn_vnf_port* port[4];
-  port[0] = new ssn_vnf_port(0, n_rxq, n_txq); // dpdk0
-  port[1] = new ssn_vnf_port(1, n_rxq, n_txq); // dpdk1
-  port[2] = new ssn_vnf_port(2, n_rxq, n_txq); // dpdk2
-  port[3] = new ssn_vnf_port(3, n_rxq, n_txq); // dpdk3
+  port[0] = new ssn_vnf_port_dpdk(0, 4, 4); // dpdk0
+  port[1] = new ssn_vnf_port_dpdk(1, 4, 4); // dpdk1
 
   /*--------deploy-field-begin----------------------------------------------*/
 
   printf("\n");
-  vnf_test v0(4);
+  vnf_test v0;
   v0.attach_port(0, port[0]);
   v0.attach_port(1, port[1]);
-  v0.attach_port(2, port[2]);
-  v0.attach_port(3, port[3]);
 
-  /* configuration 2 */
+  //----------------------------------------------------------
+
   v0.set_coremask(0, 0x02); /* 0b00000010:0x02 */
   v0.set_coremask(1, 0x04); /* 0b00000100:0x04 */
-  v0.set_coremask(2, 0x08); /* 0b00001000:0x08 */
-  v0.set_coremask(3, 0x10); /* 0b00010000:0x0f */
-  v0.config_port_acc();
+  v0.configre_acc();
   v0.deploy();
   v0.debug_dump(stdout);
+
+  //----------------------------------------------------------
+
   getchar();
   v0.undeploy();
+  port[0]->reset_acc();
+  port[1]->reset_acc();
 
-#if 0
-  /* Reset */
-  port[0]->reset_acc(); port[1]->reset_acc(); printf("\n\n");
+  //----------------------------------------------------------
 
-  /* configuration 3 */
-  v0.set_coremask(0, 0x06); /* 0b00000110:0x06 */
-  v0.set_coremask(1, 0x08); /* 0b00001000:0x08 */
-  v0.config_port_acc();
-  v0.deploy();
-  v0.debug_dump(stdout);
-  getchar();
-  v0.undeploy();
-
-  /* Reset */
-  port[0]->reset_acc(); port[1]->reset_acc(); printf("\n\n");
-
-  /* configuration 4 */
   v0.set_coremask(0, 0x06); /* 0b00000110:0x06 */
   v0.set_coremask(1, 0x18); /* 0b00011000:0x18 */
-  v0.config_port_acc();
+  v0.configre_acc();
   v0.deploy();
   v0.debug_dump(stdout);
   getchar();
   v0.undeploy();
-#endif
 
   /*--------deploy-field-end------------------------------------------------*/
 
   delete port[0];
   delete port[1];
-  delete port[2];
-  delete port[3];
   ssn_fin();
 }
 

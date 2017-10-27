@@ -23,7 +23,5 @@ runtap2:
 run:
 	sudo ./a.out \
 		--vdev=net_tap0,iface=tap0 \
-		--vdev=net_tap1,iface=tap1 \
-		--vdev=net_tap2,iface=tap2 \
-		--vdev=net_tap3,iface=tap3
+		--vdev=net_tap1,iface=tap1
 
