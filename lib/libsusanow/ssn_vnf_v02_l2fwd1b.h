@@ -1,4 +1,29 @@
 
+/*
+ * MIT License
+ *
+ * Copyright (c) 2017 Susanow
+ * Copyright (c) 2017 Hiroki SHIROKURA
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #pragma once
 #include <ssn_port.h>
 #include <ssn_common.h>
@@ -8,11 +33,11 @@
 
 inline size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }
 
-class ssn_vnf_l2fwd_block : public ssn_vnf_block {
+class ssn_vnf_l2fwd1b_block : public ssn_vnf_block {
   bool running = false;
   const std::string name;
  public:
-  ssn_vnf_l2fwd_block(slankdev::fixed_size_vector<ssn_vnf_port*>& ports, const char* n)
+  ssn_vnf_l2fwd1b_block(slankdev::fixed_size_vector<ssn_vnf_port*>& ports, const char* n)
     : ssn_vnf_block(ports), name(n) {}
   virtual bool is_running() const override { return running; }
   virtual void undeploy_impl() override { running = false; }
@@ -48,9 +73,9 @@ class ssn_vnf_l2fwd_block : public ssn_vnf_block {
 
         for (size_t i=0; i<n_recv; i++) {
 
-          // #<{(| Delay Block begin |)}>#
-          // size_t n=10;
-          // for (size_t j=0; j<100; j++) n++;
+          /* Delay Block begin */
+          size_t n=10;
+          for (size_t j=0; j<100; j++) n++;
 
           tx_burst(pid^1, txaid, &mbufs[i], 1);
         }
@@ -59,14 +84,14 @@ class ssn_vnf_l2fwd_block : public ssn_vnf_block {
   }
 };
 
-class ssn_vnf_l2fwd : public ssn_vnf {
+class ssn_vnf_l2fwd1b : public ssn_vnf {
  public:
-  ssn_vnf_l2fwd(const char* name) : ssn_vnf(2)
+  ssn_vnf_l2fwd1b(const char* name) : ssn_vnf(2)
   {
-    ssn_vnf_block* block = new ssn_vnf_l2fwd_block(ports, name);
+    ssn_vnf_block* block = new ssn_vnf_l2fwd1b_block(ports, name);
     blocks.push_back(block);
   }
-  ~ssn_vnf_l2fwd()
+  ~ssn_vnf_l2fwd1b()
   {
     auto* p = blocks.at(blocks.size()-1);
     delete p;

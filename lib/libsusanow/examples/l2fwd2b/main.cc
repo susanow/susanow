@@ -27,70 +27,66 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <slankdev/string.h>
-#include <slankdev/exception.h>
-
-#include <ssn_port.h>
-#include <ssn_common.h>
-#include <ssn_log.h>
-#include <dpdk/dpdk.h>
-
-#include "vnf.h"
+#include <ssn_ma_port.h>
+#include <ssn_vnf_v02.h>
+#include <slankdev/vector.h>
+#include <ssn_vnf_v02_l2fwd2b.h>
 
 
 int main(int argc, char** argv)
 {
+  constexpr size_t n_ports_wanted = 2;
+  constexpr size_t n_rxq = 8;
+  constexpr size_t n_txq = 8;
+
   ssn_init(argc, argv);
   size_t n_ports = ssn_dev_count();
-  if (n_ports != 2) {
-    std::string err = slankdev::format("n_ports is not 2 (current %zd)",
-        ssn_dev_count());
+  if (n_ports != n_ports_wanted) {
+    std::string err = slankdev::format("n_ports is not %zd (current %zd)",
+        n_ports_wanted, ssn_dev_count());
     throw slankdev::exception(err.c_str());
   }
 
-  ssn_vnf_port* port0 = new ssn_vnf_port_dpdk(0, 4, 4); // dpdk0
-  ssn_vnf_port* port1 = new ssn_vnf_port_dpdk(1, 4, 4); // dpdk1
+  ssn_vnf_port* port[4];
+  port[0] = new ssn_vnf_port_dpdk(0, 4, 4); // dpdk0
+  port[1] = new ssn_vnf_port_dpdk(1, 4, 4); // dpdk1
+
+  /*--------deploy-field-begin----------------------------------------------*/
+
   printf("\n");
-  port0->debug_dump(stdout); printf("\n");
-  port1->debug_dump(stdout); printf("\n");
+  ssn_vnf_l2fwd2b v0;
+  v0.attach_port(0, port[0]);
+  v0.attach_port(1, port[1]);
 
-  vnf v;
-  v.attach_port(0, port0);
-  v.attach_port(1, port1);
+  //----------------------------------------------------------
 
-  //-------------------------------------------------------
+  v0.set_coremask(0, 0x02); /* 0b00000010:0x02 */
+  v0.set_coremask(1, 0x04); /* 0b00000100:0x04 */
+  v0.configre_acc();
+  v0.deploy();
+  v0.debug_dump(stdout);
 
-  port0->reset_acc();
-  port1->reset_acc();
-  v.set_coremask(0, 0x02); /* 0b00000010:0x02 */
-  v.configre_acc();
-  v.deploy();
+  //----------------------------------------------------------
+
   getchar();
-  v.undeploy();
+  v0.undeploy();
+  port[0]->reset_acc();
+  port[1]->reset_acc();
 
-  //-------------------------------------------------------
+  //----------------------------------------------------------
 
-  port0->reset_acc();
-  port1->reset_acc();
-  v.set_coremask(0, 0x06); /* 0b00000110:0x06 */
-  v.configre_acc();
-  v.deploy();
+  v0.set_coremask(0, 0x06); /* 0b00000110:0x06 */
+  v0.set_coremask(1, 0x18); /* 0b00011000:0x18 */
+  v0.configre_acc();
+  v0.deploy();
+  v0.debug_dump(stdout);
   getchar();
-  v.undeploy();
+  v0.undeploy();
 
-  //-------------------------------------------------------
+  /*--------deploy-field-end------------------------------------------------*/
 
-  port0->reset_acc();
-  port1->reset_acc();
-  v.set_coremask(0, 0x1e); /* 0b00011110:0x1e */
-  v.configre_acc();
-  v.deploy();
-  getchar();
-  v.undeploy();
-
-fin:
-  delete port0;
-  delete port1;
+  delete port[0];
+  delete port[1];
   ssn_fin();
 }
 
