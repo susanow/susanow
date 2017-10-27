@@ -33,7 +33,7 @@
 #include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
-#include <ssn_vnf_v01.h>
+#include <ssn_vnf_v02.h>
 #include <dpdk/dpdk.h>
 
 
@@ -42,7 +42,7 @@ size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }
 class vnf_block : public ssn_vnf_block {
   bool running = false;
  public:
-  vnf_block(fixed_size_vector<ssn_vnf_port*>& ports) : ssn_vnf_block(ports) {}
+  vnf_block(slankdev::fixed_size_vector<ssn_vnf_port*>& ports) : ssn_vnf_block(ports) {}
   virtual bool is_running() const override { return running; }
   virtual void undeploy_impl() override { running = false; }
   virtual void debug_dump(FILE* fp) const override { throw slankdev::exception("NOTIMPL"); }
@@ -93,7 +93,7 @@ class vnf : public ssn_vnf {
   vnf() : ssn_vnf(2)
   {
     ssn_vnf_block* block = new vnf_block(ports);
-    this->add_block(block);
+    this->blocks.push_back(block);
   }
 }; /* class vnf */
 
@@ -107,8 +107,8 @@ int main(int argc, char** argv)
     throw slankdev::exception(err.c_str());
   }
 
-  ssn_vnf_port* port0 = new ssn_vnf_port(0, 4, 4); // dpdk0
-  ssn_vnf_port* port1 = new ssn_vnf_port(1, 4, 4); // dpdk1
+  ssn_vnf_port* port0 = new ssn_vnf_port_dpdk(0, 4, 4); // dpdk0
+  ssn_vnf_port* port1 = new ssn_vnf_port_dpdk(1, 4, 4); // dpdk1
   printf("\n");
   port0->debug_dump(stdout); printf("\n");
   port1->debug_dump(stdout); printf("\n");
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
   port0->reset_acc();
   port1->reset_acc();
   v.set_coremask(0, 0x02); /* 0b00000010:0x02 */
-  v.config_port_acc();
+  v.configre_acc();
   v.deploy();
   getchar();
   v.undeploy();
@@ -132,7 +132,7 @@ int main(int argc, char** argv)
   port0->reset_acc();
   port1->reset_acc();
   v.set_coremask(0, 0x06); /* 0b00000110:0x06 */
-  v.config_port_acc();
+  v.configre_acc();
   v.deploy();
   getchar();
   v.undeploy();
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
   port0->reset_acc();
   port1->reset_acc();
   v.set_coremask(0, 0x1e); /* 0b00011110:0x1e */
-  v.config_port_acc();
+  v.configre_acc();
   v.deploy();
   getchar();
   v.undeploy();
