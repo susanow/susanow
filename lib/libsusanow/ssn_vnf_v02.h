@@ -65,6 +65,7 @@ class ssn_vnf_port {
   size_t n_txacc;       /*! num of tx accessor */
 
  public:
+  const std::string name;
 
   /**
    * @brief constructor
@@ -77,8 +78,8 @@ class ssn_vnf_port {
    *   - num of rx queues (hardware multiqueues)
    *   - num of tx queues (hardware multiqueues)
    */
-  ssn_vnf_port(size_t i_n_rxq, size_t i_n_txq)
-    : n_rxq(i_n_rxq), n_txq(i_n_txq), n_rxacc(0), n_txacc(0) {}
+  ssn_vnf_port(const char* n, size_t i_n_rxq, size_t i_n_txq)
+    : n_rxq(i_n_rxq), n_txq(i_n_txq), n_rxacc(0), n_txacc(0), name(n) {}
 
   /**
    * @brief Send a burst of output packets of an Ethernet device
@@ -208,8 +209,8 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    *   - num of rx queues (hardware multiqueues)
    *   - num of tx queues (hardware multiqueues)
    */
-  ssn_vnf_port_dpdk(size_t a_port_id, size_t a_n_rxq, size_t a_n_txq, struct rte_mempool* mp) :
-    ssn_vnf_port(a_n_rxq, a_n_txq), port_id(a_port_id)
+  ssn_vnf_port_dpdk(const char* n, size_t a_port_id, size_t a_n_rxq, size_t a_n_txq, struct rte_mempool* mp) :
+    ssn_vnf_port(n, a_n_rxq, a_n_txq), port_id(a_port_id)
   {
     ssn_ma_port_configure_hw(port_id, n_rxq, n_txq, mp);
     ssn_ma_port_dev_up(port_id);
@@ -295,8 +296,8 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
    * @param [in] n_rxq_ number of rx queues for RSS multiqueues
    * @param [in] n_txq_ number of tx queues for RSS multiqueues
    */
-  ssn_vnf_port_virt(size_t n_rxq_, size_t n_txq_)
-    : ssn_vnf_port(n_rxq_, n_txq_) {}
+  ssn_vnf_port_virt(const char* n, size_t n_rxq_, size_t n_txq_)
+    : ssn_vnf_port(n, n_rxq_, n_txq_) {}
 
   /**
    * @brief Send a burst of output packets of an Ethernet device ( ssn_vnf_port::tx_burst() )

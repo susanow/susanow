@@ -123,7 +123,7 @@ class ssn_nfvi final {
     printf(" ------------------------------------------\n");
     const size_t n_ports = ports.size();
     for (size_t i=0; i<n_ports; i++) {
-      // printf("  %3zd  %-10s \n", i, ports[i]->name.c_str());
+      printf("  %3zd  %-10s \n", i, ports[i]->name.c_str());
     }
 
     printf("\n\n");

@@ -48,8 +48,8 @@ int main(int argc, char** argv)
   }
 
   rte_mempool* mp = dpdk::mp_alloc("ssn");
-  ssn_vnf_port* port0 = new ssn_vnf_port_dpdk(0, 4, 4, mp); // dpdk0
-  ssn_vnf_port* port1 = new ssn_vnf_port_dpdk(1, 4, 4, mp); // dpdk1
+  ssn_vnf_port* port0 = new ssn_vnf_port_dpdk("dpdk0", 0, 4, 4, mp); // dpdk0
+  ssn_vnf_port* port1 = new ssn_vnf_port_dpdk("dpdk1", 1, 4, 4, mp); // dpdk1
   printf("\n");
   port0->debug_dump(stdout); printf("\n");
   port1->debug_dump(stdout); printf("\n");

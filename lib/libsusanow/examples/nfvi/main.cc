@@ -49,17 +49,10 @@ int main(int argc, char** argv)
 
   /*-------------------------------------------------------------------------*/
 
-#if 1
-  ssn_vnf_port_dpdk tap0(ppmd_pci("0000:01:00.0"), 4, 4, mp);
-  ssn_vnf_port_dpdk tap1(ppmd_pci("0000:01:00.1"), 4, 4, mp);
-  ssn_vnf_port_dpdk pci0(vpmd_tap("tap0"        ), 4, 4, mp);
-  ssn_vnf_port_dpdk pci1(vpmd_tap("tap1"        ), 4, 4, mp);
-#else
   ssn_vnf_port_dpdk tap0("tap0", ppmd_pci("0000:01:00.0"), 4, 4, mp);
   ssn_vnf_port_dpdk tap1("tap1", ppmd_pci("0000:01:00.1"), 4, 4, mp);
   ssn_vnf_port_dpdk pci0("pci0", vpmd_tap("tap0"        ), 4, 4, mp);
   ssn_vnf_port_dpdk pci1("pci1", vpmd_tap("tap1"        ), 4, 4, mp);
-#endif
   size_t tap0_pid = nfvi.append_vport(&tap0);
   size_t tap1_pid = nfvi.append_vport(&tap1);
   size_t pci0_pid = nfvi.append_vport(&pci0);
