@@ -37,7 +37,6 @@
 #include <ssn_common.h>
 #include <ssn_log.h>
 #include <ssn_vnf_v02_l2fwd1b.h>
-#include "lib.h"
 #include "ssn_nfvi.h"
 
 
