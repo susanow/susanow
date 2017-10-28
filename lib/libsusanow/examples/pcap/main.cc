@@ -88,6 +88,8 @@ int main(int argc, char** argv)
   uint32_t tid[4];
   ssn_init(argc, argv);
 
+  rte_mempool* mp = dpdk::mp_alloc("ssn");
+
   auto n_ports = ssn_dev_count();
   if (n_ports != wanted_n_ports) {
     std::string err = slankdev::format("num ports is not %zd (current %zd)",
@@ -99,7 +101,7 @@ int main(int argc, char** argv)
   ssn_green_thread_sched_register(gt_lcore_id);
 
   for (size_t i=0; i<n_ports; i++) {
-    ssn_ma_port_configure_hw(i, n_rxq, n_txq);
+    ssn_ma_port_configure_hw(i, n_rxq, n_txq, mp);
     ssn_ma_port_dev_up(i);
     ssn_ma_port_promisc_on(i);
   }
@@ -120,6 +122,7 @@ int main(int argc, char** argv)
   ssn_thread_join(tid[2]);
   ssn_thread_join(tid[3]);
 
+  rte_mempool_free(mp);
   ssn_fin();
 }
 

@@ -65,6 +65,7 @@ class ssn_vnf_port {
   size_t n_txacc;       /*! num of tx accessor */
 
  public:
+  const std::string name;
 
   /**
    * @brief constructor
@@ -77,8 +78,8 @@ class ssn_vnf_port {
    *   - num of rx queues (hardware multiqueues)
    *   - num of tx queues (hardware multiqueues)
    */
-  ssn_vnf_port(size_t i_n_rxq, size_t i_n_txq)
-    : n_rxq(i_n_rxq), n_txq(i_n_txq), n_rxacc(0), n_txacc(0) {}
+  ssn_vnf_port(const char* n, size_t i_n_rxq, size_t i_n_txq)
+    : n_rxq(i_n_rxq), n_txq(i_n_txq), n_rxacc(0), n_txacc(0), name(n) {}
 
   /**
    * @brief Send a burst of output packets of an Ethernet device
@@ -208,10 +209,10 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    *   - num of rx queues (hardware multiqueues)
    *   - num of tx queues (hardware multiqueues)
    */
-  ssn_vnf_port_dpdk(size_t a_port_id, size_t a_n_rxq, size_t a_n_txq) :
-    ssn_vnf_port(a_n_rxq, a_n_txq), port_id(a_port_id)
+  ssn_vnf_port_dpdk(const char* n, size_t a_port_id, size_t a_n_rxq, size_t a_n_txq, struct rte_mempool* mp) :
+    ssn_vnf_port(n, a_n_rxq, a_n_txq), port_id(a_port_id)
   {
-    ssn_ma_port_configure_hw(port_id, n_rxq, n_txq);
+    ssn_ma_port_configure_hw(port_id, n_rxq, n_txq, mp);
     ssn_ma_port_dev_up(port_id);
     ssn_ma_port_promisc_on(port_id);
   }
@@ -295,8 +296,8 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
    * @param [in] n_rxq_ number of rx queues for RSS multiqueues
    * @param [in] n_txq_ number of tx queues for RSS multiqueues
    */
-  ssn_vnf_port_virt(size_t n_rxq_, size_t n_txq_)
-    : ssn_vnf_port(n_rxq_, n_txq_) {}
+  ssn_vnf_port_virt(const char* n, size_t n_rxq_, size_t n_txq_)
+    : ssn_vnf_port(n, n_rxq_, n_txq_) {}
 
   /**
    * @brief Send a burst of output packets of an Ethernet device ( ssn_vnf_port::tx_burst() )
@@ -447,6 +448,8 @@ class ssn_vnf_block {
 
  protected:
 
+  const std::string name;
+
   /**
    * @brief vnf implementation
    * @details
@@ -585,7 +588,7 @@ class ssn_vnf_block {
 
  public:
 
-  ssn_vnf_block(slankdev::fixed_size_vector<ssn_vnf_port*>& p) : ports(p) {}
+  ssn_vnf_block(slankdev::fixed_size_vector<ssn_vnf_port*>& p, const char* n) : ports(p), name(n) {}
 
   virtual void debug_dump(FILE* fp) const = 0;
 
@@ -627,18 +630,47 @@ class ssn_vnf_block {
  * @brief Provide VNF Interface.
  */
 class ssn_vnf {
+ private:
+
+  /**
+   * @brief Configuration port accessors
+   * @details
+   *   This function must be called after calling ssn_vnf::set_coremask()
+   */
+  void configre_acc()
+  {
+    size_t n_ports = ports.size();
+    for (size_t i=0; i<n_ports; i++) {
+      ports.at(i)->config_acc();
+    }
+  }
+
  protected:
 
   slankdev::fixed_size_vector<ssn_vnf_port*> ports;
   std::vector<ssn_vnf_block*> blocks;
 
  public:
+  const std::string name;
 
   /**
    * @brief constructor
    * @param [in] nport number of ports included vnf.
    */
-  ssn_vnf(size_t nport) : ports(nport) {}
+  ssn_vnf(size_t nport, const char* n) : ports(nport), name(n) {}
+
+  /**
+   * @brief reset all port's access config.
+   * @details
+   *   This function must be called before colling set_coremask().
+   */
+  void reset_allport_acc()
+  {
+    size_t n_ports = ports.size();
+    for (size_t i=0; i<n_ports; i++) {
+      ports.at(i)->reset_acc();
+    }
+  }
 
   /**
    * @brief set logical coremask to Block
@@ -649,6 +681,7 @@ class ssn_vnf {
    *   coremask is 0x14 (0b00010100)
    *   ex. lcore3 only: coremask is 0x08 (0x00001000)
    *   ex. lcore2 and lcore3: coremask is 0x0c (0x00001100)
+   *   User must call this->reset_allport_acc() before calling this function.
    */
   void set_coremask(size_t block_id, uint32_t cmask)
   { blocks.at(block_id)->set_coremask(cmask); }
@@ -664,19 +697,6 @@ class ssn_vnf {
     auto n = blocks.size();
     for (size_t i=0; i<n; i++) {
       blocks.at(i)->attach_port(pid, port);
-    }
-  }
-
-  /**
-   * @brief Configuration port accessors
-   * @details
-   *   This function must be called after calling ssn_vnf::set_coremask()
-   */
-  void configre_acc()
-  {
-    size_t n_ports = ports.size();
-    for (size_t i=0; i<n_ports; i++) {
-      ports.at(i)->config_acc();
     }
   }
 
@@ -697,10 +717,11 @@ class ssn_vnf {
   /**
    * @brief Deploy VNF
    * @details
-   *   This function must be called after ssn_vnf::configure_acc()
+   *   This function calles ssn_vnf::configure_acc() inner itselfs.
    */
   void deploy()
   {
+    configre_acc();
     auto n_impl = blocks.size();
     for (size_t i=0; i<n_impl; i++) {
       this->blocks.at(i)->deploy();

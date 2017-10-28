@@ -47,22 +47,23 @@ int main(int argc, char** argv)
     throw slankdev::exception(err.c_str());
   }
 
+  rte_mempool* mp = dpdk::mp_alloc("ssn");
   ssn_vnf_port* port[4];
-  port[0] = new ssn_vnf_port_dpdk(0, 4, 4); // dpdk0
-  port[1] = new ssn_vnf_port_dpdk(1, 4, 4); // dpdk1
+  port[0] = new ssn_vnf_port_dpdk("dpdk0", 0, 4, 4, mp); // dpdk0
+  port[1] = new ssn_vnf_port_dpdk("dpdk1", 1, 4, 4, mp); // dpdk1
 
   /*--------deploy-field-begin----------------------------------------------*/
 
   printf("\n");
-  ssn_vnf_l2fwd2b v0;
+  ssn_vnf_l2fwd2b v0("vnf0");
   v0.attach_port(0, port[0]);
   v0.attach_port(1, port[1]);
 
   //----------------------------------------------------------
 
+  v0.reset_allport_acc();
   v0.set_coremask(0, 0x02); /* 0b00000010:0x02 */
   v0.set_coremask(1, 0x04); /* 0b00000100:0x04 */
-  v0.configre_acc();
   v0.deploy();
   v0.debug_dump(stdout);
 
@@ -70,21 +71,23 @@ int main(int argc, char** argv)
 
   getchar();
   v0.undeploy();
-  port[0]->reset_acc();
-  port[1]->reset_acc();
 
   //----------------------------------------------------------
 
+  v0.reset_allport_acc();
   v0.set_coremask(0, 0x06); /* 0b00000110:0x06 */
   v0.set_coremask(1, 0x18); /* 0b00011000:0x18 */
-  v0.configre_acc();
   v0.deploy();
   v0.debug_dump(stdout);
+
+  //----------------------------------------------------------
+
   getchar();
   v0.undeploy();
 
   /*--------deploy-field-end------------------------------------------------*/
 
+  rte_mempool_free(mp);
   delete port[0];
   delete port[1];
   ssn_fin();

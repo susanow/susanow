@@ -129,7 +129,7 @@ class ssn_ma_port {
   ssn_ma_port_oneside_tx tx;
 
  public:
-  void configure_hwqueue(size_t dpdk_pid_, size_t n_rxq_i, size_t n_txq_i);
+  void configure_hwqueue(size_t dpdk_pid_, size_t n_rxq_i, size_t n_txq_i, struct rte_mempool* mp);
   void configure_accessor(size_t n_rxacc, size_t n_txacc);
   size_t rx_burst(size_t aid, rte_mbuf** mbufs, size_t nb_mbufs);
   size_t tx_burst(size_t aid, rte_mbuf** mbufs, size_t nb_mbufs);
@@ -255,7 +255,7 @@ void ssn_ma_port::ssn_ma_port_oneside::configure_queue_accessor(size_t dpdk_pid,
   }
 }
 
-void ssn_ma_port::configure_hwqueue(size_t dpdk_pid_, size_t n_rxq_i, size_t n_txq_i)
+void ssn_ma_port::configure_hwqueue(size_t dpdk_pid_, size_t n_rxq_i, size_t n_txq_i, struct rte_mempool* mp)
 {
   dpdk_pid = dpdk_pid_;
   n_rxq = n_rxq_i;
@@ -269,7 +269,7 @@ void ssn_ma_port::configure_hwqueue(size_t dpdk_pid_, size_t n_rxq_i, size_t n_t
   conf.raw.rx_adv_conf.rss_conf.rss_hf = ETH_RSS_IP|ETH_RSS_TCP|ETH_RSS_UDP;
   /* conf.debug_dump(stdout); */
 
-  ssn_port_configure(dpdk_pid, &conf);
+  ssn_port_configure(dpdk_pid, &conf, mp);
 }
 
 void ssn_ma_port::configure_accessor(size_t n_rxacc, size_t n_txacc)
@@ -300,14 +300,14 @@ void ssn_ma_port_promisc_off(size_t pid) { ssn_port_promisc_off(pid); }
 void ssn_ma_port_dev_up(size_t pid)      { ssn_port_dev_up     (pid); }
 void ssn_ma_port_dev_down(size_t pid)    { ssn_port_dev_down   (pid); }
 
-void ssn_ma_port_configure_hw(size_t port_id, size_t n_rxq, size_t n_txq)
+void ssn_ma_port_configure_hw(size_t port_id, size_t n_rxq, size_t n_txq, struct rte_mempool* mp)
 {
   if (port_id >= ssn_dev_count()) {
     std::string err = "ssn_ma_port_configure_hw: ";
     err += slankdev::format("port_id is invalid pid=%zd", port_id);
     throw slankdev::exception(err.c_str());
   }
-  vnf_ports[port_id].configure_hwqueue(port_id, n_rxq, n_txq);
+  vnf_ports[port_id].configure_hwqueue(port_id, n_rxq, n_txq, mp);
 }
 
 void ssn_ma_port_configure_acc(size_t port_id, size_t n_rxacc, size_t n_txacc)

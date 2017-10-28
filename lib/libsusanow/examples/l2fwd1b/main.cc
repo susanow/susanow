@@ -37,6 +37,17 @@
 #include <ssn_vnf_v02_l2fwd1b.h>
 
 
+bool running;
+void print_perf(void*)
+{
+  running = true;
+  while (running) {
+    printf("perf\n");
+    ssn_sleep(1000);
+    ssn_yield();
+  }
+}
+
 int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
@@ -47,8 +58,13 @@ int main(int argc, char** argv)
     throw slankdev::exception(err.c_str());
   }
 
-  ssn_vnf_port* port0 = new ssn_vnf_port_dpdk(0, 4, 4); // dpdk0
-  ssn_vnf_port* port1 = new ssn_vnf_port_dpdk(1, 4, 4); // dpdk1
+  constexpr size_t green_thread_lid = 7;
+  ssn_green_thread_sched_register(green_thread_lid);
+  uint64_t tid = ssn_thread_launch(print_perf, nullptr, green_thread_lid);
+
+  rte_mempool* mp = dpdk::mp_alloc("ssn");
+  ssn_vnf_port* port0 = new ssn_vnf_port_dpdk("dpdk0", 0, 4, 4, mp); // dpdk0
+  ssn_vnf_port* port1 = new ssn_vnf_port_dpdk("dpdk1", 1, 4, 4, mp); // dpdk1
   printf("\n");
   port0->debug_dump(stdout); printf("\n");
   port1->debug_dump(stdout); printf("\n");
@@ -59,35 +75,32 @@ int main(int argc, char** argv)
 
   //-------------------------------------------------------
 
-  port0->reset_acc();
-  port1->reset_acc();
-  v0.set_coremask(0, 0x02); /* 0b00000010:0x02 */
-  v0.configre_acc();
+  v0.reset_allport_acc();
+  v0.set_coremask(0, 0b00000010);
   v0.deploy();
   getchar();
   v0.undeploy();
 
   //-------------------------------------------------------
 
-  port0->reset_acc();
-  port1->reset_acc();
-  v0.set_coremask(0, 0x06); /* 0b00000110:0x06 */
-  v0.configre_acc();
+  v0.reset_allport_acc();
+  v0.set_coremask(0, 0b00000110);
   v0.deploy();
   getchar();
   v0.undeploy();
 
   //-------------------------------------------------------
 
-  port0->reset_acc();
-  port1->reset_acc();
-  v0.set_coremask(0, 0x1e); /* 0b00011110:0x1e */
-  v0.configre_acc();
+  v0.reset_allport_acc();
+  v0.set_coremask(0, 0b00011110);
   v0.deploy();
   getchar();
   v0.undeploy();
 
 fin:
+  running = false;
+  ssn_thread_join(tid);
+  rte_mempool_free(mp);
   delete port0;
   delete port1;
   ssn_fin();

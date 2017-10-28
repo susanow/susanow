@@ -139,7 +139,7 @@ ssn_port_conf::ssn_port_conf()
   dpdk::init_portconf(&raw);
 }
 
-void ssn_port_configure(size_t pid, ssn_port_conf* conf)
+void ssn_port_configure(size_t pid, ssn_port_conf* conf, struct rte_mempool* mp)
 {
   int ret;
   ssn_log(SSN_LOG_INFO,
@@ -151,11 +151,11 @@ void ssn_port_configure(size_t pid, ssn_port_conf* conf)
     throw slankdev::exception("dev configure");
   }
   for (size_t q=0; q<conf->nb_rxq; q++) {
-    ret = rte_eth_rx_queue_setup(pid, q, conf->nb_rxd, rte_eth_dev_socket_id(pid), nullptr, mp[pid]);
+    ret = rte_eth_rx_queue_setup(pid, q, conf->nb_rxd, rte_eth_dev_socket_id(pid), nullptr, mp);
     if (ret < 0) {
       std::string errstr = slankdev::format(
           "rte_eth_rx_queue_setup(%zd,%zd,%zd,%zd,%p,%p)",
-          pid, q, conf->nb_rxd, rte_eth_dev_socket_id(pid), nullptr, mp[pid]);
+          pid, q, conf->nb_rxd, rte_eth_dev_socket_id(pid), nullptr, mp);
       throw slankdev::exception(errstr.c_str());
     }
   }

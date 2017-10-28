@@ -35,10 +35,9 @@ inline size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1;
 
 class ssn_vnf_l2fwd1b_block : public ssn_vnf_block {
   bool running = false;
-  const std::string name;
  public:
   ssn_vnf_l2fwd1b_block(slankdev::fixed_size_vector<ssn_vnf_port*>& ports, const char* n)
-    : ssn_vnf_block(ports), name(n) {}
+    : ssn_vnf_block(ports, n) {}
   virtual bool is_running() const override { return running; }
   virtual void undeploy_impl() override { running = false; }
   virtual void debug_dump(FILE* fp) const override { throw slankdev::exception("NOTIMPL"); }
@@ -86,9 +85,11 @@ class ssn_vnf_l2fwd1b_block : public ssn_vnf_block {
 
 class ssn_vnf_l2fwd1b : public ssn_vnf {
  public:
-  ssn_vnf_l2fwd1b(const char* name) : ssn_vnf(2)
+  ssn_vnf_l2fwd1b(const char* name) : ssn_vnf(2, name)
   {
-    ssn_vnf_block* block = new ssn_vnf_l2fwd1b_block(ports, name);
+    std::string bname = name;
+    bname += "block0";
+    ssn_vnf_block* block = new ssn_vnf_l2fwd1b_block(ports, bname.c_str());
     blocks.push_back(block);
   }
   ~ssn_vnf_l2fwd1b()

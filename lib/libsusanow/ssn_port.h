@@ -49,7 +49,7 @@ void ssn_port_promisc_on(size_t pid);
 void ssn_port_promisc_off(size_t pid);
 void ssn_port_dev_up(size_t pid);
 void ssn_port_dev_down(size_t pid);
-void ssn_port_configure(size_t pid, ssn_port_conf* conf);
+void ssn_port_configure(size_t pid, ssn_port_conf* conf, struct rte_mempool* mp);
 void ssn_port_init();
 void ssn_port_fin();
 void ssn_mbuf_free_bulk(rte_mbuf** m_list, size_t npkts);

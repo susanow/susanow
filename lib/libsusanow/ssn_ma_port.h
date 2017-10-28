@@ -46,7 +46,7 @@ void ssn_ma_port_promisc_off(size_t pid);
 void ssn_ma_port_dev_up(size_t pid);
 void ssn_ma_port_dev_down(size_t pid);
 
-void ssn_ma_port_configure_hw(size_t dpdk_port_id, size_t n_rxq, size_t n_txq);
+void ssn_ma_port_configure_hw(size_t dpdk_port_id, size_t n_rxq, size_t n_txq, struct rte_mempool* mp);
 void ssn_ma_port_configure_acc(size_t dpdk_port_id, size_t n_rxacc, size_t n_txacc);
 
 size_t ssn_ma_port_rx_burst(size_t port_id, size_t aid, rte_mbuf** mbufs, size_t n_mbufs);
