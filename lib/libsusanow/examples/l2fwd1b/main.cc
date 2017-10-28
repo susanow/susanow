@@ -37,6 +37,17 @@
 #include <ssn_vnf_v02_l2fwd1b.h>
 
 
+bool running;
+void print_perf(void*)
+{
+  running = true;
+  while (running) {
+    printf("perf\n");
+    ssn_sleep(1000);
+    ssn_yield();
+  }
+}
+
 int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
@@ -46,6 +57,10 @@ int main(int argc, char** argv)
         ssn_dev_count());
     throw slankdev::exception(err.c_str());
   }
+
+  constexpr size_t green_thread_lid = 7;
+  ssn_green_thread_sched_register(green_thread_lid);
+  uint64_t tid = ssn_thread_launch(print_perf, nullptr, green_thread_lid);
 
   rte_mempool* mp = dpdk::mp_alloc("ssn");
   ssn_vnf_port* port0 = new ssn_vnf_port_dpdk("dpdk0", 0, 4, 4, mp); // dpdk0
@@ -83,6 +98,8 @@ int main(int argc, char** argv)
   v0.undeploy();
 
 fin:
+  running = false;
+  ssn_thread_join(tid);
   rte_mempool_free(mp);
   delete port0;
   delete port1;
