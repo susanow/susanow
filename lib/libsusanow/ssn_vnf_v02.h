@@ -629,6 +629,21 @@ class ssn_vnf_block {
  * @brief Provide VNF Interface.
  */
 class ssn_vnf {
+ private:
+
+  /**
+   * @brief Configuration port accessors
+   * @details
+   *   This function must be called after calling ssn_vnf::set_coremask()
+   */
+  void configre_acc()
+  {
+    size_t n_ports = ports.size();
+    for (size_t i=0; i<n_ports; i++) {
+      ports.at(i)->config_acc();
+    }
+  }
+
  protected:
 
   slankdev::fixed_size_vector<ssn_vnf_port*> ports;
@@ -644,6 +659,19 @@ class ssn_vnf {
   ssn_vnf(size_t nport, const char* n) : ports(nport), name(n) {}
 
   /**
+   * @brief reset all port's access config.
+   * @details
+   *   This function must be called before colling set_coremask().
+   */
+  void reset_allport_acc()
+  {
+    size_t n_ports = ports.size();
+    for (size_t i=0; i<n_ports; i++) {
+      ports.at(i)->reset_acc();
+    }
+  }
+
+  /**
    * @brief set logical coremask to Block
    * @param [in] block_id block id
    * @param [in] cmask coremask
@@ -652,6 +680,7 @@ class ssn_vnf {
    *   coremask is 0x14 (0b00010100)
    *   ex. lcore3 only: coremask is 0x08 (0x00001000)
    *   ex. lcore2 and lcore3: coremask is 0x0c (0x00001100)
+   *   User must call this->reset_allport_acc() before calling this function.
    */
   void set_coremask(size_t block_id, uint32_t cmask)
   { blocks.at(block_id)->set_coremask(cmask); }
@@ -667,19 +696,6 @@ class ssn_vnf {
     auto n = blocks.size();
     for (size_t i=0; i<n; i++) {
       blocks.at(i)->attach_port(pid, port);
-    }
-  }
-
-  /**
-   * @brief Configuration port accessors
-   * @details
-   *   This function must be called after calling ssn_vnf::set_coremask()
-   */
-  void configre_acc()
-  {
-    size_t n_ports = ports.size();
-    for (size_t i=0; i<n_ports; i++) {
-      ports.at(i)->config_acc();
     }
   }
 
@@ -700,10 +716,11 @@ class ssn_vnf {
   /**
    * @brief Deploy VNF
    * @details
-   *   This function must be called after ssn_vnf::configure_acc()
+   *   This function calles ssn_vnf::configure_acc() inner itselfs.
    */
   void deploy()
   {
+    configre_acc();
     auto n_impl = blocks.size();
     for (size_t i=0; i<n_impl; i++) {
       this->blocks.at(i)->deploy();

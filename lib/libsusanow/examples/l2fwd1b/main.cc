@@ -60,30 +60,24 @@ int main(int argc, char** argv)
 
   //-------------------------------------------------------
 
-  port0->reset_acc();
-  port1->reset_acc();
-  v0.set_coremask(0, 0x02); /* 0b00000010:0x02 */
-  v0.configre_acc();
+  v0.reset_allport_acc();
+  v0.set_coremask(0, 0b00000010);
   v0.deploy();
   getchar();
   v0.undeploy();
 
   //-------------------------------------------------------
 
-  port0->reset_acc();
-  port1->reset_acc();
-  v0.set_coremask(0, 0x06); /* 0b00000110:0x06 */
-  v0.configre_acc();
+  v0.reset_allport_acc();
+  v0.set_coremask(0, 0b00000110);
   v0.deploy();
   getchar();
   v0.undeploy();
 
   //-------------------------------------------------------
 
-  port0->reset_acc();
-  port1->reset_acc();
-  v0.set_coremask(0, 0x1e); /* 0b00011110:0x1e */
-  v0.configre_acc();
+  v0.reset_allport_acc();
+  v0.set_coremask(0, 0b00011110);
   v0.deploy();
   getchar();
   v0.undeploy();

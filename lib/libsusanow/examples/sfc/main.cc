@@ -60,20 +60,16 @@ int main(int argc, char** argv)
 
   ssn_vnf_l2fwd1b v0("vnf0");
   v0.attach_port(0, dpdk0);
-  v0.attach_port(1, dpdk1);
-  dpdk0->reset_acc();
-  virt1->reset_acc();
+  v0.attach_port(1, virt0);
+  v0.reset_allport_acc();
   v0.set_coremask(0, 0x02);
-  v0.configre_acc();
   v0.deploy();
 
   ssn_vnf_l2fwd1b v1("vnf1");
   v1.attach_port(0, virt1);
   v1.attach_port(1, dpdk1);
-  virt1->reset_acc();
-  dpdk1->reset_acc();
+  v1.reset_allport_acc();
   v1.set_coremask(0, 0x04);
-  v1.configre_acc();
   v1.deploy();
 
   /*-------------------------------------------------------------------------*/

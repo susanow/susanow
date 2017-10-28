@@ -61,9 +61,9 @@ int main(int argc, char** argv)
 
   //----------------------------------------------------------
 
+  v0.reset_allport_acc();
   v0.set_coremask(0, 0x02); /* 0b00000010:0x02 */
   v0.set_coremask(1, 0x04); /* 0b00000100:0x04 */
-  v0.configre_acc();
   v0.deploy();
   v0.debug_dump(stdout);
 
@@ -71,16 +71,17 @@ int main(int argc, char** argv)
 
   getchar();
   v0.undeploy();
-  port[0]->reset_acc();
-  port[1]->reset_acc();
 
   //----------------------------------------------------------
 
+  v0.reset_allport_acc();
   v0.set_coremask(0, 0x06); /* 0b00000110:0x06 */
   v0.set_coremask(1, 0x18); /* 0b00011000:0x18 */
-  v0.configre_acc();
   v0.deploy();
   v0.debug_dump(stdout);
+
+  //----------------------------------------------------------
+
   getchar();
   v0.undeploy();
 

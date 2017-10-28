@@ -51,29 +51,31 @@ int main(int argc, char** argv)
   size_t pci1_pid = append_pci_nic("0000:01:00.1");
   size_t tap0_pid = append_tap_pmd("tap0");
   size_t tap1_pid = append_tap_pmd("tap1");
-  ssn_vnf_port_dpdk* tap0 = new ssn_vnf_port_dpdk(tap0_pid, 4, 4, mp); // dpdk0
-  ssn_vnf_port_dpdk* tap1 = new ssn_vnf_port_dpdk(tap1_pid, 4, 4, mp); // dpdk1
-  ssn_vnf_port_dpdk* pci0 = new ssn_vnf_port_dpdk(pci0_pid, 4, 4, mp); // dpdk0
-  ssn_vnf_port_dpdk* pci1 = new ssn_vnf_port_dpdk(pci1_pid, 4, 4, mp); // dpdk1
+  ssn_vnf_port_dpdk tap0(tap0_pid, 4, 4, mp); // dpdk0
+  ssn_vnf_port_dpdk tap1(tap1_pid, 4, 4, mp); // dpdk1
+  ssn_vnf_port_dpdk pci0(pci0_pid, 4, 4, mp); // dpdk0
+  ssn_vnf_port_dpdk pci1(pci1_pid, 4, 4, mp); // dpdk1
 
   /*-------------------------------------------------------------------------*/
-#if 0
-  ssn_vnf_l2fwd1b v0("vnf0");
-  v0.attach_port(0, dpdk0);
-  v0.attach_port(1, dpdk1);
-  dpdk0->reset_acc();
-  dpdk0->reset_acc();
-  v0.set_coremask(0, 0b00000010);
-  v0.configre_acc();
-  v0.deploy(); getchar(); v0.undeploy();
+#if 1
+  ssn_vnf_l2fwd1b vnf0("vnf0");
+  vnf0.attach_port(0, &pci0);
+  vnf0.attach_port(1, &pci1);
+  vnf0.reset_allport_acc();
+  vnf0.set_coremask(0, 0b00000010);
+  vnf0.deploy();
+
+  ssn_vnf_l2fwd1b vnf1("vnf1");
+  vnf1.attach_port(0, &tap0);
+  vnf1.attach_port(1, &tap1);
+  vnf1.reset_allport_acc();
+  vnf1.set_coremask(0, 0b00000100);
+  vnf1.deploy();
+
+  getchar(); vnf1.undeploy();
+  getchar(); vnf0.undeploy();
 #endif
   /*-------------------------------------------------------------------------*/
-
-fin:
-  delete pci0;
-  delete pci1;
-  delete tap0;
-  delete tap1;
 }
 
 
