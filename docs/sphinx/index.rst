@@ -23,7 +23,7 @@ Susanow(スサノオ)計画は高度に動的で高性能にNFVを実現する�
 .. toctree::
   :maxdepth: 1
 
-  key_tech/d2/index
+  key_tech/d2engine/index
   key_tech/nonvm_nfvi/index
 
 以下では本計画を進める上で収集できた性能計測結果やその環境の詳細,

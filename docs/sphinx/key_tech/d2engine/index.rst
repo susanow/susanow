@@ -1,8 +1,8 @@
 
 .. _d2:
 
-D2: Dynamic Thread Optimize
-===========================
+D2engine: Dynamic Thread Optimize Engine
+========================================
 
 D2: Dynamic Thread Optimize(動的スレッド最適化)はSusanow計画でもっとも
 重要な技術である. VNFのスレッド最適化を動的に多重化/逆多重化させることで

@@ -37,11 +37,11 @@ D2のエンジンはこの手順を用いてVNFの自動スケールを行う.
   ssn_vnf_l2fwd vnf("vnf0");
   vnf.attach_port(0, dpdk0);
   vnf.attach_port(1, dpdk1);
-  dpdk0->reset_acc();
-  dpdk1->reset_acc();
+
+  vnf.reset_allport_acc();
   vnf.set_coremask(0, 0x02);
-  vnf.configre_acc();
   vnf.deploy();
+  vnf.undeploy();
 
 このようにしてデプロイを行う. 手順を形式的に書くと以下の手順である.
 
@@ -50,8 +50,7 @@ D2のエンジンはこの手順を用いてVNFの自動スケールを行う.
 3. vnfに対して, vportをアタッチ
 4. vportのaccessorをリセット
 5. vnfのblockにコアマスクを設定
-6. vnfのaccessorを設定
-7. vnfのdeploy関数を実行
+6. vnfのdeploy関数を実行
 
 
 
