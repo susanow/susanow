@@ -40,56 +40,73 @@
 #include "ssn_nfvi.h"
 
 
-void user_operation(ssn_nfvi* nfvi, void* arg)
-{
-  ssn_vnf* vnf;
-  vnf = nfvi->find_vnf("vnf0");
-  vnf->attach_port(0, nfvi->find_port("pci0"));
-  vnf->attach_port(1, nfvi->find_port("pci1"));
-  vnf->reset_allport_acc();
-  vnf->set_coremask(0, 0b00000010);
-  vnf->deploy();
+class labnet_nfvi : public ssn_nfvi {
+ private:
+  ssn_vnf* vnf0;
+  ssn_vnf* vnf1;
+  ssn_vnf_port* tap0;
+  ssn_vnf_port* tap1;
+  ssn_vnf_port* pci0;
+  ssn_vnf_port* pci1;
 
-  vnf = nfvi->find_vnf("vnf1");
-  vnf->attach_port(0, nfvi->find_port("tap0"));
-  vnf->attach_port(1, nfvi->find_port("tap1"));
-  vnf->reset_allport_acc();
-  vnf->set_coremask(0, 0b00000100);
-  vnf->deploy();
+ public:
+  labnet_nfvi(int argc, char** argv) : ssn_nfvi(argc, argv)
+  {
+    rte_mempool* mp = this->get_mp();
 
-  nfvi->debug_dump(stdout);
-}
+    tap0 = new ssn_vnf_port_dpdk("tap0", ppmd_pci("0000:01:00.0"), 4, 4, mp);
+    tap1 = new ssn_vnf_port_dpdk("tap1", ppmd_pci("0000:01:00.1"), 4, 4, mp);
+    pci0 = new ssn_vnf_port_dpdk("pci0", vpmd_tap("tap0"        ), 4, 4, mp);
+    pci1 = new ssn_vnf_port_dpdk("pci1", vpmd_tap("tap1"        ), 4, 4, mp);
+    this->append_vport(tap0);
+    this->append_vport(tap1);
+    this->append_vport(pci0);
+    this->append_vport(pci1);
+
+    vnf0 = new ssn_vnf_l2fwd1b("vnf0");
+    vnf1 = new ssn_vnf_l2fwd1b("vnf1");
+    this->append_vnf(vnf0);
+    this->append_vnf(vnf1);
+  }
+
+  ~labnet_nfvi()
+  {
+    delete vnf0;
+    delete vnf1;
+    delete tap0;
+    delete tap1;
+    delete pci0;
+    delete pci1;
+  }
+
+  virtual void deploy() override
+  {
+    ssn_vnf* vnf;
+    vnf = this->find_vnf("vnf0");
+    vnf->attach_port(0, this->find_port("pci0"));
+    vnf->attach_port(1, this->find_port("pci1"));
+    vnf->reset_allport_acc();
+    vnf->set_coremask(0, 0b00000010);
+    vnf->deploy();
+
+    vnf = this->find_vnf("vnf1");
+    vnf->attach_port(0, this->find_port("tap0"));
+    vnf->attach_port(1, this->find_port("tap1"));
+    vnf->reset_allport_acc();
+    vnf->set_coremask(0, 0b00000100);
+    vnf->deploy();
+
+    this->debug_dump(stdout);
+  }
+}; /* class nfvi */
 
 
 int main(int argc, char** argv)
 {
-  ssn_nfvi nfvi(argc, argv);
-  rte_mempool* mp = nfvi.get_mp();
-
-  /*-------------------------------------------------------------------------*/
-
-  ssn_vnf_port_dpdk tap0("tap0", ppmd_pci("0000:01:00.0"), 4, 4, mp);
-  ssn_vnf_port_dpdk tap1("tap1", ppmd_pci("0000:01:00.1"), 4, 4, mp);
-  ssn_vnf_port_dpdk pci0("pci0", vpmd_tap("tap0"        ), 4, 4, mp);
-  ssn_vnf_port_dpdk pci1("pci1", vpmd_tap("tap1"        ), 4, 4, mp);
-  nfvi.append_vport(&tap0);
-  nfvi.append_vport(&tap1);
-  nfvi.append_vport(&pci0);
-  nfvi.append_vport(&pci1);
-
-  ssn_vnf_l2fwd1b vnf0("vnf0");
-  ssn_vnf_l2fwd1b vnf1("vnf1");
-  nfvi.append_vnf(&vnf0);
-  nfvi.append_vnf(&vnf1);
-
-  /*-------------------------------------------------------------------------*/
-
-  nfvi.set_userop(user_operation, nullptr);
-  nfvi.deploy();
+  labnet_nfvi nfvi0(argc, argv);
+  nfvi0.deploy();
   getchar();
-  nfvi.undeploy_all_vnfs();
-
-  /*-------------------------------------------------------------------------*/
+  nfvi0.undeploy_all_vnfs();
 }
 
 

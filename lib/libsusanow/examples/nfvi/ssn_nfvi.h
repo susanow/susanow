@@ -41,21 +41,17 @@ size_t ppmd_pci(const char* pci_addr_str)
   return dpdk::eth_dev_attach(devargs.c_str());
 }
 
-class ssn_nfvi;
-typedef void (*ssn_nfvi_userop_t)(ssn_nfvi*,void*);
 
-class ssn_nfvi final {
+class ssn_nfvi {
  private:
 
   rte_mempool* mp;
   std::vector<ssn_vnf*> vnfs;
   std::vector<ssn_vnf_port*> ports;
-  ssn_nfvi_userop_t userop;
-  void* userop_arg;
 
  public:
 
-  ssn_nfvi(int argc, char** argv) : mp(nullptr), userop(nullptr)
+  ssn_nfvi(int argc, char** argv) : mp(nullptr)
   {
     ssn_init(argc, argv);
     const size_t n_ports = ssn_dev_count();
@@ -70,18 +66,6 @@ class ssn_nfvi final {
   {
     rte_mempool_free(mp);
     ssn_fin();
-  }
-
-  void set_userop(ssn_nfvi_userop_t op, void* arg)
-  {
-    userop = op;
-    userop_arg = arg;
-  }
-
-  void reset_userop()
-  {
-    userop_arg = nullptr;
-    userop = nullptr;
   }
 
   void append_vnf(ssn_vnf* vnf) { vnfs.push_back(vnf); }
@@ -109,13 +93,7 @@ class ssn_nfvi final {
     throw slankdev::exception("ssn_nfvi::find_vnf: not found");
   }
 
-  void deploy()
-  {
-    if (userop) {
-      userop(this, userop_arg);
-    }
-  }
-
+  virtual void deploy() {}
   void undeploy_all_vnfs()
   {
     const size_t n_vnf = vnfs.size();
