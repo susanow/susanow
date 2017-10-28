@@ -47,9 +47,10 @@ int main(int argc, char** argv)
     throw slankdev::exception(err.c_str());
   }
 
+  rte_mempool* mp = dpdk::mp_alloc("ssn");
   ssn_vnf_port* port[4];
-  port[0] = new ssn_vnf_port_dpdk(0, 4, 4); // dpdk0
-  port[1] = new ssn_vnf_port_dpdk(1, 4, 4); // dpdk1
+  port[0] = new ssn_vnf_port_dpdk(0, 4, 4, mp); // dpdk0
+  port[1] = new ssn_vnf_port_dpdk(1, 4, 4, mp); // dpdk1
 
   /*--------deploy-field-begin----------------------------------------------*/
 
@@ -85,6 +86,7 @@ int main(int argc, char** argv)
 
   /*--------deploy-field-end------------------------------------------------*/
 
+  rte_mempool_free(mp);
   delete port[0];
   delete port[1];
   ssn_fin();

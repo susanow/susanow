@@ -208,10 +208,10 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    *   - num of rx queues (hardware multiqueues)
    *   - num of tx queues (hardware multiqueues)
    */
-  ssn_vnf_port_dpdk(size_t a_port_id, size_t a_n_rxq, size_t a_n_txq) :
+  ssn_vnf_port_dpdk(size_t a_port_id, size_t a_n_rxq, size_t a_n_txq, struct rte_mempool* mp) :
     ssn_vnf_port(a_n_rxq, a_n_txq), port_id(a_port_id)
   {
-    ssn_ma_port_configure_hw(port_id, n_rxq, n_txq);
+    ssn_ma_port_configure_hw(port_id, n_rxq, n_txq, mp);
     ssn_ma_port_dev_up(port_id);
     ssn_ma_port_promisc_on(port_id);
   }
