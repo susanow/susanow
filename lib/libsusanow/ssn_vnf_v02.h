@@ -648,9 +648,9 @@ class ssn_vnf {
 
   slankdev::fixed_size_vector<ssn_vnf_port*> ports;
   std::vector<ssn_vnf_block*> blocks;
-  const std::string name;
 
  public:
+  const std::string name;
 
   /**
    * @brief constructor

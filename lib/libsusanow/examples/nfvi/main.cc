@@ -40,6 +40,8 @@
 #include "lib.h"
 #include "ssn_nfvi.h"
 
+
+
 int main(int argc, char** argv)
 {
   ssn_nfvi nfvi(argc, argv);
@@ -47,33 +49,47 @@ int main(int argc, char** argv)
 
   /*-------------------------------------------------------------------------*/
 
-  size_t pci0_pid = append_pci_nic("0000:01:00.0");
-  size_t pci1_pid = append_pci_nic("0000:01:00.1");
-  size_t tap0_pid = append_tap_pmd("tap0");
-  size_t tap1_pid = append_tap_pmd("tap1");
-  ssn_vnf_port_dpdk tap0(tap0_pid, 4, 4, mp); // dpdk0
-  ssn_vnf_port_dpdk tap1(tap1_pid, 4, 4, mp); // dpdk1
-  ssn_vnf_port_dpdk pci0(pci0_pid, 4, 4, mp); // dpdk0
-  ssn_vnf_port_dpdk pci1(pci1_pid, 4, 4, mp); // dpdk1
+#if 1
+  ssn_vnf_port_dpdk tap0(ppmd_pci("0000:01:00.0"), 4, 4, mp);
+  ssn_vnf_port_dpdk tap1(ppmd_pci("0000:01:00.1"), 4, 4, mp);
+  ssn_vnf_port_dpdk pci0(vpmd_tap("tap0"        ), 4, 4, mp);
+  ssn_vnf_port_dpdk pci1(vpmd_tap("tap1"        ), 4, 4, mp);
+#else
+  ssn_vnf_port_dpdk tap0("tap0", ppmd_pci("0000:01:00.0"), 4, 4, mp);
+  ssn_vnf_port_dpdk tap1("tap1", ppmd_pci("0000:01:00.1"), 4, 4, mp);
+  ssn_vnf_port_dpdk pci0("pci0", vpmd_tap("tap0"        ), 4, 4, mp);
+  ssn_vnf_port_dpdk pci1("pci1", vpmd_tap("tap1"        ), 4, 4, mp);
+#endif
+  size_t tap0_pid = nfvi.append_vport(&tap0);
+  size_t tap1_pid = nfvi.append_vport(&tap1);
+  size_t pci0_pid = nfvi.append_vport(&pci0);
+  size_t pci1_pid = nfvi.append_vport(&pci1);
 
   /*-------------------------------------------------------------------------*/
 #if 1
   ssn_vnf_l2fwd1b vnf0("vnf0");
+  ssn_vnf_l2fwd1b vnf1("vnf1");
+  nfvi.append_vnf(&vnf0);
+  nfvi.append_vnf(&vnf1);
+
   vnf0.attach_port(0, &pci0);
   vnf0.attach_port(1, &pci1);
-  vnf0.reset_allport_acc();
-  vnf0.set_coremask(0, 0b00000010);
-  vnf0.deploy();
-
-  ssn_vnf_l2fwd1b vnf1("vnf1");
   vnf1.attach_port(0, &tap0);
   vnf1.attach_port(1, &tap1);
+  vnf0.reset_allport_acc();
   vnf1.reset_allport_acc();
+
+  vnf0.set_coremask(0, 0b00000010);
   vnf1.set_coremask(0, 0b00000100);
+
+  vnf0.deploy();
   vnf1.deploy();
 
-  getchar(); vnf1.undeploy();
-  getchar(); vnf0.undeploy();
+  nfvi.debug_dump(stdout);
+
+  getchar();
+  vnf1.undeploy();
+  vnf0.undeploy();
 #endif
   /*-------------------------------------------------------------------------*/
 }
