@@ -50,7 +50,6 @@ class ssn_nfvi final {
   rte_mempool* mp;
   std::vector<ssn_vnf*> vnfs;
   std::vector<ssn_vnf_port*> ports;
-
   ssn_nfvi_userop_t userop;
   void* userop_arg;
 
@@ -73,7 +72,7 @@ class ssn_nfvi final {
     ssn_fin();
   }
 
-  void add_userop(ssn_nfvi_userop_t op, void* arg)
+  void set_userop(ssn_nfvi_userop_t op, void* arg)
   {
     userop = op;
     userop_arg = arg;
@@ -85,22 +84,43 @@ class ssn_nfvi final {
     userop = nullptr;
   }
 
-  size_t append_vnf(ssn_vnf* vnf)
+  void append_vnf(ssn_vnf* vnf) { vnfs.push_back(vnf); }
+  void append_vport(ssn_vnf_port* port) { ports.push_back(port); }
+
+  ssn_vnf_port* find_port(const char* name)
   {
-    vnfs.push_back(vnf);
-    return vnfs.size()-1;
+    const size_t n_port = ports.size();
+    for (size_t i=0; i<n_port; i++) {
+      if (ports[i]->name == name) {
+        return ports[i];
+      }
+    }
+    throw slankdev::exception("ssn_nfvi::find_port: not found");
   }
 
-  size_t append_vport(ssn_vnf_port* port)
+  ssn_vnf* find_vnf(const char* name)
   {
-    ports.push_back(port);
-    return ports.size()-1;
+    const size_t n_vnf = vnfs.size();
+    for (size_t i=0; i<n_vnf; i++) {
+      if (vnfs[i]->name == name) {
+        return vnfs[i];
+      }
+    }
+    throw slankdev::exception("ssn_nfvi::find_vnf: not found");
   }
 
   void deploy()
   {
     if (userop) {
       userop(this, userop_arg);
+    }
+  }
+
+  void undeploy_all_vnfs()
+  {
+    const size_t n_vnf = vnfs.size();
+    for (size_t i=0; i<n_vnf; i++) {
+      vnfs[i]->undeploy();
     }
   }
 
@@ -130,7 +150,6 @@ class ssn_nfvi final {
   }
 
   struct rte_mempool* get_mp() { return mp; }
-  void undeploy() { throw NI("ssn_nfvi::undeploy"); }
 
 }; /* class ssn_nfvi */
 
