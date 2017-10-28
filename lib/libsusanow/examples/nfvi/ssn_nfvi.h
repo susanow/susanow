@@ -27,20 +27,44 @@
 #pragma once
 
 
+size_t append_tap_pmd(const char* devname)
+{
+  static size_t index = 0; index++;
+  std::string devargs = slankdev::format("net_tap%zd,iface=%s", index, devname);
+  return dpdk::eth_dev_attach(devargs.c_str());
+}
+
+size_t append_pci_nic(const char* pci_addr_str)
+{
+  static size_t index = 0; index++;
+  std::string devargs = slankdev::format("%s", pci_addr_str);
+  return dpdk::eth_dev_attach(devargs.c_str());
+}
+
 class ssn_nfvi {
+  rte_mempool* mp;
+
  public:
-  ssn_nfvi(int argc, char** argv)
+
+  ssn_nfvi(int argc, char** argv) : mp(nullptr)
   {
     ssn_init(argc, argv);
-    size_t n_ports = ssn_dev_count();
-    if (n_ports != 2) {
-      std::string err = slankdev::format("n_ports is not 2 (current %zd)",
-          ssn_dev_count());
-      throw slankdev::exception(err.c_str());
+    const size_t n_ports = ssn_dev_count();
+    for (size_t i=0; i<n_ports; i++) {
+      dpdk::eth_dev_detach(i);
     }
+    mp = dpdk::mp_alloc("NFVi");
+    printf("FINISH nfvi initialization\n\n");
   }
-  ~ssn_nfvi()
+
+  virtual ~ssn_nfvi()
   {
+    rte_mempool_free(mp);
     ssn_fin();
   }
-}; /* class ssn_nfvi */
+
+  struct rte_mempool* get_mp() { return mp; }
+
+}; /* class ssn_nvfi */
+
+

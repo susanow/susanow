@@ -29,44 +29,51 @@
 #include <stddef.h>
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
+#include <slankdev/util.h>
+#include <slankdev/string.h>
 #include <dpdk/dpdk.h>
 
 #include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
 #include <ssn_vnf_v02_l2fwd1b.h>
+#include "lib.h"
 #include "ssn_nfvi.h"
 
 int main(int argc, char** argv)
 {
   ssn_nfvi nfvi(argc, argv);
+  rte_mempool* mp = nfvi.get_mp();
 
   /*-------------------------------------------------------------------------*/
 
-  ssn_vnf_port_dpdk* dpdk0 = new ssn_vnf_port_dpdk(0, 4, 4); // dpdk0
-  ssn_vnf_port_dpdk* dpdk1 = new ssn_vnf_port_dpdk(1, 4, 4); // dpdk1
+  size_t pci0_pid = append_pci_nic("0000:01:00.0");
+  size_t pci1_pid = append_pci_nic("0000:01:00.1");
+  size_t tap0_pid = append_tap_pmd("tap0");
+  size_t tap1_pid = append_tap_pmd("tap1");
+  ssn_vnf_port_dpdk* tap0 = new ssn_vnf_port_dpdk(tap0_pid, 4, 4, mp); // dpdk0
+  ssn_vnf_port_dpdk* tap1 = new ssn_vnf_port_dpdk(tap1_pid, 4, 4, mp); // dpdk1
+  ssn_vnf_port_dpdk* pci0 = new ssn_vnf_port_dpdk(pci0_pid, 4, 4, mp); // dpdk0
+  ssn_vnf_port_dpdk* pci1 = new ssn_vnf_port_dpdk(pci1_pid, 4, 4, mp); // dpdk1
 
   /*-------------------------------------------------------------------------*/
-
+#if 0
   ssn_vnf_l2fwd1b v0("vnf0");
   v0.attach_port(0, dpdk0);
   v0.attach_port(1, dpdk1);
   dpdk0->reset_acc();
   dpdk0->reset_acc();
-  v0.set_coremask(0, 0x02);
+  v0.set_coremask(0, 0b00000010);
   v0.configre_acc();
-  v0.deploy();
-
-  /*-------------------------------------------------------------------------*/
-
-  getchar();
-  v0.undeploy();
-
+  v0.deploy(); getchar(); v0.undeploy();
+#endif
   /*-------------------------------------------------------------------------*/
 
 fin:
-  delete dpdk0;
-  delete dpdk1;
+  delete pci0;
+  delete pci1;
+  delete tap0;
+  delete tap1;
 }
 
 
