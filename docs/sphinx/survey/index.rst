@@ -16,5 +16,6 @@ Survey
   openstack_study/index
   virtual_nic_backend/index
   e2_a_framework_for_nfv_application/index
+  virtio-user_paper/index
 
 
