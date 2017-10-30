@@ -322,7 +322,10 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    */
   virtual size_t
   rx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override
-  { return ssn_ma_port_rx_burst(port_id, aid, mbufs, n_mbufs); }
+  {
+    size_t ret = ssn_ma_port_rx_burst(port_id, aid, mbufs, n_mbufs);
+    return ret;
+  }
 
   /**
    * @brief Debug output
@@ -346,6 +349,40 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    */
   virtual void config_acc() override
   { ssn_ma_port_configure_acc(port_id, n_rxacc, n_txacc); }
+
+  /**
+   * @brief get "inner rx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_inner_rx_perf() const override
+  {
+    return 1;
+    throw NI("get_inner_rx_perf");
+  }
+
+  /**
+   * @brief get "inner tx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_inner_tx_perf() const override
+  { throw NI("get_inner_tx_perf"); }
+
+  /**
+   * @brief get "outer rx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_outer_rx_perf() const override
+  {
+    return 1;
+    throw NI("get_outer_rx_perf");
+  }
+
+  /**
+   * @brief get "outer tx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_outer_tx_perf() const override
+  { throw NI("get_outer_tx_perf"); }
 
 }; /* class ssn_vnf_port_dpdk */
 
@@ -783,10 +820,22 @@ class ssn_vnf {
   void debug_dump(FILE* fp) const
   {
     fprintf(fp, "\r\n");
+    fprintf(fp, "-[infos]-----------------------------------\r\n");
+    fprintf(fp, " + name: \"%s\" \r\n", name.c_str());
+    fprintf(fp, "-[block]-----------------------------------\r\n");
     auto n = blocks.size();
     for (size_t i=0; i<n; i++) {
       blocks.at(i)->debug_dump(fp);
     }
+    fprintf(fp, "-[ports]-----------------------------------\r\n");
+    n = ports.size();
+    for (size_t i=0; i<n; i++) {
+      size_t orx = ports.at(i)->get_outer_rx_perf();
+      size_t irx = ports.at(i)->get_inner_rx_perf();
+      double r = ports.at(i)->get_perf_reduction();
+      printf("port[%zd]: orx=%zd irx=%zd red=%lf\n", i, orx, irx, r);
+    }
+    fprintf(fp, "-------------------------------------------\r\n");
     fprintf(fp, "\r\n");
   }
 
