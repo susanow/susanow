@@ -31,9 +31,9 @@
 #include <dpdk/dpdk.h>
 #include <ssn_vnf_v02.h>
 
-inline size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }
 
 class ssn_vnf_l2fwd1b_block : public ssn_vnf_block {
+  size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }
   bool running = false;
  public:
   ssn_vnf_l2fwd1b_block(slankdev::fixed_size_vector<ssn_vnf_port*>& ports, const char* n)

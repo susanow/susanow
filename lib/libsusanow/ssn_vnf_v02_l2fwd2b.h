@@ -31,9 +31,9 @@
 #include <dpdk/dpdk.h>
 #include <ssn_vnf_v02.h>
 
-inline size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }
 
 class ssn_vnf_l2fwd2b_block_port : public ssn_vnf_block {
+  size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }
  public:
   bool running = false;
   const size_t port_id;

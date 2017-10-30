@@ -32,10 +32,7 @@
 #include <slankdev/hexdump.h>
 #include <slankdev/exception.h>
 
-#include <dpdk/hdr.h>
-#include <dpdk/wrap.h>
-#include <dpdk/struct.h>
-
+#include <dpdk/dpdk.h>
 
 
 class ssn_lcore {

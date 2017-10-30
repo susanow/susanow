@@ -26,9 +26,9 @@
 #include <ssn_cpu.h>
 #include <ssn_log.h>
 #include <ssn_native_thread.h>
-#include <dpdk/dpdk.h>
 #include <slankdev/exception.h>
 #include <mutex>
+#include <dpdk/dpdk.h>
 
 using auto_lock=std::lock_guard<std::mutex>;
 std::mutex mutex_thread_launch;
