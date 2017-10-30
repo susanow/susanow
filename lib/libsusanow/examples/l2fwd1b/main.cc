@@ -51,9 +51,12 @@ void print_perf(void* arg)
   }
 }
 
-void update_stats(void*)
+void update_stats(void* arg)
 {
+  ssn_vnf_l2fwd1b* v0 = reinterpret_cast<ssn_vnf_l2fwd1b*>(arg);
+
   while (running) {
+    v0->update_stats();
     ssn_port_stat_update(nullptr);
     ssn_sleep(1000);
     ssn_yield();
@@ -83,8 +86,8 @@ int main(int argc, char** argv)
   ssn_vnf_l2fwd1b v0("vnf0");
   v0.attach_port(0, port0);
   v0.attach_port(1, port1);
-  uint64_t tid = ssn_thread_launch(print_perf, &v0, green_thread_lid);
-  uint64_t tid1 = ssn_thread_launch(update_stats, nullptr, green_thread_lid);
+  uint64_t tid0 = ssn_thread_launch(print_perf, &v0, green_thread_lid);
+  uint64_t tid1 = ssn_thread_launch(update_stats, &v0, green_thread_lid);
 
   //-------------------------------------------------------
 
@@ -112,7 +115,8 @@ int main(int argc, char** argv)
 
 fin:
   running = false;
-  ssn_thread_join(tid);
+  ssn_thread_join(tid0);
+  ssn_thread_join(tid1);
   rte_mempool_free(mp);
   delete port0;
   delete port1;

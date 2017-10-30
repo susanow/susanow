@@ -260,6 +260,8 @@ class ssn_vnf_port {
     return ret;
   }
 
+  virtual void stats_update_per1sec() = 0;
+
 }; /* class ssn_vnf_port */
 
 
@@ -272,6 +274,8 @@ class ssn_vnf_port {
 class ssn_vnf_port_dpdk : public ssn_vnf_port {
 
   const size_t port_id; /*! dpdk port id */
+  size_t irx_pps_sum;
+  size_t irx_pps_cur;
 
  public:
 
@@ -286,8 +290,10 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    *   - num of rx queues (hardware multiqueues)
    *   - num of tx queues (hardware multiqueues)
    */
-  ssn_vnf_port_dpdk(const char* n, size_t a_port_id, size_t a_n_rxq, size_t a_n_txq, struct rte_mempool* mp) :
-    ssn_vnf_port(n, a_n_rxq, a_n_txq), port_id(a_port_id)
+  ssn_vnf_port_dpdk(const char* n, size_t a_port_id,
+      size_t a_n_rxq, size_t a_n_txq, struct rte_mempool* mp) :
+    ssn_vnf_port(n, a_n_rxq, a_n_txq), port_id(a_port_id),
+    irx_pps_sum(0), irx_pps_cur(0)
   {
     ssn_ma_port_configure_hw(port_id, n_rxq, n_txq, mp);
     ssn_ma_port_dev_up(port_id);
@@ -325,6 +331,7 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
   rx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override
   {
     size_t ret = ssn_ma_port_rx_burst(port_id, aid, mbufs, n_mbufs);
+    irx_pps_sum += ret;
     return ret;
   }
 
@@ -356,10 +363,7 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    * @return return packet/seconds performance [Mpps]
    */
   virtual size_t get_inner_rx_perf() const override
-  {
-    return 1;
-    throw NI("get_inner_rx_perf");
-  }
+  { return irx_pps_cur; }
 
   /**
    * @brief get "inner tx perf"
@@ -373,7 +377,12 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    * @return return packet/seconds performance [Mpps]
    */
   virtual size_t get_outer_rx_perf() const override
-  { return ssn_port_stat_get_cur_rx_pps(port_id); }
+  {
+    size_t ret = 0;
+    ret += ssn_port_stat_get_cur_rx_pps(port_id);
+    ret += ssn_port_stat_get_cur_rx_mis(port_id);
+    return ret;
+  }
 
   /**
    * @brief get "outer tx perf"
@@ -381,6 +390,12 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    */
   virtual size_t get_outer_tx_perf() const override
   { return ssn_port_stat_get_cur_tx_pps(port_id); }
+
+  virtual void stats_update_per1sec() override
+  {
+    irx_pps_cur = irx_pps_sum;
+    irx_pps_sum = 0;
+  }
 
 }; /* class ssn_vnf_port_dpdk */
 
@@ -859,6 +874,14 @@ class ssn_vnf {
     auto n_impl = blocks.size();
     for (size_t i=0; i<n_impl; i++) {
       this->blocks.at(i)->undeploy();
+    }
+  }
+
+  void update_stats()
+  {
+    auto n = ports.size();
+    for (size_t i=0; i<n; i++) {
+      this->ports.at(i)->stats_update_per1sec();
     }
   }
 
