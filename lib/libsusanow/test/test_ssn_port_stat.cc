@@ -44,7 +44,7 @@
 #include <ssn_port_stat.h>
 #include <ssn_cpu.h>
 #include <ssn_common.h>
-#include <dpdk/hdr.h>
+#include <dpdk/dpdk.h>
 
 
 bool running = true;
@@ -88,6 +88,7 @@ void PRINT(void*)
 int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
+  rte_mempool* mp = dpdk::mp_alloc("ssn");
 
   ssn_timer_sched tm1(1);
   ssn_native_thread_launch(ssn_timer_sched_poll_thread, &tm1, 1);
@@ -101,7 +102,7 @@ int main(int argc, char** argv)
   size_t nb_ports = ssn_dev_count();
   ssn_port_conf conf;
   for (size_t i=0; i<nb_ports; i++) {
-    ssn_port_configure(i, &conf);
+    ssn_port_configure(i, &conf, mp);
     ssn_port_dev_up(i);
     ssn_port_link_up(i);
     ssn_port_promisc_on(i);
