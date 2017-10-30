@@ -37,26 +37,26 @@
 #include <ssn_vnf_v02_l2fwd1b.h>
 #include <ssn_port_stat.h>
 
+ssn_vnf* vnf0;
+ssn_vnf* vnf1;
+bool running = true;
 
-bool running;
-void print_perf(void* arg)
+void print_perf(void*)
 {
-  ssn_vnf_l2fwd1b* v0 = reinterpret_cast<ssn_vnf_l2fwd1b*>(arg);
-
-  running = true;
   while (running) {
-    v0->debug_dump(stdout);
+    printf("========================================\r\n");
+    vnf0->debug_dump(stdout);
+    vnf1->debug_dump(stdout);
     ssn_sleep(1000);
     ssn_yield();
   }
 }
 
-void update_stats(void* arg)
+void update_stats(void*)
 {
-  ssn_vnf_l2fwd1b* v0 = reinterpret_cast<ssn_vnf_l2fwd1b*>(arg);
-
   while (running) {
-    v0->update_stats();
+    vnf0->update_stats();
+    vnf1->update_stats();
     ssn_port_stat_update(nullptr);
     ssn_sleep(1000);
     ssn_yield();
@@ -77,49 +77,61 @@ int main(int argc, char** argv)
   ssn_green_thread_sched_register(green_thread_lid);
 
   rte_mempool* mp = dpdk::mp_alloc("ssn");
-  ssn_vnf_port* port0 = new ssn_vnf_port_dpdk("dpdk0", 0, 4, 4, mp); // dpdk0
-  ssn_vnf_port* port1 = new ssn_vnf_port_dpdk("dpdk1", 1, 4, 4, mp); // dpdk1
-  printf("\n");
-  port0->debug_dump(stdout); printf("\n");
-  port1->debug_dump(stdout); printf("\n");
+  ssn_vnf_port_dpdk dpdk0("dpdk0", 0, 4, 4, mp);
+  ssn_vnf_port_dpdk dpdk1("dpdk1", 1, 4, 4, mp);
+  ssn_vnf_port_virt virt0("virt0", 4, 4);
+  ssn_vnf_port_virt virt1("virt1", 4, 4);
+  ssn_vnf_port_patch_panel pp(&virt0, &virt1, 8);
 
   ssn_vnf_l2fwd1b v0("vnf0");
-  v0.attach_port(0, port0);
-  v0.attach_port(1, port1);
-  uint64_t tid0 = ssn_thread_launch(print_perf, &v0, green_thread_lid);
-  uint64_t tid1 = ssn_thread_launch(update_stats, &v0, green_thread_lid);
+  v0.attach_port(0, &dpdk0);
+  v0.attach_port(1, &virt0);
+
+  ssn_vnf_l2fwd1b v1("vnf1");
+  v1.attach_port(0, &virt1);
+  v1.attach_port(1, &dpdk1);
+
+  vnf0 = &v0;
+  vnf1 = &v1;
+  uint64_t tid0 = ssn_thread_launch(print_perf, nullptr, green_thread_lid);
+  uint64_t tid1 = ssn_thread_launch(update_stats, nullptr, green_thread_lid);
 
   //-------------------------------------------------------
 
   v0.reset_allport_acc();
   v0.set_coremask(0, 0b00000010);
   v0.deploy();
+
+  v1.reset_allport_acc();
+  v1.set_coremask(0, 0b00010000);
+  v1.deploy();
+
+
   getchar();
   v0.undeploy();
+  v1.undeploy();
 
   //-------------------------------------------------------
 
   v0.reset_allport_acc();
   v0.set_coremask(0, 0b00000110);
   v0.deploy();
+
+  v1.reset_allport_acc();
+  v1.set_coremask(0, 0b00110000);
+  v1.deploy();
+
   getchar();
   v0.undeploy();
+  v1.undeploy();
 
   //-------------------------------------------------------
-
-  v0.reset_allport_acc();
-  v0.set_coremask(0, 0b00011110);
-  v0.deploy();
-  getchar();
-  v0.undeploy();
 
 fin:
   running = false;
   ssn_thread_join(tid0);
   ssn_thread_join(tid1);
   rte_mempool_free(mp);
-  delete port0;
-  delete port1;
   ssn_fin();
 }
 

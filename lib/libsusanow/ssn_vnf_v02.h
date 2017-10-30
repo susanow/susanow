@@ -391,6 +391,11 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
   virtual size_t get_outer_tx_perf() const override
   { return ssn_port_stat_get_cur_tx_pps(port_id); }
 
+  /**
+   * @brief update port-statistics for timer-function.
+   * @details
+   *   This function must be called once a second.
+   */
   virtual void stats_update_per1sec() override
   {
     irx_pps_cur = irx_pps_sum;
@@ -479,6 +484,28 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
   {
     rx->configure_deq_acc(get_n_rxacc());
     tx->configure_enq_acc(get_n_txacc());
+  }
+
+  virtual size_t get_inner_rx_perf() const override
+  { return rx->get_cons_perf(); }
+
+  virtual size_t get_inner_tx_perf() const override
+  { return tx->get_prod_perf(); }
+
+  virtual size_t get_outer_rx_perf() const override
+  { return rx->get_prod_perf(); }
+
+  virtual size_t get_outer_tx_perf() const override
+  { return tx->get_cons_perf(); }
+
+  /**
+   * @brief update port-statistics for timer-function.
+   * @details
+   *   This function must be called once a second.
+   */
+  virtual void stats_update_per1sec() override
+  {
+    rx->update_stats();
   }
 
 }; /* class ssn_vnf_port_virt */
