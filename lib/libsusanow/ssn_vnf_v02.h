@@ -183,6 +183,82 @@ class ssn_vnf_port {
    */
   size_t get_n_txacc() const { return n_txacc; }
 
+  /*
+   * 4 kinds of performance of each-ports
+   *
+   *         3                1            +---------------+
+   *        --->  +-------+  --->         / rxburst         \
+   * [traffic]    ||}     |    [process] {      Threads      }
+   *        <---  +-------+  <---         \ txburst         /
+   *         4                2            +---------------+
+   *
+   *     1: inner rx perf        : can get rx_burst call-info
+   *     2: inner tx perf (==4)  : can get rx_burst call-info
+   *     3: outer rx perf        : can get from ethdev-api
+   *     4: outer tx perf (==2)  : can get from ethdev-api
+   */
+  /*
+   * for Virtual Port (patch panel port)
+   *
+   *
+   *         7             5              3             1
+   *       ---> +-------+ --->  {ring}  ---> +-------+ --->
+   * [process]  |     {||    [patchpanel]    ||}     |  [process]
+   *       <--- +-------+ <---  {ring}  <--- +-------+ <---
+   *         8             6              4             2
+   *            Left Port                   Right Port
+   *
+   *     Right Port
+   *       1: inner rx perf
+   *       2: inner tx perf (==4)
+   *       3: outer rx perf
+   *       4: outer tx perf (==2)
+   *     Left Port
+   *       5: outer tx perf (==7)
+   *       6: outer rx perf
+   *       7: inner tx perf (==5)
+   *       8: inner rx perf
+   */
+
+  /**
+   * @brief get "inner rx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_inner_rx_perf() const = 0;
+
+  /**
+   * @brief get "inner tx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_inner_tx_perf() const = 0;
+
+  /**
+   * @brief get "outer rx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_outer_rx_perf() const = 0;
+
+  /**
+   * @brief get "outer tx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_outer_tx_perf() const = 0;
+
+  /**
+   * @brief get "performance reduction" of port
+   * @return 0-1 range. if working wirerate, return 1.
+   * @details
+   *    Working this function need to implement get_inner_rx_perf()
+   *    and get_outer_rx_perf(). This value will be used for D2engine.
+   */
+  double get_perf_reduction() const
+  {
+    size_t irx = get_inner_rx_perf();
+    size_t orx = get_outer_rx_perf();
+    double ret = double(irx)/double(orx);
+    return ret;
+  }
+
 }; /* class ssn_vnf_port */
 
 
