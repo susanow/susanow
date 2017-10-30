@@ -34,6 +34,7 @@
 #include <slankdev/util.h>
 #include <exception>
 
+#include <ssn_port_stat.h>
 #include <ssn_ma_port.h>
 #include <ssn_ma_ring.h>
 #include <ssn_thread.h>
@@ -372,17 +373,14 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    * @return return packet/seconds performance [Mpps]
    */
   virtual size_t get_outer_rx_perf() const override
-  {
-    return 1;
-    throw NI("get_outer_rx_perf");
-  }
+  { return ssn_port_stat_get_cur_rx_pps(port_id); }
 
   /**
    * @brief get "outer tx perf"
    * @return return packet/seconds performance [Mpps]
    */
   virtual size_t get_outer_tx_perf() const override
-  { throw NI("get_outer_tx_perf"); }
+  { return ssn_port_stat_get_cur_tx_pps(port_id); }
 
 }; /* class ssn_vnf_port_dpdk */
 

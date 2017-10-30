@@ -35,6 +35,7 @@
 #include <ssn_log.h>
 #include <dpdk/dpdk.h>
 #include <ssn_vnf_v02_l2fwd1b.h>
+#include <ssn_port_stat.h>
 
 
 bool running;
@@ -45,6 +46,15 @@ void print_perf(void* arg)
   running = true;
   while (running) {
     v0->debug_dump(stdout);
+    ssn_sleep(1000);
+    ssn_yield();
+  }
+}
+
+void update_stats(void*)
+{
+  while (running) {
+    ssn_port_stat_update(nullptr);
     ssn_sleep(1000);
     ssn_yield();
   }
@@ -74,6 +84,7 @@ int main(int argc, char** argv)
   v0.attach_port(0, port0);
   v0.attach_port(1, port1);
   uint64_t tid = ssn_thread_launch(print_perf, &v0, green_thread_lid);
+  uint64_t tid1 = ssn_thread_launch(update_stats, nullptr, green_thread_lid);
 
   //-------------------------------------------------------
 
