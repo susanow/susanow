@@ -1,172 +1,104 @@
-% Susanow:環境に対して自動最適化する高性能通信基盤
-% \underline{Hiroki SHIROKURA} @slankdev slank.dev@gmail.com
+% Susanow計画: \newline 環境に対して自動最適化する \newline 高性能通信基盤
+% \underline{Hiroki SHIROKURA} @slankdev HoseUniv/IIJii
 % powered by IPA-MITOU-program
 
-
-# Introduction
+# Self-introduction
 
 城倉 弘樹 (SHIROKURA Hiroki) aka slankdev <br>
 
-- セキュリティキャンプ 2015~
-- アルバイト
-	- Cybozu-Lab 「拡張可能なパケット解析ライブラリ」
-	- Cybozu-Lab 「高性能TCP/IPネットワークスタック」
-	- IIJ研究所  「高性能パケット処理」(お休み中)
+- 法政大学 理工学部 B4 「VM環境での高性能通信」
+- IIJ研究所  「高性能パケット処理」(お休み中)
+- セキュリティキャンプ
 
 未踏事業 「環境に対して自動で最適化する高性能通信基盤」
 
-# プロジェクト概要
+<!-- # Agenda -->
+<!--  -->
+<!-- - \underline{Background} -->
+<!-- 	- SDN/NFVの未来予想図 -->
+<!-- 	- DPDKについて -->
+<!-- - Susanow -->
+<!-- 	- ssn-NFV infrastructure -->
+<!-- 	- D2: Dynamic Thread Optimization -->
+<!-- - Performance Evaluation -->
+<!-- - まとめ -->
 
-「汎用サーバを用いた\underline{高性能}で\underline{超動的}なNFVの実現」
-
-[draft.susanow.dpdk.ninja](http://draft.susanow.dpdk.ninja)
-
-- D2(Dynamic Thread Optimizaion) という技術を開発
-- D2を用いた動的なNFV基盤開発
-- 開発中のNFV基盤上で動くVNF (開発中)
-- NFVのいくつか空想を実現
-
-# Background
-
-- SDN/NFVの未来予想図
-- DPDKについて
-
-# Network Function Virtialization
+# NFV #とは...
 
 - ネットワーク機能を仮想化
-- CAPEX/OPEX低減
-- 迅速なサービス変形
+- Network Functions(NF) -> Virtial NF(VNF)
+- コストダウン
+	- CAPEX(設備費)低下
+	- OPEX(運用費)低下
+- 迅速性
+	- サービス機能の迅速な変形
+	- サービス容量の迅速な拡大
 
-![NFV](img/nfv.png)
+![NFV Approach](img/nvf.png)
 
-# Service Function Chaining
+# NFV: 迅速な変形/拡大の例
 
-- ネットワーク機能を細かく考える
-- NFVの迅速性を利用し, 素早いサービス変形を柔軟に
-- 現状は様々な方法で実現中(Openflowなど)
-- プロトコルとしても標準化中
-
-![Service Function Chaining](img/sfc.png){width=350}
-
-# 動的なネットワーク変形の例
-
-- DoSを検知したタイミングで新たにNFをデプロイ
-- 必要に応じてその場その場でネットワークの機能をつなぎ合わせる
-- FW等はルールによっても必要な計算資源の量が違う.
-- 最低限のリソースで最大限のパフォーマンス
+- ルーティングとFWを提供するネットワーク
+- DoSを検知したタイミングで新たにVNFをデプロイ
+- 変形: 必要に応じてその場その場でNFをつなぎ合わせる
+- 拡大: 最低限のリソースで最大限のパフォーマンス
+	- FW等はルールによっても必要な計算資源の量が違う.
 
 ![状況に応じてネットワークを変形](img/dynamic_transform.png){width=300}
 
-# DPDKによりIAサーバで高性能通信が可能
+# NFV: 高性能なVNFの実装
 
+- DPDKによりIAサーバで高性能通信が可能
 - 100Gクラスのトラフィックもパケットフォワード可能
-- 現状のボトルネックは経路検索などのアルゴリズム
 - 4つの特徴により実現
 
 ![DPDK architecture](img/dpdk_arch.png){width=250}
 
-# DPDK: 課題
+# NFV::DPDK: 高い開発コストと局所性, VMオーバヘッド
 
-- 高い開発コスト: コンピュータ理論に対する精通
-- スレッド多重化率などのカリカリチューニング
+- コンピュータ理論に対する精通
+- 特定の状況に合わせて最適化された特殊VNFが多い
 - VM環境でのオーバヘッド: 仮装NICのメモリコピー
 
 ![VM Overhead](img/vm_overhead.png){width=300}
 
-# Background: まとめ
+# 背景のまとめ
 
-現状とその課題
+NFVの抽象アーキテクチャ
 
-- NFVによりネットワーク制御はより動的に
-- DPDKを用いることで高性能なNFを実装可能
-- しかし開発コストがまだ高い
-- 特定環境に最適化されている.
+	- MANO: 全体を管理/連携
+	- NVFi: 各種リソースを管理する基盤
+	- VNFs: Router, FW, DPI, etc...
 
-提案
+課題: 高い開発コストと低い迅速性
 
-- ssn-NFVi: nonVM NFV基盤
-- D2: DPDK VNFのスレッドチューニングの自動化
-- ssn-NFVi上で動作するしD2で自動最適化を行うVNF (開発中)
+![NVF architecture](img/nfv_arch.png)
 
-# Susanow Architecture
+# susanow計画
 
-- ssn-NFVi: nonVMなNFVi
-	- ポート管理やコアの管理をまとめて行う
-	- VNFのデプロイインターフェース
-- D2engine: 動的スレッド最適化技術
+- \textbf{\underline{高性能で超動的}}なNFVの実現
+- プロジェクト詳細: [http://draft.susanow.dpdk.ninja](http://draft.susanow.dpdk.ninja)
 
-![susanow nfvi](img/ssn_arch.png){width=250}
+主要技術
+
+- SSN-NFVi: novm-NVFi <- CPUコアやNICを管理
+- D2: 動的スレッド最適化技術, MANO  <- 具体的に説明
+
+![susanow nfvi](img/ssn_arch.png){width=200}
 
 # D2: Dynamic Thread Optimization
 
-- Dynamic Thread Optimization -> DTO -> D2
-- スレッド最適化を動的に行う技術のこと
+- パケット処理ロジックの多重化を動的に行う技術
+- VNFの性能最適化する目的で使用
+- パケット処理のロジックはVNF開発者が記述
 - D2-APIを用いてVNFを実装することで利用可能
-- \underline{VNF単体}を動的に最適化する
-- \underline{VNF数}を増やしてサービスを最適化ではない
+- 適用範囲
+	- vSwitchやルータなどのL2/L3-NFから
+	  アプリケーションデータを扱うDPIまで幅広く対応可能
 
-![D2 Optimize Flow](img/d2_flow.png){width=300}
+![](img/slide0.png)
 
-# D2: Dynamic Thread Optimization
-
-- vSwitchやルータなどのL2/L3-NFから
-  アプリケーションデータを扱うDPI Firewallまで幅広く対応可能
-- パケットを受け取ったあとの処理はVNF開発者が記述
-- D2はその処理を効率的に多重化が可能
-
-![D2利用の流れ](img/slide0.png)
-
-# D2: 最適化の流れ
-
-- Thread: 先ほどのプログラムが動く (コアに固定される)
-- Accessor: スレッドとポートのアクセスを仲介
-- Nic-buf: NICのMultiqueue
-
-![1多重](img/para1.png)
-
-# D2: 最適化の流れ
-
-- 新たにスレッドを生成
-- 枠内数字はidである
-
-![1多重](img/para1-2.png)
-
-# D2: 最適化の流れ
-
-- ポートとスレッドでネゴシエーション
-- ポートに対していくつのスレッドからのアクセスがあるかを確認する
-
-![1多重](img/para1-3.png)
-
-# D2: 最適化の流れ
-
-- ポートにアクセスするスレッドの数に合わせて
-  Accessorを再構成
-
-![1多重](img/para1-4.png)
-
-# D2: 最適化の流れ
-
-- Accessorとスレッドを再起動する
-- これらの手順でスレッドの多重化を行う
-
-![1多重](img/para1-5.png)
-
-# D2: 最適化の流れ
-
-- 同様の手順で多重化を進めることで性能向上が可能
-
-![2-4多重](img/para24.png)
-
-# D2: まとめ
-
-- 事前にスレッドとポートでネゴシエーションを行い,
-  各ポートのAccessorを構成し直す
-- HW Queueの再構成はリンクダウンをしないといけないので
-  滅多に起こさないようにする. (もちろん可能)
-- Accessorが複数のnic-bufを監視している時はラウンドロビンにnic-bufを監視
-
-# D2: 最適化の流れ
+# D2: Flow of Optimizing
 
 1. 発火フェーズ
 	- VNFを追加したり減らしたりするタイミング
@@ -179,11 +111,24 @@
 	- スレッドの多重度 (基本的にはこれ)
 	- NICのHW設定をチューニング
 
+![](img/opt_sfc.png)
+
+# D2: Flow of Optimizing (修正フェーズ)
+
+![](img/d2_flow_detail.png)
+
+# D2: まとめ
+
+- VNFのパケット処理ロジックとその多重化を分離
+- 多重に並列化することによりVNF性能を向上
+- 任意の並列多重数に最適化可能
+
+![並列数=2,4に最適化した例](img/para24.png){width=300}
+
 # Performance Evaluation
 
 - 懸念点
 	- D2オーバヘッド: 何nsの処理オーバヘッドか?
-	- VMオーバヘッドとどのように: スムーズに進むか?
 	- スレッドの起動の速度は?
 	- D2最適化中のトラフィックはどれだけどまるか
 - 計測内容: 帯域, 遅延
@@ -195,9 +140,10 @@
 
 - ssn-NFVi: nonVMなNFV基盤の開発
 - D2: 動的スレッド最適化技術の開発
-- システムと分離した場所からD2の最適化処理を制御するエージェント
-- ssn-NFVi上で動作するVNF複数種類 (VNFリポジトリ)
+- [WIP] D2の最適化処理を制御するエージェント
+- [WIP] ssn-NFVi上で動作するVNF複数種類 (VNFリポジトリ)
 	- DPI, Router, FW, etc..
+- より動的で高性能なNFVの実現
 
 # 以降補足スライド
 
