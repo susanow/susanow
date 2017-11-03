@@ -47,5 +47,9 @@ Susanow(スサノオ)計画は高度に動的で高性能にNFVを実現する�
 
 https://www.ipa.go.jp/jinzai/mitou/2017/gaiyou_t-3.html
 
+- 未踏事業中間報告資料: interim_report_20171104_
+
+.. _interim_report_20171104: https://github.com/susanow/susanow/blob/master/misc/propaganda/output.pdf
+
 
 
