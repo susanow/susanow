@@ -66,9 +66,9 @@
 
 NFVの抽象アーキテクチャ
 
-	- MANO: 全体を管理/連携
-	- NVFi: 各種リソースを管理する基盤
 	- VNFs: Router, FW, DPI, etc...
+	- NVFi: 各種リソースを管理する基盤
+	- MANO: 全体を管理/連携
 
 課題: 高い開発コストと低い迅速性
 
@@ -81,8 +81,8 @@ NFVの抽象アーキテクチャ
 
 主要技術
 
-- SSN-NFVi: novm-NVFi <- CPUコアやNICを管理
-- D2: 動的スレッド最適化技術, MANO  <- 具体的に説明
+- D2: 動的スレッド最適化技術, MANO <- 後述
+- SSN-NFVi: novm-NVFi <- 後述
 
 ![susanow nfvi](img/ssn_arch.png){width=200}
 
@@ -125,16 +125,24 @@ NFVの抽象アーキテクチャ
 
 ![並列数=2,4に最適化した例](img/para24.png){width=300}
 
+# SSN-NFVi
+
+- D2を用いたVNFをデプロイ可能なNFVi
+- VNFのカプセルをVMでは行わず, NVFiと同じプロセスで動かす
+- 対応機能
+	- CPUコアの管理
+	- NIC(virt/phys)管理, vNIC-patch-panel
+
+![susanow nfvi](img/ssn_arch.png){width=250}
+
 # Performance Evaluation
 
-- 懸念点
-	- D2オーバヘッド: 何nsの処理オーバヘッドか?
-	- スレッドの起動の速度は?
-	- D2最適化中のトラフィックはどれだけどまるか
-- 計測内容: 帯域, 遅延
-- VNF: L2FWD, L3FWD, ACL, DPI
+これから調べる予定. 8合目合宿までに!!
 
-全て現在調べ中です. 8合目合宿までに!!
+- D2オーバヘッド: 何nsの処理オーバヘッドか?
+- D2最適化中のトラフィックはどれだけとまるか
+
+![VanillaDPDKとSusanowの比較](img/perf.png){width=300}
 
 # 全体のまとめ
 
@@ -151,13 +159,15 @@ NFVの抽象アーキテクチャ
 
 # 今後やる+プラスアルファ内容
 
-- 複数ノードでのクラスタリングの動的な性能変更
-	- VNFのマイグレーション機能
+- インターフェースの改善:
+	- VNFのデプロイインターフェースの改善
+- 性能向上: オーバヘッド部分を改善
+- 複数NFViクラスタ対応: VNFのマイグレーション
 - 互換性向上
-	- VMを用いたVNFのデプロイの対応
-	- 物理ネットワークアプライアンスの対応
+	- VMを用いたVNFのデプロイの対応 (すぐできる)
+	- 物理ネットワークアプライアンスの対応 (すぐできる)
 - VNFの実装
-	- 現在開発中: L2fwd, L3fwd, 5tupleACL, DPI
-	- 他にも良いVNF案があれば御指摘ください
+	- 現在開発中: L2fwd, L3fwd, 5tupleACL, \underline{DPI}
+	- 他にもVNF案があれば御意見ください
 
 
