@@ -1,13 +1,14 @@
-% susanow計画: \newline 環境に対して自動最適化する \newline 高性能通信基盤の開発
+% 環境に対して自動最適化する \newline 高性能通信基盤の開発
 % \underline{Hiroki SHIROKURA} @slankdev HoseUniv/IIJii
 % powered by IPA-MITOU-program
 
-# Self-introduction
+# Introduction
 
-城倉 弘樹 (SHIROKURA Hiroki) aka slankdev <br>
+<!-- 城倉 弘樹 (SHIROKURA Hiroki) aka slankdev <br> -->
 
-- 法政大学 理工学部 B4
-- 高性能通信, パケット解析, セキュリティ
+<!-- - 法政大学 理工学部 B4 -->
+<!-- - 高性能通信, パケット解析, セキュリティ -->
+<!-- - パケット, パケット, パケット, パケット -->
 
 未踏事業
 
@@ -68,9 +69,12 @@ NFVの抽象アーキテクチャ
 
 ![VM Overhead](img/vm_overhead.png){width=300}
 
-# susanow計画
+# 未踏事業での計画
 
-主要技術
+- 高性能NFV環境の開発
+- 動的なVNFの自動チューニングを可能になった
+
+以下の技術で実現
 
 - D2: 動的スレッド最適化技術, MANO <- 後述
 - SSN-NFVi: novm-NVFi <- 後述
@@ -145,8 +149,6 @@ NFVの抽象アーキテクチャ
 - より動的で高性能なNFVの実現
 
 # 以降補足スライド
-
-![以降は補足スライド](img/logo_bar.png)
 
 # 今後やる+プラスアルファ内容
 
