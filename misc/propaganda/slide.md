@@ -12,10 +12,10 @@
 未踏事業
 
 - 環境に対して自動で最適化する高性能通信基盤
+- プロジェクト詳細: [http://draft.susanow.dpdk.ninja](http://draft.susanow.dpdk.ninja)
 - ルータやFirewallを環境に合わせて自動で最適化する基盤, \newline
   ルータそのもの, 管理するシステム全体
 - \textbf{\underline{高性能で動的}}なNFVの実現
-- プロジェクト詳細: [http://draft.susanow.dpdk.ninja](http://draft.susanow.dpdk.ninja)
 
 # NFV #とは...
 
@@ -80,9 +80,9 @@ NFVの抽象アーキテクチャ
 # D2: Dynamic Thread Optimization
 
 - パケット処理ロジックの多重化を動的に行う技術
-- VNFの性能最適化する目的で使用
-- パケット処理のロジックはVNF開発者が記述
-- D2-APIを用いてVNFを実装することで利用可能
+- D2-APIを用いて, パケット処理のロジックをVNF開発者が記述
+- スレッドの多重化(no-lock/no-block)の作業を自動で可能
+- VNFのパケット処理ロジックとマルチスレッドの多重化を分離
 - 適用範囲
 	- vSwitchやルータなどのL2/L3-NFから
 	  アプリケーションデータを扱うDPIまで幅広く対応可能
@@ -137,9 +137,9 @@ NFVの抽象アーキテクチャ
 
 # 全体のまとめ
 
-- ssn-NFVi: nonVMなNFV基盤の開発
 - D2: 動的スレッド最適化技術の開発
-- [WIP] D2の最適化処理を制御するエージェント
+- ssn-NFVi: nonVMなNFV基盤の開発
+- [WIP] D2の最適化処理を制御するエージェント (gRPCで開発中)
 - [WIP] ssn-NFVi上で動作するVNF複数種類 (VNFリポジトリ)
 	- DPI, Router, FW, etc..
 - より動的で高性能なNFVの実現
