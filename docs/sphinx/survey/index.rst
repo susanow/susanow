@@ -8,6 +8,8 @@ Survey
   :maxdepth: 1
 
   dpdk_nic_driver/index
+  dpdk_core_affinity/index
+  dpdk_ring_perf/index
   sfc_survey/index
   nfv_whitepaper_etsi/index
   nfv_whitepaper_intel_hpe/index

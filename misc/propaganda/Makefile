@@ -1,7 +1,7 @@
 
 SOURCE=slide.md
 TARGET=output.pdf
-FONTSIZE=12pt
+FONTSIZE=10pt
 
 all:
 	pandoc $(SOURCE) \
