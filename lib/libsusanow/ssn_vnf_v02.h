@@ -34,6 +34,7 @@
 #include <slankdev/util.h>
 #include <exception>
 
+#include <ssn_port_stat.h>
 #include <ssn_ma_port.h>
 #include <ssn_ma_ring.h>
 #include <ssn_thread.h>
@@ -183,6 +184,84 @@ class ssn_vnf_port {
    */
   size_t get_n_txacc() const { return n_txacc; }
 
+  /*
+   * 4 kinds of performance of each-ports
+   *
+   *         3                1            +---------------+
+   *        --->  +-------+  --->         / rxburst         \
+   * [traffic]    ||}     |    [process] {      Threads      }
+   *        <---  +-------+  <---         \ txburst         /
+   *         4                2            +---------------+
+   *
+   *     1: inner rx perf        : can get rx_burst call-info
+   *     2: inner tx perf (==4)  : can get rx_burst call-info
+   *     3: outer rx perf        : can get from ethdev-api
+   *     4: outer tx perf (==2)  : can get from ethdev-api
+   */
+  /*
+   * for Virtual Port (patch panel port)
+   *
+   *
+   *         7             5              3             1
+   *       ---> +-------+ --->  {ring}  ---> +-------+ --->
+   * [process]  |     {||    [patchpanel]    ||}     |  [process]
+   *       <--- +-------+ <---  {ring}  <--- +-------+ <---
+   *         8             6              4             2
+   *            Left Port                   Right Port
+   *
+   *     Right Port
+   *       1: inner rx perf
+   *       2: inner tx perf (==4)
+   *       3: outer rx perf
+   *       4: outer tx perf (==2)
+   *     Left Port
+   *       5: outer tx perf (==7)
+   *       6: outer rx perf
+   *       7: inner tx perf (==5)
+   *       8: inner rx perf
+   */
+
+  /**
+   * @brief get "inner rx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_inner_rx_perf() const = 0;
+
+  /**
+   * @brief get "inner tx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_inner_tx_perf() const = 0;
+
+  /**
+   * @brief get "outer rx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_outer_rx_perf() const = 0;
+
+  /**
+   * @brief get "outer tx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_outer_tx_perf() const = 0;
+
+  /**
+   * @brief get "performance reduction" of port
+   * @return 0-1 range. if working wirerate, return 1.
+   * @details
+   *    Working this function need to implement get_inner_rx_perf()
+   *    and get_outer_rx_perf(). This value will be used for D2engine.
+   */
+  double get_perf_reduction() const
+  {
+    size_t irx = get_inner_rx_perf();
+    size_t orx = get_outer_rx_perf();
+    double ret = double(irx)/double(orx);
+    return ret;
+  }
+
+  virtual void stats_update_per1sec() = 0;
+
 }; /* class ssn_vnf_port */
 
 
@@ -195,6 +274,8 @@ class ssn_vnf_port {
 class ssn_vnf_port_dpdk : public ssn_vnf_port {
 
   const size_t port_id; /*! dpdk port id */
+  size_t irx_pps_sum;
+  size_t irx_pps_cur;
 
  public:
 
@@ -209,8 +290,10 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    *   - num of rx queues (hardware multiqueues)
    *   - num of tx queues (hardware multiqueues)
    */
-  ssn_vnf_port_dpdk(const char* n, size_t a_port_id, size_t a_n_rxq, size_t a_n_txq, struct rte_mempool* mp) :
-    ssn_vnf_port(n, a_n_rxq, a_n_txq), port_id(a_port_id)
+  ssn_vnf_port_dpdk(const char* n, size_t a_port_id,
+      size_t a_n_rxq, size_t a_n_txq, struct rte_mempool* mp) :
+    ssn_vnf_port(n, a_n_rxq, a_n_txq), port_id(a_port_id),
+    irx_pps_sum(0), irx_pps_cur(0)
   {
     ssn_ma_port_configure_hw(port_id, n_rxq, n_txq, mp);
     ssn_ma_port_dev_up(port_id);
@@ -246,7 +329,11 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    */
   virtual size_t
   rx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) override
-  { return ssn_ma_port_rx_burst(port_id, aid, mbufs, n_mbufs); }
+  {
+    size_t ret = ssn_ma_port_rx_burst(port_id, aid, mbufs, n_mbufs);
+    irx_pps_sum += ret;
+    return ret;
+  }
 
   /**
    * @brief Debug output
@@ -270,6 +357,50 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    */
   virtual void config_acc() override
   { ssn_ma_port_configure_acc(port_id, n_rxacc, n_txacc); }
+
+  /**
+   * @brief get "inner rx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_inner_rx_perf() const override
+  { return irx_pps_cur; }
+
+  /**
+   * @brief get "inner tx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_inner_tx_perf() const override
+  { throw NI("get_inner_tx_perf"); }
+
+  /**
+   * @brief get "outer rx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_outer_rx_perf() const override
+  {
+    size_t ret = 0;
+    ret += ssn_port_stat_get_cur_rx_pps(port_id);
+    ret += ssn_port_stat_get_cur_rx_mis(port_id);
+    return ret;
+  }
+
+  /**
+   * @brief get "outer tx perf"
+   * @return return packet/seconds performance [Mpps]
+   */
+  virtual size_t get_outer_tx_perf() const override
+  { return ssn_port_stat_get_cur_tx_pps(port_id); }
+
+  /**
+   * @brief update port-statistics for timer-function.
+   * @details
+   *   This function must be called once a second.
+   */
+  virtual void stats_update_per1sec() override
+  {
+    irx_pps_cur = irx_pps_sum;
+    irx_pps_sum = 0;
+  }
 
 }; /* class ssn_vnf_port_dpdk */
 
@@ -353,6 +484,28 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
   {
     rx->configure_deq_acc(get_n_rxacc());
     tx->configure_enq_acc(get_n_txacc());
+  }
+
+  virtual size_t get_inner_rx_perf() const override
+  { return rx->get_cons_perf(); }
+
+  virtual size_t get_inner_tx_perf() const override
+  { return tx->get_prod_perf(); }
+
+  virtual size_t get_outer_rx_perf() const override
+  { return rx->get_prod_perf(); }
+
+  virtual size_t get_outer_tx_perf() const override
+  { return tx->get_cons_perf(); }
+
+  /**
+   * @brief update port-statistics for timer-function.
+   * @details
+   *   This function must be called once a second.
+   */
+  virtual void stats_update_per1sec() override
+  {
+    rx->update_stats();
   }
 
 }; /* class ssn_vnf_port_virt */
@@ -707,10 +860,22 @@ class ssn_vnf {
   void debug_dump(FILE* fp) const
   {
     fprintf(fp, "\r\n");
+    fprintf(fp, "-[infos]-----------------------------------\r\n");
+    fprintf(fp, " + name: \"%s\" \r\n", name.c_str());
+    fprintf(fp, "-[block]-----------------------------------\r\n");
     auto n = blocks.size();
     for (size_t i=0; i<n; i++) {
       blocks.at(i)->debug_dump(fp);
     }
+    fprintf(fp, "-[ports]-----------------------------------\r\n");
+    n = ports.size();
+    for (size_t i=0; i<n; i++) {
+      size_t orx = ports.at(i)->get_outer_rx_perf();
+      size_t irx = ports.at(i)->get_inner_rx_perf();
+      double r = ports.at(i)->get_perf_reduction();
+      printf("port[%zd]: orx=%zd irx=%zd red=%lf\n", i, orx, irx, r);
+    }
+    fprintf(fp, "-------------------------------------------\r\n");
     fprintf(fp, "\r\n");
   }
 
@@ -736,6 +901,14 @@ class ssn_vnf {
     auto n_impl = blocks.size();
     for (size_t i=0; i<n_impl; i++) {
       this->blocks.at(i)->undeploy();
+    }
+  }
+
+  void update_stats()
+  {
+    auto n = ports.size();
+    for (size_t i=0; i<n; i++) {
+      this->ports.at(i)->stats_update_per1sec();
     }
   }
 

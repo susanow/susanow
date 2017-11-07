@@ -40,7 +40,7 @@ class ssn_vnf_l2fwd1b_block : public ssn_vnf_block {
     : ssn_vnf_block(ports, n) {}
   virtual bool is_running() const override { return running; }
   virtual void undeploy_impl() override { running = false; }
-  virtual void debug_dump(FILE* fp) const override { throw slankdev::exception("NOTIMPL"); }
+  virtual void debug_dump(FILE* fp) const override { fprintf(fp, "non\r\n"); }
   virtual void set_coremask_impl(uint32_t coremask) override
   {
     size_t n_vcores = slankdev::popcnt32(coremask);

@@ -27,18 +27,20 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <unistd.h>
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
 #include <slankdev/util.h>
 #include <slankdev/string.h>
 #include <dpdk/dpdk.h>
 
+#include <thread>
 #include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
 #include <ssn_vnf_v02_l2fwd1b.h>
 #include "ssn_nfvi.h"
-
+#include "rest_api.h"
 
 class labnet_nfvi : public ssn_nfvi {
  private:
@@ -105,8 +107,10 @@ int main(int argc, char** argv)
 {
   labnet_nfvi nfvi0(argc, argv);
   nfvi0.deploy();
+  std::thread rat(rest_api_thread, &nfvi0);
   getchar();
   nfvi0.undeploy_all_vnfs();
+  rat.join();
 }
 
 

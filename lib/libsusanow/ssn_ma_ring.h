@@ -58,14 +58,35 @@ class ssn_ma_ring {
   std::vector<accessor> deq_accessors;
   std::string name_prefix;
 
+  size_t prod_pps_sum;
+  size_t prod_pps_cur;
+  size_t cons_pps_sum;
+  size_t cons_pps_cur;
+
  public:
 
-  ssn_ma_ring(const char* np) : name_prefix(np) {}
+  ssn_ma_ring(const char* np)
+    : name_prefix(np), prod_pps_sum(0), cons_pps_cur(0) {}
   ~ssn_ma_ring() { reset_que(); }
 
   size_t get_num_que() const { return rings.size(); }
   size_t get_num_enq_acc() const { return enq_accessors.size(); }
   size_t get_num_deq_acc() const { return deq_accessors.size(); }
+
+  /**
+   * @brief update ring-statistics for timer-function.
+   * @details
+   *   This function must be called once a second.
+   */
+  void update_stats()
+  {
+    prod_pps_cur = prod_pps_sum;
+    prod_pps_sum = 0;
+    cons_pps_cur = cons_pps_sum;
+    cons_pps_sum = 0;
+  }
+  size_t get_prod_perf() const { return prod_pps_cur; }
+  size_t get_cons_perf() const { return cons_pps_cur; }
 
   void configure_acc(size_t n_enq_acc, size_t n_deq_acc)
   {
@@ -176,18 +197,22 @@ class ssn_ma_ring {
 
   size_t get_next_enqid_from_aid(size_t aid) const { return enq_accessors[aid].get_current(); }
   size_t get_next_deqid_from_aid(size_t aid) const { return deq_accessors[aid].get_current(); }
+
   size_t enqueue_burst(size_t aid, void *const *obj_table, size_t n)
   {
     auto idx = enq_accessors[aid].get();
     rte_ring* ring = rings[idx];
     size_t ret = rte_ring_enqueue_burst(ring, obj_table, n, nullptr);
+    prod_pps_sum += ret;
     return ret;
   }
+
   size_t dequeue_burst(size_t aid, void **obj_table, size_t n)
   {
     auto idx = deq_accessors[aid].get();
     rte_ring* ring = rings[idx];
     size_t ret = rte_ring_dequeue_burst(ring, obj_table, n, nullptr);
+    cons_pps_sum += ret;
     return ret;
   }
 }; /* class ssn_ma_ring */

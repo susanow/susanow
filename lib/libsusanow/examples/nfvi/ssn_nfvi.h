@@ -43,9 +43,10 @@ size_t ppmd_pci(const char* pci_addr_str)
 
 
 class ssn_nfvi {
- private:
-
   rte_mempool* mp;
+
+ public:
+
   std::vector<ssn_vnf*> vnfs;
   std::vector<ssn_vnf_port*> ports;
 

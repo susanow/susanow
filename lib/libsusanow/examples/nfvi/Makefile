@@ -5,7 +5,8 @@ CXXFLAGS += $(SSN_CXXFLAGS)
 LDFLAGS  += $(SSN_LDFLAGS)
 
 CXXFLAGS += -Wno-format-security -I. -g -O0 -std=c++11
-CXXFLAGS += -fsanitize=address
+# CXXFLAGS += -fsanitize=addres
+LDFLAGS  += -lpthread -lboost_system -lboost_thread
 
 
 all:
