@@ -257,6 +257,7 @@ class ssn_vnf_port {
     size_t irx = get_inner_rx_perf();
     size_t orx = get_outer_rx_perf();
     double ret = double(irx)/double(orx);
+    if (orx == 0) return 1.0;
     return ret;
   }
 
@@ -601,8 +602,6 @@ class ssn_vnf_block {
 
  protected:
 
-  const std::string name;
-
   /**
    * @brief vnf implementation
    * @details
@@ -741,7 +740,10 @@ class ssn_vnf_block {
 
  public:
 
-  ssn_vnf_block(slankdev::fixed_size_vector<ssn_vnf_port*>& p, const char* n) : ports(p), name(n) {}
+  const std::string name;
+
+  ssn_vnf_block(slankdev::fixed_size_vector<ssn_vnf_port*>& p, const char* n)
+    : ports(p), name(n) {}
 
   virtual void debug_dump(FILE* fp) const = 0;
 
@@ -776,6 +778,13 @@ class ssn_vnf_block {
       ssn_thread_join(tids.at(i));
     }
   }
+
+  /**
+   * @brief get coremask
+   * @return coremask uint32_t
+   */
+  uint32_t get_coremask() const { return coremask; }
+
 }; /* class ssn_vnf_block */
 
 
@@ -805,6 +814,18 @@ class ssn_vnf {
 
  public:
   const std::string name;
+
+  /**
+   * @brief get number of ports
+   * @return n_ports
+   */
+  size_t n_ports() const { return ports.size(); }
+
+  /**
+   * @brief get number of blocks
+   * @return n_blocks
+   */
+  size_t n_blocks() const { return blocks.size(); }
 
   /**
    * @brief constructor
@@ -854,11 +875,28 @@ class ssn_vnf {
   }
 
   /**
+   * @brief get vnf's port as pointer to get stats
+   * @param [in] pid port id
+   * @return ssn_vnf_port pointer
+   */
+  const ssn_vnf_port* get_port(size_t pid) const
+  { return ports.at(pid); }
+
+  /**
+   * @brief get vnf's block as pointer to get stats
+   * @param [in] bid block id
+   * @return ssn_vnf_block pointer
+   */
+  const ssn_vnf_block* get_block(size_t bid) const
+  { return blocks.at(bid); }
+
+  /**
    * @brief Debug output
    * @param fp FILE* file pointer to output
    */
   void debug_dump(FILE* fp) const
   {
+    using std::string;
     fprintf(fp, "\r\n");
     fprintf(fp, "-[infos]-----------------------------------\r\n");
     fprintf(fp, " + name: \"%s\" \r\n", name.c_str());
@@ -870,10 +908,13 @@ class ssn_vnf {
     fprintf(fp, "-[ports]-----------------------------------\r\n");
     n = ports.size();
     for (size_t i=0; i<n; i++) {
-      size_t orx = ports.at(i)->get_outer_rx_perf();
-      size_t irx = ports.at(i)->get_inner_rx_perf();
-      double r = ports.at(i)->get_perf_reduction();
-      printf("port[%zd]: orx=%zd irx=%zd red=%lf\n", i, orx, irx, r);
+      auto* port = ports.at(i);
+      string name = port->name;
+      size_t orx = port->get_outer_rx_perf();
+      size_t irx = port->get_inner_rx_perf();
+      double r   = port->get_perf_reduction();
+      printf("port[%zd]: name=%s orx=%zd irx=%zd red=%lf\n",
+          i, name.c_str(), orx, irx, r);
     }
     fprintf(fp, "-------------------------------------------\r\n");
     fprintf(fp, "\r\n");
@@ -906,10 +947,19 @@ class ssn_vnf {
 
   void update_stats()
   {
-    auto n = ports.size();
-    for (size_t i=0; i<n; i++) {
+    auto np = ports.size();
+    for (size_t i=0; i<np; i++) {
       this->ports.at(i)->stats_update_per1sec();
     }
+  }
+
+  bool is_running() const
+  {
+    auto nb = n_blocks();
+    for (size_t i=0; i<nb; i++) {
+      if (!blocks.at(i)->is_running()) return false;
+    }
+    return true;
   }
 
 }; /* class ssn_vnf */

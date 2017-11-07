@@ -56,10 +56,10 @@ class labnet_nfvi : public ssn_nfvi {
   {
     rte_mempool* mp = this->get_mp();
 
-    tap0 = new ssn_vnf_port_dpdk("tap0", ppmd_pci("0000:01:00.0"), 4, 4, mp);
-    tap1 = new ssn_vnf_port_dpdk("tap1", ppmd_pci("0000:01:00.1"), 4, 4, mp);
-    pci0 = new ssn_vnf_port_dpdk("pci0", vpmd_tap("tap0"        ), 4, 4, mp);
-    pci1 = new ssn_vnf_port_dpdk("pci1", vpmd_tap("tap1"        ), 4, 4, mp);
+    pci0 = new ssn_vnf_port_dpdk("pci0", ppmd_pci("0000:01:00.0"), 4, 4, mp);
+    pci1 = new ssn_vnf_port_dpdk("pci1", ppmd_pci("0000:01:00.1"), 4, 4, mp);
+    tap0 = new ssn_vnf_port_dpdk("tap0", vpmd_tap("tap0"        ), 4, 4, mp);
+    tap1 = new ssn_vnf_port_dpdk("tap1", vpmd_tap("tap1"        ), 4, 4, mp);
     this->append_vport(tap0);
     this->append_vport(tap1);
     this->append_vport(pci0);
@@ -103,11 +103,24 @@ class labnet_nfvi : public ssn_nfvi {
 }; /* class nfvi */
 
 
+void update_stats(ssn_nfvi* nfvi)
+{
+  ssn_vnf* vnf0 = nfvi->find_vnf("vnf0");
+  ssn_vnf* vnf1 = nfvi->find_vnf("vnf1");
+  while (true) {
+    vnf0->update_stats();
+    vnf1->update_stats();
+    ssn_port_stat_update(nullptr);
+    sleep(1);
+  }
+}
+
 int main(int argc, char** argv)
 {
   labnet_nfvi nfvi0(argc, argv);
   nfvi0.deploy();
   std::thread rat(rest_api_thread, &nfvi0);
+  std::thread tim(update_stats, &nfvi0);
   getchar();
   nfvi0.undeploy_all_vnfs();
   rat.join();

@@ -30,6 +30,7 @@
 void ssn_port_stat_debug_dump(FILE* fp, size_t port_id);
 void ssn_port_stat_update(void*);
 void ssn_port_stat_init();
+void ssn_port_stat_init_pid(size_t);
 void ssn_port_stat_fin();
 
 size_t ssn_port_stat_get_cur_rx_pps(size_t pid);
