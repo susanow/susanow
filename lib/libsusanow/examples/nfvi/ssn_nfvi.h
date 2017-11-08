@@ -31,14 +31,18 @@ size_t vpmd_tap(const char* devname)
 {
   static size_t index = 0; index++;
   std::string devargs = slankdev::format("net_tap%zd,iface=%s", index, devname);
-  return dpdk::eth_dev_attach(devargs.c_str());
+  size_t pid = dpdk::eth_dev_attach(devargs.c_str());
+  ssn_port_stat_init_pid(pid);
+  return pid;
 }
 
 size_t ppmd_pci(const char* pci_addr_str)
 {
   static size_t index = 0; index++;
   std::string devargs = slankdev::format("%s", pci_addr_str);
-  return dpdk::eth_dev_attach(devargs.c_str());
+  size_t pid = dpdk::eth_dev_attach(devargs.c_str());
+  ssn_port_stat_init_pid(pid);
+  return pid;
 }
 
 
@@ -105,14 +109,23 @@ class ssn_nfvi {
 
   void debug_dump(FILE* fp) const
   {
+    using std::string;
+
     printf("\n\n");
 
     printf("vnfs \n\n");
-    printf("  %3s  %-10s  \n", "idx", "name");
+    printf("  %3s  %-10s  %-5s  %-5s  %-8s\n",
+        "idx", "name", "blks", "ports", "running");
     printf(" ------------------------------------------\n");
     const size_t n_vnfs = vnfs.size();
     for (size_t i=0; i<n_vnfs; i++) {
-      printf("  %3zd  %-10s \n", i, vnfs[i]->name.c_str());
+      const auto* vnf = vnfs[i];
+      string name = vnf->name.c_str();
+      size_t n_ports  = vnf->n_ports();
+      size_t n_blocks = vnf->n_blocks();
+      string run = vnf->is_running()?"true":"false";
+      printf("  %3zd  %-10s  %-5zd  %-5zd  %-8s \n",
+          i, name.c_str(), n_blocks, n_ports, run.c_str());
     }
 
     printf("\n\n");

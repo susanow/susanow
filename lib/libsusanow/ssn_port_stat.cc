@@ -94,6 +94,12 @@ void ssn_port_stat_init()
   }
 }
 
+void ssn_port_stat_init_pid(size_t pid)
+{
+  if (!portstat[pid])
+    portstat[pid] = new ssn_port_stat(pid);
+}
+
 void ssn_port_stat_fin()
 {
   size_t nb_ports = rte_eth_dev_count();
