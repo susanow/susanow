@@ -27,19 +27,13 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <ssn_ma_port.h>
 #include <ssn_vnf_v02.h>
-#include <slankdev/vector.h>
 #include <ssn_vnf_v02_l2fwd2b.h>
-
 
 int main(int argc, char** argv)
 {
-  constexpr size_t n_ports_wanted = 2;
-  constexpr size_t n_rxq = 8;
-  constexpr size_t n_txq = 8;
-
   ssn_init(argc, argv);
+  constexpr size_t n_ports_wanted = 2;
   size_t n_ports = ssn_dev_count();
   if (n_ports != n_ports_wanted) {
     std::string err = slankdev::format("n_ports is not %zd (current %zd)",
@@ -47,17 +41,17 @@ int main(int argc, char** argv)
     throw slankdev::exception(err.c_str());
   }
 
+  //----------------------------------------------------------
+
   rte_mempool* mp = dpdk::mp_alloc("ssn");
-  ssn_vnf_port* port[4];
-  port[0] = new ssn_vnf_port_dpdk("dpdk0", 0, 4, 4, mp); // dpdk0
-  port[1] = new ssn_vnf_port_dpdk("dpdk1", 1, 4, 4, mp); // dpdk1
+  ssn_vnf_port_dpdk dpdk0("dpdk0", 0, 4, 4, mp);
+  ssn_vnf_port_dpdk dpdk1("dpdk1", 1, 4, 4, mp);
 
-  /*--------deploy-field-begin----------------------------------------------*/
+  //----------------------------------------------------------
 
-  printf("\n");
   ssn_vnf_l2fwd2b v0("vnf0");
-  v0.attach_port(0, port[0]);
-  v0.attach_port(1, port[1]);
+  v0.attach_port(0, &dpdk0);
+  v0.attach_port(1, &dpdk1);
 
   //----------------------------------------------------------
 
@@ -66,9 +60,6 @@ int main(int argc, char** argv)
   v0.set_coremask(1, 0x04); /* 0b00000100:0x04 */
   v0.deploy();
   v0.debug_dump(stdout);
-
-  //----------------------------------------------------------
-
   getchar();
   v0.undeploy();
 
@@ -79,17 +70,12 @@ int main(int argc, char** argv)
   v0.set_coremask(1, 0x18); /* 0b00011000:0x18 */
   v0.deploy();
   v0.debug_dump(stdout);
-
-  //----------------------------------------------------------
-
   getchar();
   v0.undeploy();
 
-  /*--------deploy-field-end------------------------------------------------*/
+  //----------------------------------------------------------
 
   rte_mempool_free(mp);
-  delete port[0];
-  delete port[1];
   ssn_fin();
 }
 

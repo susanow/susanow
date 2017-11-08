@@ -20,7 +20,8 @@ DPDK_LDFLAGS += \
 	-lrte_cfgfile -lrte_latencystats -lrte_pmd_vmxnet3_uio \
 	-lrte_cmdline -lrte_lpm -lrte_pmd_null -lrte_port \
 	-lrte_cryptodev -lrte_mbuf -lrte_pmd_null_crypto -lrte_power \
-	-lrte_distributor -lrte_mempool -lrte_pmd_crypto_scheduler -lrte_pmd_octeontx_ssovf -lrte_reorder \
+	-lrte_distributor -lrte_mempool -lrte_pmd_crypto_scheduler \
+	-lrte_pmd_octeontx_ssovf -lrte_reorder \
 	-lrte_eal -lrte_mempool_ring -lrte_ring \
 	-lrte_efd -lrte_mempool_stack -lrte_pmd_e1000 -lrte_sched \
 	-lrte_ethdev -lrte_meter -lrte_table \
@@ -45,8 +46,10 @@ SSN_LIB_LDFLAGS  += \
 	  -L$(LTHREAD_PATH)          \
 		-L$(LIBVTY_PATH)           \
 		-L$(LIBSSN_PATH)           \
-		-llthread_dpdk \
-		-lvty          \
+		-llthread_dpdk             \
+		-lvty                      \
+		-lboost_system             \
+		-lboost_thread             \
 		$(DPDK_LDFLAGS)
 
 SSN_CXXFLAGS =  $(SSN_LIB_CXXFLAGS)

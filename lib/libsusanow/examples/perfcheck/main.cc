@@ -27,8 +27,17 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <ssn_timer.h>
 #include <ssn_vnf_v02.h>
 #include <ssn_vnf_v02_l2fwd1b.h>
+
+void timer_callback(void* arg)
+{
+  ssn_vnf* vnf = reinterpret_cast<ssn_vnf*>(arg);
+  vnf->debug_dump(stdout);
+  vnf->update_stats();
+  ssn_port_stat_update(nullptr);
+}
 
 int main(int argc, char** argv)
 {
@@ -46,11 +55,19 @@ int main(int argc, char** argv)
   ssn_vnf_port_dpdk dpdk0("dpdk0", 0, 4, 4, mp);
   ssn_vnf_port_dpdk dpdk1("dpdk1", 1, 4, 4, mp);
 
-  //-------------------------------------------------------
-
   ssn_vnf_l2fwd1b v0("vnf0");
   v0.attach_port(0, &dpdk0);
   v0.attach_port(1, &dpdk1);
+
+  //-------------------------------------------------------
+
+  constexpr size_t timer_thread_lid = 7;
+  ssn_timer_sched ts(timer_thread_lid);
+  uint64_t tid = ssn_thread_launch(
+      ssn_timer_sched_poll_thread, &ts, timer_thread_lid);
+  uint64_t hz = ssn_timer_get_hz();
+  ssn_timer tim(timer_callback, &v0, hz);
+  ts.add(&tim);
 
   //-------------------------------------------------------
 
@@ -70,14 +87,9 @@ int main(int argc, char** argv)
 
   //-------------------------------------------------------
 
-  v0.reset_allport_acc();
-  v0.set_coremask(0, 0b00011110);
-  v0.deploy();
-  getchar();
-  v0.undeploy();
-
-  //-------------------------------------------------------
-
+fin:
+  ssn_timer_sched_poll_thread_stop();
+  ssn_thread_join(tid);
   rte_mempool_free(mp);
   ssn_fin();
 }

@@ -15,7 +15,6 @@ SRC = \
 			test_ssn_thread.cc        \
 			test_ssn_green_thread.cc  \
 			test_ssn_native_thread.cc \
-			test_ssn_rest.cc          \
 			test_ssn_vty.cc           \
 			test_ssn_timer.cc         \
 			test_ssn_port.cc          \

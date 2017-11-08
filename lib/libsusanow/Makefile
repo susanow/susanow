@@ -41,7 +41,6 @@ SRC = \
 			ssn_port.cc    \
 			ssn_timer.cc   \
 			ssn_log.cc     \
-			ssn_rest.cc    \
 			ssn_port.cc    \
 			ssn_port_stat.cc     \
 			ssn_green_thread.cc  \
@@ -49,7 +48,7 @@ SRC = \
 			ssn_thread.cc        \
 			ssn_ring.cc          \
 			ssn_common.cc        \
-			ssn_ma_port.cc      
+			ssn_ma_port.cc
 OBJ = $(SRC:.cc=.o)
 
 $(TARGET): $(OBJ)

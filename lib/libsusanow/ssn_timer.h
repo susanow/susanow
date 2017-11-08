@@ -26,6 +26,7 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
+#include <vector>
 #include <ssn_types.h>
 #include <rte_timer.h>
 
