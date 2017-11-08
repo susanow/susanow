@@ -6,6 +6,7 @@ LIBVTY_PATH      = $(SSN_SDK)/lib/libvty
 LIBSLANKDEV_PATH = $(SSN_SDK)/lib/libslankdev
 LIBDPDK_CPP_PATH = $(SSN_SDK)/lib/libdpdk_cpp
 LIBSSN_PATH      = $(SSN_SDK)/lib/libsusanow
+CROW_PATH        = $(SSN_SDK)/lib/crow
 
 DPDK_LDFLAGS += \
 	-Wl,--no-as-needed \
@@ -35,6 +36,7 @@ SSN_LIB_CXXFLAGS += \
 		-I$(LIBSLANKDEV_PATH)  \
 		-I$(LIBDPDK_CPP_PATH)  \
 		-I$(LIBSSN_PATH)       \
+		-I$(CROW_PATH)/include \
 		-m64 -mssse3           \
 		-std=c++11
 

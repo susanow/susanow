@@ -2,10 +2,11 @@
 export SSN_SDK = $(HOME)/git/susanow
 include $(SSN_SDK)/mk/ssn.vars.mk
 CXXFLAGS += $(SSN_CXXFLAGS)
-LDFLAGS  += $(SSN_LDFLAGS)
-
+# CXXFLAGS += -I$(SSN_SDK)/lib/crow/include
+# CXXFLAGS += -I$(SSN_SDK)/lib/crow/include/crow
 CXXFLAGS += -Wno-format-security -I. -g -O0 -std=c++11
-# CXXFLAGS += -fsanitize=addres
+
+LDFLAGS  += $(SSN_LDFLAGS)
 LDFLAGS  += -lpthread -lboost_system -lboost_thread
 
 

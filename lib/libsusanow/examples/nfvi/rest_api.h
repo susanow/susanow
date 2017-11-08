@@ -5,9 +5,9 @@
 #include <string>
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
+#include <crow.h>
 
 #include "ssn_nfvi.h"
-#include "crow_all.h"
 #include "json_macro.h"
 
 
