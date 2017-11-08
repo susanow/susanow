@@ -54,14 +54,22 @@ class labnet_nfvi : public ssn_nfvi {
 
  public:
 
-  labnet_nfvi(int argc, char** argv) : ssn_nfvi(argc, argv)
+  labnet_nfvi(int argc, char** argv) : ssn_nfvi(argc, argv) {}
+
+  void init()
   {
     rte_mempool* mp = this->get_mp();
 
-    pci0 = new ssn_vnf_port_dpdk("pci0", ppmd_pci("0000:01:00.0"), 4, 4, mp);
-    pci1 = new ssn_vnf_port_dpdk("pci1", ppmd_pci("0000:01:00.1"), 4, 4, mp);
-    tap0 = new ssn_vnf_port_dpdk("tap0", vpmd_tap("tap0"        ), 4, 4, mp);
-    tap1 = new ssn_vnf_port_dpdk("tap1", vpmd_tap("tap1"        ), 4, 4, mp);
+    pci0 = new ssn_vnf_port_dpdk("pci0", ppmd_pci("0000:01:00.0"), mp);
+    pci1 = new ssn_vnf_port_dpdk("pci1", ppmd_pci("0000:01:00.1"), mp);
+    tap0 = new ssn_vnf_port_dpdk("tap0", vpmd_tap("tap0"        ), mp);
+    tap1 = new ssn_vnf_port_dpdk("tap1", vpmd_tap("tap1"        ), mp);
+
+    pci0->config_hw(4, 4);
+    pci1->config_hw(4, 4);
+    tap0->config_hw(4, 4);
+    tap1->config_hw(4, 4);
+
     this->append_vport(tap0);
     this->append_vport(tap1);
     this->append_vport(pci0);
@@ -124,6 +132,7 @@ int main(int argc, char** argv)
   labnet_nfvi nfvi0(argc, argv);
   nfvi0.vnf_catalog.register_vnf("l2fwd1b", ssn_vnfalloc_l2fwd1b);
   nfvi0.vnf_catalog.register_vnf("l2fwd2b", ssn_vnfalloc_l2fwd2b);
+  nfvi0.init();
 
   nfvi0.deploy();
   std::thread rat(rest_api_thread, &nfvi0);

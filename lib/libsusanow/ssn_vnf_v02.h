@@ -60,8 +60,8 @@ class ssn_vnf_port {
 
  protected:
 
-  const size_t n_rxq;   /*! num of rx queues (hardware) */
-  const size_t n_txq;   /*! num of tx queues (hardware) */
+  size_t n_rxq;         /*! num of rx queues (hardware) */
+  size_t n_txq;         /*! num of tx queues (hardware) */
   size_t n_rxacc;       /*! num of rx accessor */
   size_t n_txacc;       /*! num of tx accessor */
 
@@ -79,8 +79,8 @@ class ssn_vnf_port {
    *   - num of rx queues (hardware multiqueues)
    *   - num of tx queues (hardware multiqueues)
    */
-  ssn_vnf_port(const char* n, size_t i_n_rxq, size_t i_n_txq)
-    : n_rxq(i_n_rxq), n_txq(i_n_txq), n_rxacc(0), n_txacc(0), name(n) {}
+  ssn_vnf_port(const char* n)
+    : n_rxq(0), n_txq(0), n_rxacc(0), n_txacc(0), name(n) {}
 
   /**
    * @brief Send a burst of output packets of an Ethernet device
@@ -123,6 +123,14 @@ class ssn_vnf_port {
    *   This function calls ssn_ma_port_configure_acc internally
    */
   virtual void config_acc() = 0;
+
+  /**
+   * @brief Configure HW
+   * @details
+   *   Calling this function configs Physical-Queues.
+   *   ex. when PCI-NIC, this function decide number of hw-queues.
+   */
+  virtual void config_hw(size_t nrxq, size_t ntxq) = 0;
 
   /*
    * @brief Rx acccess request
@@ -277,6 +285,7 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
   const size_t port_id; /*! dpdk port id */
   size_t irx_pps_sum;
   size_t irx_pps_cur;
+  rte_mempool* mp;
 
  public:
 
@@ -291,12 +300,15 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    *   - num of rx queues (hardware multiqueues)
    *   - num of tx queues (hardware multiqueues)
    */
-  ssn_vnf_port_dpdk(const char* n, size_t a_port_id,
-      size_t a_n_rxq, size_t a_n_txq, struct rte_mempool* mp) :
-    ssn_vnf_port(n, a_n_rxq, a_n_txq), port_id(a_port_id),
-    irx_pps_sum(0), irx_pps_cur(0)
+  ssn_vnf_port_dpdk(const char* n, size_t a_port_id, struct rte_mempool* mp_)
+    : ssn_vnf_port(n), port_id(a_port_id),
+    irx_pps_sum(0), irx_pps_cur(0), mp(mp_) {}
+
+  virtual void config_hw(size_t nrxq, size_t ntxq) override
   {
-    ssn_ma_port_configure_hw(port_id, n_rxq, n_txq, mp);
+    this->n_rxq = nrxq;
+    this->n_txq = ntxq;
+    ssn_ma_port_configure_hw(port_id, nrxq, ntxq, mp);
     ssn_ma_port_dev_up(port_id);
     ssn_ma_port_promisc_on(port_id);
   }
@@ -428,8 +440,14 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
    * @param [in] n_rxq_ number of rx queues for RSS multiqueues
    * @param [in] n_txq_ number of tx queues for RSS multiqueues
    */
-  ssn_vnf_port_virt(const char* n, size_t n_rxq_, size_t n_txq_)
-    : ssn_vnf_port(n, n_rxq_, n_txq_) {}
+  ssn_vnf_port_virt(const char* n)
+    : ssn_vnf_port(n) {}
+
+  virtual void config_hw(size_t nrxq, size_t ntxq) override
+  {
+    this->n_rxq = nrxq;
+    this->n_txq = ntxq;
+  }
 
   /**
    * @brief Send a burst of output packets of an Ethernet device ( ssn_vnf_port::tx_burst() )
