@@ -26,25 +26,7 @@
 
 #pragma once
 #include "ssn_vnf_catalog.h"
-
-
-size_t vpmd_tap(const char* devname)
-{
-  static size_t index = 0; index++;
-  std::string devargs = slankdev::format("net_tap%zd,iface=%s", index, devname);
-  size_t pid = dpdk::eth_dev_attach(devargs.c_str());
-  ssn_port_stat_init_pid(pid);
-  return pid;
-}
-
-size_t ppmd_pci(const char* pci_addr_str)
-{
-  static size_t index = 0; index++;
-  std::string devargs = slankdev::format("%s", pci_addr_str);
-  size_t pid = dpdk::eth_dev_attach(devargs.c_str());
-  ssn_port_stat_init_pid(pid);
-  return pid;
-}
+#include "ssn_port_catalog.h"
 
 
 class ssn_nfvi {
@@ -52,8 +34,9 @@ class ssn_nfvi {
 
  public:
 
-  ssn_vnf_catalog vnf_catalog;
-  std::vector<ssn_vnf*> vnfs;
+  ssn_vnf_catalog            vnf_catalog;
+  ssn_port_catalog           port_catalog;
+  std::vector<ssn_vnf*>      vnfs;
   std::vector<ssn_vnf_port*> ports;
 
  public:
@@ -86,7 +69,9 @@ class ssn_nfvi {
         return ports[i];
       }
     }
-    throw slankdev::exception("ssn_nfvi::find_port: not found");
+    std::string err = "ssn_nfvi::find_port: not found";
+    err += slankdev::format("(%s)", name);
+    throw slankdev::exception(err.c_str());
   }
 
   ssn_vnf* find_vnf(const char* name)
@@ -97,7 +82,9 @@ class ssn_nfvi {
         return vnfs[i];
       }
     }
-    throw slankdev::exception("ssn_nfvi::find_vnf: not found");
+    std::string err = "ssn_nfvi::find_vnf: not found";
+    err += slankdev::format("(%s)", name);
+    throw slankdev::exception(err.c_str());
   }
 
   virtual void deploy() {}

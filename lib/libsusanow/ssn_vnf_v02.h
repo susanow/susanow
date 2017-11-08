@@ -46,6 +46,26 @@
 #include <slankdev/vector.h>
 
 
+inline size_t
+vpmd_tap(const char* devname)
+{
+  static size_t index = 0; index++;
+  std::string devargs = slankdev::format("net_tap%zd,iface=%s", index, devname);
+  size_t pid = dpdk::eth_dev_attach(devargs.c_str());
+  ssn_port_stat_init_pid(pid);
+  return pid;
+}
+
+inline size_t
+ppmd_pci(const char* pci_addr_str)
+{
+  static size_t index = 0; index++;
+  std::string devargs = slankdev::format("%s", pci_addr_str);
+  size_t pid = dpdk::eth_dev_attach(devargs.c_str());
+  ssn_port_stat_init_pid(pid);
+  return pid;
+}
+
 
 /**
  * @brief vnf port class
@@ -60,8 +80,8 @@ class ssn_vnf_port {
 
  protected:
 
-  const size_t n_rxq;   /*! num of rx queues (hardware) */
-  const size_t n_txq;   /*! num of tx queues (hardware) */
+  size_t n_rxq;         /*! num of rx queues (hardware) */
+  size_t n_txq;         /*! num of tx queues (hardware) */
   size_t n_rxacc;       /*! num of rx accessor */
   size_t n_txacc;       /*! num of tx accessor */
 
@@ -79,8 +99,8 @@ class ssn_vnf_port {
    *   - num of rx queues (hardware multiqueues)
    *   - num of tx queues (hardware multiqueues)
    */
-  ssn_vnf_port(const char* n, size_t i_n_rxq, size_t i_n_txq)
-    : n_rxq(i_n_rxq), n_txq(i_n_txq), n_rxacc(0), n_txacc(0), name(n) {}
+  ssn_vnf_port(const char* n)
+    : n_rxq(0), n_txq(0), n_rxacc(0), n_txacc(0), name(n) {}
 
   /**
    * @brief Send a burst of output packets of an Ethernet device
@@ -123,6 +143,14 @@ class ssn_vnf_port {
    *   This function calls ssn_ma_port_configure_acc internally
    */
   virtual void config_acc() = 0;
+
+  /**
+   * @brief Configure HW
+   * @details
+   *   Calling this function configs Physical-Queues.
+   *   ex. when PCI-NIC, this function decide number of hw-queues.
+   */
+  virtual void config_hw(size_t nrxq, size_t ntxq) = 0;
 
   /*
    * @brief Rx acccess request
@@ -277,6 +305,7 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
   const size_t port_id; /*! dpdk port id */
   size_t irx_pps_sum;
   size_t irx_pps_cur;
+  rte_mempool* mp;
 
  public:
 
@@ -291,12 +320,15 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    *   - num of rx queues (hardware multiqueues)
    *   - num of tx queues (hardware multiqueues)
    */
-  ssn_vnf_port_dpdk(const char* n, size_t a_port_id,
-      size_t a_n_rxq, size_t a_n_txq, struct rte_mempool* mp) :
-    ssn_vnf_port(n, a_n_rxq, a_n_txq), port_id(a_port_id),
-    irx_pps_sum(0), irx_pps_cur(0)
+  ssn_vnf_port_dpdk(const char* n, size_t a_port_id, struct rte_mempool* mp_)
+    : ssn_vnf_port(n), port_id(a_port_id),
+    irx_pps_sum(0), irx_pps_cur(0), mp(mp_) {}
+
+  virtual void config_hw(size_t nrxq, size_t ntxq) override
   {
-    ssn_ma_port_configure_hw(port_id, n_rxq, n_txq, mp);
+    this->n_rxq = nrxq;
+    this->n_txq = ntxq;
+    ssn_ma_port_configure_hw(port_id, nrxq, ntxq, mp);
     ssn_ma_port_dev_up(port_id);
     ssn_ma_port_promisc_on(port_id);
   }
@@ -405,6 +437,35 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
 
 }; /* class ssn_vnf_port_dpdk */
 
+struct ssn_portalloc_pci_arg {
+  rte_mempool* mp;
+  std::string pci_addr;
+}; /* struct ssn_portalloc_pci_arg */
+inline ssn_vnf_port*
+ssn_portalloc_pci(const char* instance_name, void* arg)
+{
+  ssn_portalloc_pci_arg* s = reinterpret_cast<ssn_portalloc_pci_arg*>(arg);
+  rte_mempool* mp = s->mp;
+  std::string pci_addr = s->pci_addr;
+  return new ssn_vnf_port_dpdk(instance_name, ppmd_pci(pci_addr.c_str()), mp);
+}
+
+struct ssn_portalloc_tap_arg {
+  rte_mempool* mp;
+  std::string linux_ifname;
+}; /* struct ssn_portalloc_tap_arg */
+
+inline ssn_vnf_port*
+ssn_portalloc_tap(const char* instance_name, void* arg)
+{
+  ssn_portalloc_tap_arg* s = reinterpret_cast<ssn_portalloc_tap_arg*>(arg);
+  rte_mempool* mp = s->mp;
+  std::string ifname = s->linux_ifname;
+  return new ssn_vnf_port_dpdk(instance_name, vpmd_tap(ifname.c_str()), mp);
+}
+
+
+
 
 
 /**
@@ -428,8 +489,14 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
    * @param [in] n_rxq_ number of rx queues for RSS multiqueues
    * @param [in] n_txq_ number of tx queues for RSS multiqueues
    */
-  ssn_vnf_port_virt(const char* n, size_t n_rxq_, size_t n_txq_)
-    : ssn_vnf_port(n, n_rxq_, n_txq_) {}
+  ssn_vnf_port_virt(const char* n)
+    : ssn_vnf_port(n) {}
+
+  virtual void config_hw(size_t nrxq, size_t ntxq) override
+  {
+    this->n_rxq = nrxq;
+    this->n_txq = ntxq;
+  }
 
   /**
    * @brief Send a burst of output packets of an Ethernet device ( ssn_vnf_port::tx_burst() )
@@ -510,6 +577,15 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
   }
 
 }; /* class ssn_vnf_port_virt */
+
+struct ssn_portalloc_virt_arg {
+}; /* struct ssn_portalloc_virt_arg */
+
+inline ssn_vnf_port*
+ssn_portalloc_virt(const char* instance_name, void* nouse)
+{ return new ssn_vnf_port_virt(instance_name); }
+
+
 
 
 

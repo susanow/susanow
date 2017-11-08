@@ -29,7 +29,8 @@ include ../../mk/rules.mk
 CXXFLAGS = $(SSN_LIB_CXXFLAGS) -Wno-format-security
 LDFLAGS  = $(SSN_LIB_LDFLAGS)
 
-TESTDIR = test
+TESTDIR     = test
+EXAMPLESDIR = examples
 
 .PHONY: test clean doc
 
@@ -48,9 +49,7 @@ SRC = \
 			ssn_thread.cc        \
 			ssn_ring.cc          \
 			ssn_common.cc        \
-			ssn_ma_port.cc       \
-			ssn_vnf_v02_l2fwd1b.cc   \
-			ssn_vnf_v02_l2fwd2b.cc
+			ssn_ma_port.cc
 OBJ = $(SRC:.cc=.o)
 
 $(TARGET): $(OBJ)
@@ -62,7 +61,9 @@ doc:
 
 clean:
 	rm -rf *.o *.out *.a
-	make -C $(TESTDIR) clean
+	make -C $(TESTDIR)     clean
+	make -C $(EXAMPLESDIR) clean
 
 test:
-	make -C $(TESTDIR) all
+	make -C $(TESTDIR)     all
+	make -C $(EXAMPLESDIR) all

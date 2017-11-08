@@ -28,41 +28,40 @@
 
 #include <ssn_types.h>
 #include <ssn_vnf_v02.h>
-#include <ssn_vnf_v02_l2fwd1b.h>
-#include <ssn_vnf_v02_l2fwd2b.h>
 
 
 /**
- * @brief vnf catalog class
+ * @brief vnf_port catalog class
  * @details
- *   This class provides vnf-allocationing to dynamic vnf using.
+ *   This class provides port-allocationing to dynamic vnf using
  */
-class ssn_vnf_catalog final {
+class ssn_port_catalog final {
 
   struct catalog_ele {
     std::string name;
-    ssn_vnfallocfunc_t allocator;
-    catalog_ele(std::string n, ssn_vnfallocfunc_t f) : name(n), allocator(f) {}
+    ssn_portallocfunc_t allocator;
+    catalog_ele(std::string n, ssn_portallocfunc_t f) : name(n), allocator(f) {}
   }; /* struct catalog_ele */
 
   std::vector<catalog_ele> catalog;
 
  public:
 
-  ssn_vnf* alloc_vnf(const char* catalog_name, const char* instance_name)
+  ssn_vnf_port* alloc_port(const char* catalog_name,
+                const char* instance_name, void* arg)
   {
     size_t n_cat = catalog.size();
     for (size_t i=0; i<n_cat; i++) {
       if (catalog[i].name == catalog_name)
-        return catalog[i].allocator(instance_name);
+        return catalog[i].allocator(instance_name, arg);
     }
-    throw slankdev::exception("ssn_vnf_catalog::alloc_vnf: not found vnf");
+    throw slankdev::exception("ssn_port_catalog::alloc_port: not found port");
   }
 
-  void register_vnf(const char* catalog_name, ssn_vnfallocfunc_t allocator)
+  void register_port(const char* catalog_name, ssn_portallocfunc_t allocator)
   { catalog.emplace_back(catalog_name, allocator); }
 
-  void unregister_vnf(const char* catalog_name)
+  void unregister_port(const char* catalog_name)
   {
     size_t n_cat = catalog.size();
     for (size_t i=0; i<n_cat; i++) {
@@ -71,9 +70,9 @@ class ssn_vnf_catalog final {
         return ;
       }
     }
-    throw slankdev::exception("ssn_vnf_catalog::register_vnf: not found vnf");
+    throw slankdev::exception("ssn_port_catalog::register_port: not found port");
   }
 
-}; /* class ssn_vnf_catalog */
+}; /* class ssn_port_catalog */
 
 

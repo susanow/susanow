@@ -44,10 +44,14 @@ int main(int argc, char** argv)
   /*-------------------------------------------------------------------------*/
 
   rte_mempool* mp = dpdk::mp_alloc("ssn");
-  ssn_vnf_port_dpdk dpdk0("dpdk0", 0, 4, 4, mp);
-  ssn_vnf_port_dpdk dpdk1("dpdk1", 1, 4, 4, mp);
-  ssn_vnf_port_virt virt0("virt0", 4, 4);
-  ssn_vnf_port_virt virt1("virt1", 4, 4);
+  ssn_vnf_port_dpdk dpdk0("dpdk0", 0, mp);
+  ssn_vnf_port_dpdk dpdk1("dpdk1", 1, mp);
+  ssn_vnf_port_virt virt0("virt0");
+  ssn_vnf_port_virt virt1("virt1");
+  dpdk0.config_hw(4, 4);
+  dpdk1.config_hw(4, 4);
+  virt0.config_hw(4, 4);
+  virt1.config_hw(4, 4);
   ssn_vnf_port_patch_panel pp(&virt0, &virt1, 8);
 
   /*-------------------------------------------------------------------------*/

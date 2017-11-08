@@ -92,7 +92,6 @@ class ssn_vnf_l2fwd2b_block_port : public ssn_vnf_block {
 };
 class ssn_vnf_l2fwd2b : public ssn_vnf {
  public:
-  static const std::string catname;
   ssn_vnf_l2fwd2b(const char* n) : ssn_vnf(2, n)
   {
     std::string name0 = slankdev::format("%sblockport0", n);
