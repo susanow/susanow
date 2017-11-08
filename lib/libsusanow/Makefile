@@ -29,7 +29,8 @@ include ../../mk/rules.mk
 CXXFLAGS = $(SSN_LIB_CXXFLAGS) -Wno-format-security
 LDFLAGS  = $(SSN_LIB_LDFLAGS)
 
-TESTDIR = test
+TESTDIR     = test
+EXAMPLESDIR = examples
 
 .PHONY: test clean doc
 
@@ -62,7 +63,9 @@ doc:
 
 clean:
 	rm -rf *.o *.out *.a
-	make -C $(TESTDIR) clean
+	make -C $(TESTDIR)     clean
+	make -C $(EXAMPLESDIR) clean
 
 test:
-	make -C $(TESTDIR) all
+	make -C $(TESTDIR)     all
+	make -C $(EXAMPLESDIR) all
