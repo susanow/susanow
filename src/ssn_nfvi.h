@@ -25,6 +25,7 @@
  */
 
 #pragma once
+#include "ssn_vnf_catalog.h"
 
 
 size_t vpmd_tap(const char* devname)
@@ -51,6 +52,7 @@ class ssn_nfvi {
 
  public:
 
+  ssn_vnf_catalog vnf_catalog;
   std::vector<ssn_vnf*> vnfs;
   std::vector<ssn_vnf_port*> ports;
 

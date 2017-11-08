@@ -26,7 +26,9 @@
 
 #pragma once
 
+class ssn_vnf;
 typedef void(*ssn_function_t)(void*);
+typedef ssn_vnf*(*ssn_vnfallocfunc_t)(const char* instance_name);
 
 enum ssn_lcore_state {
   SSN_LS_WAIT,

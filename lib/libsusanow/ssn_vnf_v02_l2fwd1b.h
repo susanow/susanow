@@ -102,5 +102,8 @@ class ssn_vnf_l2fwd1b : public ssn_vnf {
   }
 }; /* class ssn_vnf_l2fwd1b */
 
+inline ssn_vnf*
+ssn_vnfalloc_l2fwd1b(const char* instance_name)
+{ return new ssn_vnf_l2fwd1b(instance_name); }
 
 
