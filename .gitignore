@@ -1,4 +1,7 @@
 
+# bin
+bin/susanow
+
 # sphinx document
 _build
 

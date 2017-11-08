@@ -1,10 +1,16 @@
 
 
-all:
-	@echo "export SSN_SDK=$(SSN_SDK)"
+def: build-nfvi
+
+build-nfvi: test-lib
+	make -C src
+
+test-lib: build-lib
+	make -C lib test
 
 build-lib:
 	make -C lib
 
-test-lib:
-	make -C lib test
+clean:
+	make -C lib clean
+	make -C src clean

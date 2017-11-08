@@ -9,13 +9,15 @@ CXXFLAGS += -Wno-format-security -I. -g -O0 -std=c++11
 LDFLAGS  += $(SSN_LDFLAGS)
 LDFLAGS  += -lpthread -lboost_system -lboost_thread
 
+TARGET = susanow.out
 
 all:
-	@$(CXX) $(CXXFLAGS) main.cc $(LDFLAGS)
-	@echo LD a.out
+	@$(CXX) $(CXXFLAGS) main.cc -o $(TARGET) $(LDFLAGS)
+	@echo LD $(TARGET)
+	@cp $(TARGET) $(SSN_SDK)/bin/susanow
 
 clean:
-	rm -rf *.out *.o
+	rm -rf *.out *.o $(TARGET)
 
 run:
 	sudo ./a.out \
