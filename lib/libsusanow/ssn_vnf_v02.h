@@ -46,6 +46,26 @@
 #include <slankdev/vector.h>
 
 
+inline size_t
+vpmd_tap(const char* devname)
+{
+  static size_t index = 0; index++;
+  std::string devargs = slankdev::format("net_tap%zd,iface=%s", index, devname);
+  size_t pid = dpdk::eth_dev_attach(devargs.c_str());
+  ssn_port_stat_init_pid(pid);
+  return pid;
+}
+
+inline size_t
+ppmd_pci(const char* pci_addr_str)
+{
+  static size_t index = 0; index++;
+  std::string devargs = slankdev::format("%s", pci_addr_str);
+  size_t pid = dpdk::eth_dev_attach(devargs.c_str());
+  ssn_port_stat_init_pid(pid);
+  return pid;
+}
+
 
 /**
  * @brief vnf port class
@@ -417,6 +437,35 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
 
 }; /* class ssn_vnf_port_dpdk */
 
+struct ssn_portalloc_pci_arg {
+  rte_mempool* mp;
+  std::string pci_addr;
+}; /* struct ssn_portalloc_pci_arg */
+inline ssn_vnf_port*
+ssn_portalloc_pci(const char* instance_name, void* arg)
+{
+  ssn_portalloc_pci_arg* s = reinterpret_cast<ssn_portalloc_pci_arg*>(arg);
+  rte_mempool* mp = s->mp;
+  std::string pci_addr = s->pci_addr;
+  return new ssn_vnf_port_dpdk(instance_name, ppmd_pci(pci_addr.c_str()), mp);
+}
+
+struct ssn_portalloc_tap_arg {
+  rte_mempool* mp;
+  std::string linux_ifname;
+}; /* struct ssn_portalloc_tap_arg */
+
+inline ssn_vnf_port*
+ssn_portalloc_tap(const char* instance_name, void* arg)
+{
+  ssn_portalloc_tap_arg* s = reinterpret_cast<ssn_portalloc_tap_arg*>(arg);
+  rte_mempool* mp = s->mp;
+  std::string ifname = s->linux_ifname;
+  return new ssn_vnf_port_dpdk(instance_name, vpmd_tap(ifname.c_str()), mp);
+}
+
+
+
 
 
 /**
@@ -528,6 +577,15 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
   }
 
 }; /* class ssn_vnf_port_virt */
+
+struct ssn_portalloc_virt_arg {
+}; /* struct ssn_portalloc_virt_arg */
+
+inline ssn_vnf_port*
+ssn_portalloc_virt(const char* instance_name, void* nouse)
+{ return new ssn_vnf_port_virt(instance_name); }
+
+
 
 
 

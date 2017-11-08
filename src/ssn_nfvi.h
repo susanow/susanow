@@ -69,7 +69,9 @@ class ssn_nfvi {
         return ports[i];
       }
     }
-    throw slankdev::exception("ssn_nfvi::find_port: not found");
+    std::string err = "ssn_nfvi::find_port: not found";
+    err += slankdev::format("(%s)", name);
+    throw slankdev::exception(err.c_str());
   }
 
   ssn_vnf* find_vnf(const char* name)
@@ -80,7 +82,9 @@ class ssn_nfvi {
         return vnfs[i];
       }
     }
-    throw slankdev::exception("ssn_nfvi::find_vnf: not found");
+    std::string err = "ssn_nfvi::find_vnf: not found";
+    err += slankdev::format("(%s)", name);
+    throw slankdev::exception(err.c_str());
   }
 
   virtual void deploy() {}
