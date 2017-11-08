@@ -3,7 +3,19 @@
 function install_packages() {
 	git submodule init
 	git submodule update
-	sudo apt install -y libpcap-dev python linux-headers-`uname -r`
+
+	# Basic Dependencies
+	sudo apt install -y        \
+		libpcap-dev python       \
+		linux-headers-`uname -r` \
+		build-essential
+
+	# ssnctl Dependencies
+	sudo pip3 install requests
+
+	# ipkn/crow Dependencies
+	sudo apt install -y       \
+		libtcmalloc-minimal4
 }
 
 function build_dpdk() {
