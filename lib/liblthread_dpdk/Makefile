@@ -2,7 +2,7 @@
 include $(SSN_SDK)/mk/ssn.vars.mk
 
 CC = gcc
-CFLAGS  = -Iarch/x86 -I. -I$(DPDK_PATH)/include
+CFLAGS  = -Iarch/x86 -I. -I$(DPDK_PATH)/include -O3 -Ofast
 
 TARGET = liblthread_dpdk.a
 SRC = \
