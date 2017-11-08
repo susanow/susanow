@@ -27,12 +27,14 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <unistd.h>
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
 #include <slankdev/util.h>
 #include <slankdev/string.h>
 #include <dpdk/dpdk.h>
 
+#include <thread>
 #include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
@@ -100,13 +102,24 @@ class labnet_nfvi : public ssn_nfvi {
   }
 }; /* class nfvi */
 
+bool running = true;
+void rest_api_server(ssn_nfvi* nfvi)
+{
+  while (running) {
+    printf("nfvi: %p on lcore%d\n", nfvi, sched_getcpu());
+    sleep(1);
+  }
+}
 
 int main(int argc, char** argv)
 {
   labnet_nfvi nfvi0(argc, argv);
   nfvi0.deploy();
+  std::thread rat(rest_api_server, &nfvi0);
   getchar();
   nfvi0.undeploy_all_vnfs();
+  running = false;
+  rat.join();
 }
 
 

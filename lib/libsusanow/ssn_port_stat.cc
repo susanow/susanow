@@ -2,6 +2,7 @@
 /*
  * MIT License
  *
+ * Copyright (c) 2017 Susanow
  * Copyright (c) 2017 Hiroki SHIROKURA
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -35,6 +36,7 @@ class ssn_port_stat {
   size_t cur_tx_bps;
   size_t cur_rx_err;
   size_t cur_tx_err;
+  size_t cur_rx_mis;
   size_t cur_rx_nombuf;
 
   rte_eth_stats cur;
@@ -44,6 +46,7 @@ class ssn_port_stat {
     cur_rx_pps(0), cur_tx_pps(0),
     cur_rx_bps(0), cur_tx_bps(0),
     cur_rx_err(0), cur_tx_err(0),
+    cur_rx_mis(0),
     cur_rx_nombuf(0) {}
   void update()
   {
@@ -55,15 +58,17 @@ class ssn_port_stat {
     cur_tx_bps = (cur.obytes - prev.obytes + cur_tx_pps*24) << 3;
     cur_rx_err = cur.ierrors - prev.ierrors;
     cur_tx_err = cur.oerrors - prev.oerrors;
+    cur_rx_mis = cur.imissed - prev.imissed;
     cur_rx_nombuf = cur.rx_nombuf - prev.rx_nombuf;
   }
-  void dump() const // ERASE
+  void debug_dump(FILE* fp) const
   {
-    printf("Port%zd    ", lcore_id);
-    printf("  rx/tx[pps]: %zd/%zd    ", cur_rx_pps, cur_tx_pps);
-    printf("  rx/tx[bps]: %zd/%zd    ", cur_rx_bps, cur_tx_bps);
-    printf("  rx/tx[err]: %zd/%zd    ", cur.ierrors, cur.oerrors);
-    printf("  rx nombuf: %zd  \n", cur.rx_nombuf);
+    fprintf(fp, "Port%zd    \r\n", lcore_id);
+    fprintf(fp, "  rx/tx[pps]: %zd/%zd    \r\n", cur_rx_pps, cur_tx_pps);
+    fprintf(fp, "  rx/tx[bps]: %zd/%zd    \r\n", cur_rx_bps, cur_tx_bps);
+    fprintf(fp, "  rx/tx[err]: %zd/%zd    \r\n", cur.ierrors, cur.oerrors);
+    fprintf(fp, "  rxmiss[pps]: %zd \r\n", cur_rx_mis);
+    fprintf(fp, "  rx nombuf: %zd  \r\n", cur.rx_nombuf);
   }
 };
 ssn_port_stat* portstat[RTE_MAX_ETHPORTS];
@@ -74,6 +79,11 @@ void ssn_port_stat_update(void*)
   for (size_t i=0; i<nb_ports; i++) {
     portstat[i]->update();
   }
+}
+
+void ssn_port_stat_debug_dump(FILE* fp, size_t port_id)
+{
+  portstat[port_id]->debug_dump(fp);
 }
 
 void ssn_port_stat_init()
@@ -97,6 +107,7 @@ size_t ssn_port_stat_get_tot_tx_packets(size_t pid) { return portstat[pid]->cur.
 size_t ssn_port_stat_get_tot_rx_bytes(size_t pid) { return portstat[pid]->cur.ibytes; }
 size_t ssn_port_stat_get_tot_tx_bytes(size_t pid) { return portstat[pid]->cur.obytes; }
 
+size_t ssn_port_stat_get_cur_rx_mis(size_t pid) { return portstat[pid]->cur_rx_mis; }
 size_t ssn_port_stat_get_cur_rx_pps(size_t pid) { return portstat[pid]->cur_rx_pps; }
 size_t ssn_port_stat_get_cur_tx_pps(size_t pid) { return portstat[pid]->cur_tx_pps; }
 size_t ssn_port_stat_get_cur_rx_bps(size_t pid) { return portstat[pid]->cur_rx_bps; }
