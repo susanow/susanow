@@ -106,10 +106,13 @@ crow::json::wvalue vnf_info(const ssn_vnf* vnf)
  * @details
  *   User can extend this function to add new REST-API easily
  */
-int rest_api_thread(ssn_nfvi* sys)
+int rest_api_thread(ssn_nfvi* nfviptr)
 {
   using std::string;
   using slankdev::format;
+  ssn_nfvi& nfvi = *nfviptr;
+  const std::vector<ssn_vnf*>& vnfs = nfvi.get_vnfs();
+  const std::vector<ssn_vnf_port*>& ports = nfvi.get_ports();
 
   crow::SimpleApp app;
   app.loglevel(crow::LogLevel::Critical);
@@ -124,24 +127,24 @@ int rest_api_thread(ssn_nfvi* sys)
       return x;
   });
 
-  CROW_ROUTE(app,"/system") ( [&sys]() {
+  CROW_ROUTE(app,"/system") ( [&nfvi, &vnfs, &ports]() {
 
       crow::json::wvalue x_mempool;
-      rte_mempool* mp = sys->get_mp();
+      rte_mempool* mp = nfvi.get_mp();
       x_mempool["ptr"] = format("%p", mp);
       x_mempool["avail_cnt"] = rte_mempool_avail_count(mp);
       x_mempool["free_cnt"] = rte_mempool_in_use_count(mp);
 
       crow::json::wvalue x_root;
       x_root["result"] = responce_info(true, "");
-      x_root["n_vnf"]  = sys->vnfs.size();
-      x_root["n_port"] = sys->ports.size();
+      x_root["n_vnf"]  = vnfs.size();
+      x_root["n_port"] = ports.size();
       x_root["mempool"] = std::move(x_mempool);
       return x_root;
 
   });
 
-  CROW_ROUTE(app,"/ports") ( [&sys]() {
+  CROW_ROUTE(app,"/ports") ( [&nfvi, &vnfs, &ports]() {
       /*
        * "n_port" : 1
        * "port0"  : {
@@ -153,17 +156,17 @@ int rest_api_thread(ssn_nfvi* sys)
        * }
        */
       crow::json::wvalue x;
-      size_t n_port = sys->ports.size();
+      size_t n_port = ports.size();
       x["result"] = responce_info(true, "");
       x["n_port"] = n_port;
       for (size_t i=0; i<n_port; i++) {
-        ssn_vnf_port* port = sys->ports.at(i);
+        const ssn_vnf_port* port = ports.at(i);
         x[std::to_string(i)] = std::move(vnf_port_info(port));
       }
       return x;
   });
 
-  CROW_ROUTE(app,"/vnfs") ( [&sys]() {
+  CROW_ROUTE(app,"/vnfs") ( [&nfvi, &vnfs, &ports]() {
       /*
        * "n_vnf" : 1,
        * "0" : {
@@ -191,17 +194,17 @@ int rest_api_thread(ssn_nfvi* sys)
        */
       crow::json::wvalue x;
       x["result"] = responce_info(true, "");
-      size_t n_vnf = sys->vnfs.size();
+      size_t n_vnf = vnfs.size();
       x["n_vnf"] = n_vnf;
       for (size_t i=0; i<n_vnf; i++) {
-        ssn_vnf* vnf = sys->vnfs.at(i);
+        const ssn_vnf* vnf = vnfs.at(i);
         x[std::to_string(i)] = std::move(vnf_info(vnf));
       }
       return x;
   });
 
   CROW_ROUTE(app, "/vnfs/<str>/coremask") .methods("PUT"_method, "DELETE"_method)
-  ([&sys](const crow::request& req, std::string str) {
+  ([&nfvi](const crow::request& req, std::string str) {
 
     if (req.method == crow::HTTPMethod::PUT) {
 
@@ -209,7 +212,7 @@ int rest_api_thread(ssn_nfvi* sys)
       /*
        * Find VNF by name...
        */
-      auto* vnf = sys->find_vnf(str.c_str());
+      auto* vnf = nfvi.find_vnf(str.c_str());
       if (!vnf) {
         x["result"] = responce_info(false, "not found vnf");
         return x;
@@ -246,7 +249,7 @@ int rest_api_thread(ssn_nfvi* sys)
       /*
        * Find VNF by name...
        */
-      auto* vnf = sys->find_vnf(str.c_str());
+      auto* vnf = nfvi.find_vnf(str.c_str());
       if (!vnf) {
         x["result"] = responce_info(false, "not found vnf");
         return x;
@@ -270,13 +273,13 @@ int rest_api_thread(ssn_nfvi* sys)
 
 
   CROW_ROUTE(app, "/vnfs/<str>/running") .methods("PUT"_method,"GET"_method,"DELETE"_method)
-  ([&sys](const crow::request& req, std::string str) {
+  ([&nfvi](const crow::request& req, std::string str) {
 
     if (req.method == crow::HTTPMethod::GET) {
 
       printf("GET name: %s\n", str.c_str());
       crow::json::wvalue x;
-      auto* vnf = sys->find_vnf(str.c_str());
+      auto* vnf = nfvi.find_vnf(str.c_str());
       if (!vnf) {
         x["result"] = responce_info(false, "not found vnf");
         return x;
@@ -293,7 +296,7 @@ int rest_api_thread(ssn_nfvi* sys)
       /*
        * Find VNF by name...
        */
-      auto* vnf = sys->find_vnf(str.c_str());
+      auto* vnf = nfvi.find_vnf(str.c_str());
       if (!vnf) {
         x["result"] = responce_info(false, "not found vnf");
         return x;
@@ -320,7 +323,7 @@ int rest_api_thread(ssn_nfvi* sys)
       /*
        * Find VNF by name...
        */
-      ssn_vnf* vnf = sys->find_vnf(str.c_str());
+      ssn_vnf* vnf = nfvi.find_vnf(str.c_str());
       if (!vnf) {
         x["result"] = responce_info(false, "not found");
         return x;
@@ -343,10 +346,10 @@ int rest_api_thread(ssn_nfvi* sys)
   });
 
   CROW_ROUTE(app, "/ports/<str>/config") .methods("GET"_method)
-  ([&sys](const crow::request& req, std::string str) {
+  ([&nfvi](const crow::request& req, std::string str) {
 
     crow::json::wvalue x;
-    auto* port = sys->find_port(str.c_str());
+    auto* port = nfvi.find_port(str.c_str());
     if (!port) {
       x["result"] = responce_info(false, "port not found");
       return x;
@@ -359,6 +362,6 @@ int rest_api_thread(ssn_nfvi* sys)
 
   app.port(8888).run();
 
-} /* rest_api_thread(ssn_nfvi* sys) */
+} /* rest_api_thread(ssn_nfvi& nfvi) */
 
 
