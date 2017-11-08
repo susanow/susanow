@@ -38,7 +38,8 @@ function install_packages() {
 
 	# ipkn/crow Dependencies
 	sudo apt install -y       \
-		libtcmalloc-minimal4
+		libtcmalloc-minimal4    \
+		libboost-dev
 }
 
 
