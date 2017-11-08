@@ -29,7 +29,7 @@
 #include <ssn_common.h>
 #include <ssn_log.h>
 #include <dpdk/dpdk.h>
-#include <ssn_vnf_v02.h>
+#include <ssn_vnf.h>
 
 
 class ssn_vnf_l2fwd2b_block_port : public ssn_vnf_block {

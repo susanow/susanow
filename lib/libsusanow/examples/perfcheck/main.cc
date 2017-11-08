@@ -28,8 +28,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <ssn_timer.h>
-#include <ssn_vnf_v02.h>
-#include <ssn_vnf_v02_l2fwd1b.h>
+#include <ssn_vnf.h>
+#include <ssn_vnf_l2fwd1b.h>
 
 void timer_callback(void* arg)
 {

@@ -27,8 +27,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <ssn_vnf_v02.h>
-#include <ssn_vnf_v02_l2fwd2b.h>
+#include <ssn_vnf.h>
+#include <ssn_vnf_l2fwd2b.h>
 
 int main(int argc, char** argv)
 {
