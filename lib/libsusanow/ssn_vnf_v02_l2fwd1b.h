@@ -85,6 +85,8 @@ class ssn_vnf_l2fwd1b_block : public ssn_vnf_block {
 
 class ssn_vnf_l2fwd1b : public ssn_vnf {
  public:
+  static const std::string catname;
+
   ssn_vnf_l2fwd1b(const char* name) : ssn_vnf(2, name)
   {
     std::string bname = name;
@@ -98,5 +100,7 @@ class ssn_vnf_l2fwd1b : public ssn_vnf {
     delete p;
     blocks.pop_back();
   }
-}; /* class vnf */
+}; /* class ssn_vnf_l2fwd1b */
+
+
 

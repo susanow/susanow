@@ -48,7 +48,9 @@ SRC = \
 			ssn_thread.cc        \
 			ssn_ring.cc          \
 			ssn_common.cc        \
-			ssn_ma_port.cc
+			ssn_ma_port.cc       \
+			ssn_vnf_v02_l2fwd1b.cc   \
+			ssn_vnf_v02_l2fwd2b.cc
 OBJ = $(SRC:.cc=.o)
 
 $(TARGET): $(OBJ)
