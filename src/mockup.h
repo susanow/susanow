@@ -36,32 +36,5 @@ void read_from_file(ssn_vnf_catalog& cat, const char* filename)
   cat.register_vnf(name, allocator);
 }
 
-void usage()
-{
-  ssn_vnf_catalog cat;
-  cat.register_vnf("l2fwd1b", l2fwd1b_allocator);
-  cat.register_vnf("l2fwd2b", l2fwd2b_allocator);
-  read_from_file(cat, "newvnf.o");
-}
-
-void usage1()
-{
-  rte_mempool* mp = get_mp();
-  ssn_vnf_port* port = alloc_port_from_catalog("pci", "pci0");
-  port->configure_hw(4,4,mp);
-}
-
-void usage2()
-{
-  ssn_vnf* vnf = alloc_vnf_from_catalog("l2fwd1b", "vnf0");
-  append_vnf(vnf);
-  vnf->attach_port(0, port0);
-  vnf->attach_port(1, port1);
-  vnf->reset_allport_acc();
-  vnf->set_coremask(0, 0b00000010);
-  vnf->deploy();
-  vnf->undeploy();
-}
-
 
 
