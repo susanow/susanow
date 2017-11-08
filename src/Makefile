@@ -1,5 +1,4 @@
 
-export SSN_SDK = $(HOME)/git/susanow
 include $(SSN_SDK)/mk/ssn.vars.mk
 CXXFLAGS += $(SSN_CXXFLAGS)
 # CXXFLAGS += -I$(SSN_SDK)/lib/crow/include
