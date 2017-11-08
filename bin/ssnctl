@@ -86,6 +86,7 @@ def usage_show():
     print(" OPTIONS")
     print("   vnfs ")
     print("   ports ")
+    print("   system ")
 
 def usage_vnf():
     print("Usage: ssnctl vnf <vnfname> [OPTIONS]")
@@ -195,6 +196,17 @@ def port_NAME_stat(portname):
     else:
         print("port \'{}\' not found".format(portname))
 
+def show_system():
+    path = URL + "/system"
+    json_dict = get_json_dict_from_url(path)
+
+    n_vnf  = json_dict["n_vnf"]
+    n_port = json_dict["n_port"]
+    print("n_vnf : {}".format(n_vnf ))
+    print("n_port: {}".format(n_port))
+    exit(0)
+
+
 def show_vnfs():
     path = URL + "/vnfs"
     json_dict = get_json_dict_from_url(path)
@@ -236,8 +248,10 @@ def show(argc, argv):
         usage_show()
         exit(-1)
 
-    if (argv[1] == "vnfs"): show_vnfs()
-    elif (argv[1] == "ports"): show_ports()
+    option = argv[1]
+    if (option == "vnfs"): show_vnfs()
+    elif (option == "ports"): show_ports()
+    elif (option == "system"): show_system()
     else:
         print("show: unknown option")
         usage_show()

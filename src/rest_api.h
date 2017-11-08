@@ -108,10 +108,13 @@ crow::json::wvalue vnf_info(const ssn_vnf* vnf)
  */
 int rest_api_thread(ssn_nfvi* sys)
 {
+  using std::string;
+  using slankdev::format;
+
   crow::SimpleApp app;
+  app.loglevel(crow::LogLevel::Critical);
 
   CROW_ROUTE(app,"/") ( []() {
-      printf("access /\n");
       crow::json::wvalue x;
       x["result"] = responce_info(true, "");
       crow::json::wvalue child;
@@ -121,9 +124,24 @@ int rest_api_thread(ssn_nfvi* sys)
       return x;
   });
 
+  CROW_ROUTE(app,"/system") ( [&sys]() {
+
+      crow::json::wvalue x_mempool;
+      rte_mempool* mp = sys->get_mp();
+      x_mempool["ptr"] = format("%p", mp);
+      x_mempool["avail_cnt"] = rte_mempool_avail_count(mp);
+      x_mempool["free_cnt"] = rte_mempool_in_use_count(mp);
+
+      crow::json::wvalue x_root;
+      x_root["result"] = responce_info(true, "");
+      x_root["n_vnf"]  = sys->vnfs.size();
+      x_root["n_port"] = sys->ports.size();
+      x_root["mempool"] = std::move(x_mempool);
+      return x_root;
+
+  });
+
   CROW_ROUTE(app,"/ports") ( [&sys]() {
-      using std::string;
-      using slankdev::format;
       /*
        * "n_port" : 1
        * "port0"  : {
@@ -146,8 +164,6 @@ int rest_api_thread(ssn_nfvi* sys)
   });
 
   CROW_ROUTE(app,"/vnfs") ( [&sys]() {
-      using std::string;
-      using slankdev::format;
       /*
        * "n_vnf" : 1,
        * "0" : {
@@ -341,7 +357,6 @@ int rest_api_thread(ssn_nfvi* sys)
 
   });
 
-  app.loglevel(crow::LogLevel::Debug);
   app.port(8888).run();
 
 } /* rest_api_thread(ssn_nfvi* sys) */
