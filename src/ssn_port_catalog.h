@@ -27,7 +27,8 @@
 #pragma once
 
 #include <ssn_types.h>
-#include <ssn_vnf_v02.h>
+#include <ssn_vnf.h>
+#include <ssn_vnf_port.h>
 
 
 /**
