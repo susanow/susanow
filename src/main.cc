@@ -38,7 +38,8 @@
 #include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
-#include <ssn_vnf_v02_l2fwd1b.h>
+#include <ssn_vnf_l2fwd1b.h>
+#include <ssn_vnf_l2fwd2b.h>
 #include "ssn_nfvi.h"
 // #include "rest_api.h"
 
@@ -63,28 +64,28 @@ class labnet_nfvi : public ssn_nfvi {
     ssn_portalloc_pci_arg pci0arg = { mp, "0000:01:00.0" };
     pci0 = port_catalog.alloc_port("pci", "pci0", &pci0arg);
     pci0->config_hw(4, 4);
-    this->append_vport(tap0);
+    append_vport(pci0);
 
     ssn_portalloc_pci_arg pci1arg = { mp, "0000:01:00.1" };
     pci1 = port_catalog.alloc_port("pci", "pci1", &pci1arg);
     pci1->config_hw(4, 4);
-    this->append_vport(tap1);
+    append_vport(pci1);
 
     ssn_portalloc_tap_arg tap0arg = { mp, "tap0" };
     tap0 = port_catalog.alloc_port("tap", "tap0", &tap0arg);
     tap0->config_hw(4, 4);
-    this->append_vport(pci0);
+    append_vport(tap0);
 
     ssn_portalloc_tap_arg tap1arg = { mp, "tap1" };
     tap1 = port_catalog.alloc_port("tap", "tap1", &tap1arg);
     tap1->config_hw(4, 4);
-    this->append_vport(pci1);
+    append_vport(tap1);
 
     vnf0 = vnf_catalog.alloc_vnf("l2fwd1b", "vnf0");
-    this->append_vnf(vnf0);
+    append_vnf(vnf0);
 
     vnf1 = vnf_catalog.alloc_vnf("l2fwd1b", "vnf1");
-    this->append_vnf(vnf1);
+    append_vnf(vnf1);
   }
 
   ~labnet_nfvi()
