@@ -25,9 +25,10 @@
  */
 
 #pragma once
+
+#include <ssn_timer.h>
 #include "ssn_vnf_catalog.h"
 #include "ssn_port_catalog.h"
-
 
 class ssn_nfvi {
   rte_mempool* mp;
@@ -39,9 +40,14 @@ class ssn_nfvi {
   std::vector<ssn_vnf*>      vnfs;
   std::vector<ssn_vnf_port*> ports;
 
+  ssn_timer_sched* timer_sched;
+  uint64_t timer_thread_tid;
+  const size_t lcoreid_timer  = 1;
+  std::vector<ssn_timer*> tims;
+
  public:
 
-  ssn_nfvi(int argc, char** argv) : mp(nullptr)
+  ssn_nfvi(int argc, char** argv) : mp(nullptr), timer_sched(nullptr)
   {
     ssn_init(argc, argv);
     const size_t n_ports = ssn_dev_count();
@@ -49,13 +55,45 @@ class ssn_nfvi {
       dpdk::eth_dev_detach(i);
     }
     mp = dpdk::mp_alloc("NFVi");
+
+    timer_sched = new ssn_timer_sched(lcoreid_timer);
+    timer_thread_tid = ssn_native_thread_launch(
+        ssn_timer_sched_poll_thread, timer_sched, lcoreid_timer);
     printf("FINISH nfvi initialization\n\n");
   }
 
   virtual ~ssn_nfvi()
   {
+    size_t n_tims = tims.size();
+    for (size_t i=0; i<n_tims; i++) {
+      ssn_timer* tim = tims[i];
+      del_timer(tim);
+    }
+    delete timer_sched;
     rte_mempool_free(mp);
     ssn_fin();
+  }
+
+  void add_timer(ssn_timer* tim)
+  {
+    tims.push_back(tim);
+    timer_sched->add(tim);
+  }
+
+  void del_timer(ssn_timer* tim)
+  {
+    size_t n_tims = tims.size();
+    for (size_t i=0; i<n_tims; i++) {
+      if (tims[i] == tim) {
+        tims.erase(tims.begin() + i);
+        timer_sched->del(tim);
+        delete tim;
+        return ;
+      }
+    }
+    std::string err;
+    err = slankdev::format("ssn_nfvi::del_timer: not found timer %p", tim);
+    throw slankdev::exception(err.c_str());
   }
 
   void append_vnf(ssn_vnf* vnf) { vnfs.push_back(vnf); }

@@ -105,14 +105,14 @@ class labnet_nfvi : public ssn_nfvi {
     vnf->attach_port(0, this->find_port("pci0"));
     vnf->attach_port(1, this->find_port("pci1"));
     vnf->reset_allport_acc();
-    vnf->set_coremask(0, 0b00000010);
+    vnf->set_coremask(0, 0b00000100);
     vnf->deploy();
 
     vnf = this->find_vnf("vnf1");
     vnf->attach_port(0, this->find_port("tap0"));
     vnf->attach_port(1, this->find_port("tap1"));
     vnf->reset_allport_acc();
-    vnf->set_coremask(0, 0b00000100);
+    vnf->set_coremask(0, 0b00001000);
     vnf->deploy();
 
     this->debug_dump(stdout);
@@ -121,16 +121,16 @@ class labnet_nfvi : public ssn_nfvi {
 }; /* class nfvi */
 
 
-void update_stats(ssn_nfvi* nfvi)
+void update_stats(void* arg)
 {
+  printf("SLANKDEV TIMER FUNCTION!!!!\n");
+
+  ssn_nfvi* nfvi = reinterpret_cast<ssn_nfvi*>(arg);
   ssn_vnf* vnf0 = nfvi->find_vnf("vnf0");
   ssn_vnf* vnf1 = nfvi->find_vnf("vnf1");
-  while (true) {
-    vnf0->update_stats();
-    vnf1->update_stats();
-    ssn_port_stat_update(nullptr);
-    sleep(1);
-  }
+  vnf0->update_stats();
+  vnf1->update_stats();
+  ssn_port_stat_update(nullptr);
 }
 
 int main(int argc, char** argv)
@@ -143,13 +143,14 @@ int main(int argc, char** argv)
   nfvi0.port_catalog.register_port("virt", ssn_portalloc_virt);
 
   nfvi0.init();
-
   nfvi0.deploy();
-  // std::thread rat(rest_api_thread, &nfvi0);
-  std::thread tim(update_stats, &nfvi0);
+
+  uint64_t hz = ssn_timer_get_hz();
+  nfvi0.add_timer(new ssn_timer(update_stats, &nfvi0, hz));
 
   getchar();
   nfvi0.undeploy_all_vnfs();
+  // std::thread rat(rest_api_thread, &nfvi0);
   // rat.join();
 }
 
