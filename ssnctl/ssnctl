@@ -40,25 +40,37 @@ import time
 import sys
 import pprint
 import requests
-URL = "http://10.0.0.3:8888";
+URL = "http://localhost:8888";
 
 def get_json_dict_from_url(path):
-    response = requests.get(path)
-    r = response.text
-    json_dict = json.loads(r)
-    return json_dict
+    try:
+        response = requests.get(path)
+        r = response.text
+        json_dict = json.loads(r)
+        return json_dict
+    except Exception as ex:
+        print("error {}".format(str(ex)))
+        exit(-1)
 
 def delete_json_dict_from_url(path):
-    response = requests.delete(path)
-    r = response.text
-    json_dict = json.loads(r)
-    return json_dict
+    try:
+        response = requests.delete(path)
+        r = response.text
+        json_dict = json.loads(r)
+        return json_dict
+    except Exception as ex:
+        print("error {}".format(str(ex)))
+        exit(-1)
 
 def put_json_dict_to_url(path, data):
-    response = requests.put(path, data)
-    r = response.text
-    json_dict = json.loads(r)
-    return json_dict
+    try:
+        response = requests.put(path, data)
+        r = response.text
+        json_dict = json.loads(r)
+        return json_dict
+    except Exception as ex:
+        print("error {}".format(str(ex)))
+        exit(-1)
 
 def usage():
     print("Usage: ssnctl [OPTIONS]")
