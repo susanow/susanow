@@ -3,6 +3,7 @@
 /*
  * MIT License
  *
+ * Copyright (c) 2017 Susanow
  * Copyright (c) 2017 Hiroki SHIROKURA
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,28 +25,7 @@
  * SOFTWARE.
  */
 
-#pragma once
+#include <ssn_vnf_v02_l2fwd1b.h>
+const std::string ssn_vnf_l2fwd1b::catname = "l2fwd1b";
 
-class ssn_vnf;
-typedef void(*ssn_function_t)(void*);
-typedef ssn_vnf*(*ssn_vnfallocfunc_t)(const char* instance_name);
 
-enum ssn_lcore_state {
-  SSN_LS_WAIT,
-  SSN_LS_RUNNING_GREEN,
-  SSN_LS_RUNNING_NATIVE,
-  SSN_LS_RUNNING_TIMER,
-  SSN_LS_FINISHED,
-};
-
-inline const char* ssn_lcore_state2str(enum ssn_lcore_state e)
-{
-  switch (e) {
-    case SSN_LS_WAIT           : return "WAIT"    ;
-    case SSN_LS_RUNNING_GREEN  : return "RUNGRN"  ;
-    case SSN_LS_RUNNING_NATIVE : return "RUNNAT"  ;
-    case SSN_LS_RUNNING_TIMER  : return "RUNTMR"  ;
-    case SSN_LS_FINISHED       : return "FINISHED";
-    default: return "UNKNOWN";
-  }
-}

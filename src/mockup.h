@@ -27,32 +27,6 @@
 
 #pragma once
 
-typedef ssn_vnf*(*ssn_vnfallocfunc_t)(const char* instance_name);
-
-class ssn_vnf_catalog {
-  struct catalog_ele {
-    std::string name;
-    ssn_vnfallocfunc_t allocator;
-  }; /* class catalog_ele */
-
-  std::vector<catalog_ele> catalog;
- public:
-
-  ssn_vnf* alloc_vnf(const char* catalog_name, const char* instance_name)
-  {
-    size_t n_cat = catalog.size();
-    for (size_t i=0; i<n_cat; i++) {
-      if (catalog[i].name == catalog_name)
-        return catalog[i].allocator(instance_name);
-    }
-    throw slankdev::exception("ssn_vnf_catalog::alloc_vnf: not found vnf");
-  }
-
-  void register_vnf(const char* catalog_name, ssn_vnfallocfunc_t allocator)
-  { catalog.emplace_back(catalog_name, allocator); }
-
-}; /* class ssn_vnf_catalog */
-
 
 void read_from_file(ssn_vnf_catalog& cat, const char* filename)
 {

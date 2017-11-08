@@ -44,6 +44,7 @@
 
 class labnet_nfvi : public ssn_nfvi {
  private:
+
   ssn_vnf* vnf0;
   ssn_vnf* vnf1;
   ssn_vnf_port* tap0;
@@ -52,6 +53,7 @@ class labnet_nfvi : public ssn_nfvi {
   ssn_vnf_port* pci1;
 
  public:
+
   labnet_nfvi(int argc, char** argv) : ssn_nfvi(argc, argv)
   {
     rte_mempool* mp = this->get_mp();
@@ -65,8 +67,9 @@ class labnet_nfvi : public ssn_nfvi {
     this->append_vport(pci0);
     this->append_vport(pci1);
 
-    vnf0 = new ssn_vnf_l2fwd1b("vnf0");
-    vnf1 = new ssn_vnf_l2fwd1b("vnf1");
+    vnf0 = vnf_catalog.alloc_vnf("l2fwd1b", "vnf0");
+    vnf1 = vnf_catalog.alloc_vnf("l2fwd1b", "vnf1");
+
     this->append_vnf(vnf0);
     this->append_vnf(vnf1);
   }
@@ -100,6 +103,7 @@ class labnet_nfvi : public ssn_nfvi {
 
     this->debug_dump(stdout);
   }
+
 }; /* class nfvi */
 
 
@@ -118,9 +122,13 @@ void update_stats(ssn_nfvi* nfvi)
 int main(int argc, char** argv)
 {
   labnet_nfvi nfvi0(argc, argv);
+  nfvi0.vnf_catalog.register_vnf("l2fwd1b", ssn_vnfalloc_l2fwd1b);
+  nfvi0.vnf_catalog.register_vnf("l2fwd2b", ssn_vnfalloc_l2fwd2b);
+
   nfvi0.deploy();
   std::thread rat(rest_api_thread, &nfvi0);
   std::thread tim(update_stats, &nfvi0);
+
   getchar();
   nfvi0.undeploy_all_vnfs();
   rat.join();

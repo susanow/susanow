@@ -31,7 +31,6 @@
 #include <ssn_types.h>
 #include <ssn_timer.h>
 #include <ssn_vty.h>
-#include <ssn_rest.h>
 #include <ssn_green_thread.h>
 #include <ssn_native_thread.h>
 #include <ssn_log.h>
