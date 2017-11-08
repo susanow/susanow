@@ -35,7 +35,7 @@
 /**
  * @brief vnf catalog class
  * @details
- *   This class provides vnf-allocation to dynamic vnf using.
+ *   This class provides vnf-allocationing to dynamic vnf using.
  */
 class ssn_vnf_catalog final {
 
