@@ -227,6 +227,7 @@ class ssn_vnf_block {
   virtual bool is_running() const = 0;
 
   void attach_port(size_t pid, ssn_vnf_port* p) { ports.at(pid) = p; }
+  void dettach_port(size_t pid) { ports.at(pid) = nullptr; }
 
   void set_coremask(uint32_t lcore_mask)
   {
@@ -355,6 +356,15 @@ class ssn_vnf {
     }
   }
 
+  void dettach_port(size_t pid)
+  {
+    ports.at(pid) = nullptr;
+    auto n = blocks.size();
+    for (size_t i=0; i<n; i++) {
+      blocks.at(i)->dettach_port(pid);
+    }
+  }
+
   /**
    * @brief get vnf's port as pointer to get stats
    * @param [in] pid port id
@@ -379,25 +389,22 @@ class ssn_vnf {
   {
     using std::string;
     fprintf(fp, "\r\n");
-    fprintf(fp, "-[infos]-----------------------------------\r\n");
     fprintf(fp, " + name: \"%s\" \r\n", name.c_str());
-    fprintf(fp, "-[block]-----------------------------------\r\n");
-    auto n = blocks.size();
-    for (size_t i=0; i<n; i++) {
-      blocks.at(i)->debug_dump(fp);
-    }
-    fprintf(fp, "-[ports]-----------------------------------\r\n");
-    n = ports.size();
+    fprintf(fp, " + ports\r\n");
+    size_t n = ports.size();
     for (size_t i=0; i<n; i++) {
       auto* port = ports.at(i);
-      string name = port->name;
-      size_t orx = port->get_outer_rx_perf();
-      size_t irx = port->get_inner_rx_perf();
-      double r   = port->get_perf_reduction();
-      printf("port[%zd]: name=%s orx=%zd irx=%zd red=%lf\n",
-          i, name.c_str(), orx, irx, r);
+      if (port) {
+        string name = port->name;
+        size_t orx = port->get_outer_rx_perf();
+        size_t irx = port->get_inner_rx_perf();
+        double r   = port->get_perf_reduction();
+        printf("  port[%zd]: name=%s orx=%zd irx=%zd red=%lf\n",
+            i, name.c_str(), orx, irx, r);
+      } else {
+        printf("  port[%zd]: null\n", i);
+      }
     }
-    fprintf(fp, "-------------------------------------------\r\n");
     fprintf(fp, "\r\n");
   }
 

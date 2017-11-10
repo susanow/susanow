@@ -47,6 +47,9 @@ class ssn_vnf_catalog final {
 
  public:
 
+  size_t size() const { return catalog.size(); }
+  const catalog_ele& operator[](size_t num) const { return catalog[num]; }
+
   ssn_vnf* alloc_vnf(const char* catalog_name, const char* instance_name)
   {
     size_t n_cat = catalog.size();

@@ -87,6 +87,8 @@ def usage_show():
     print("   vnfs ")
     print("   ports ")
     print("   system ")
+    print("   portcat ")
+    print("   vnfcat ")
 
 def usage_vnf():
     print("Usage: ssnctl vnf <vnfname> [OPTIONS]")
@@ -202,8 +204,12 @@ def show_system():
 
     n_vnf  = json_dict["n_vnf"]
     n_port = json_dict["n_port"]
+    n_vcat = json_dict["n_vcat"]
+    n_pcat = json_dict["n_pcat"]
     print("n_vnf : {}".format(n_vnf ))
     print("n_port: {}".format(n_port))
+    print("n_vcat: {}".format(n_vcat))
+    print("n_pcat: {}".format(n_pcat))
     exit(0)
 
 
@@ -243,6 +249,30 @@ def show_ports():
         print(" n_txacc : {}".format(n_txa))
         print(" pref-red: {}".format(pr))
 
+def show_vnfcat():
+    path = URL + "/vnfcatalog"
+    json_dict = get_json_dict_from_url(path)
+    n_port = json_dict["n_vcat"]
+    for i in range(n_port):
+        idx = str(i)
+        name      = json_dict[idx]["name"]
+        allocator = json_dict[idx]["allocator"]
+        print("{}".format(name))
+        print(" name      : {}".format(name))
+        print(" allocator : {}".format(allocator))
+
+def show_portcat():
+    path = URL + "/portcatalog"
+    json_dict = get_json_dict_from_url(path)
+    n_port = json_dict["n_pcat"]
+    for i in range(n_port):
+        idx = str(i)
+        name      = json_dict[idx]["name"]
+        allocator = json_dict[idx]["allocator"]
+        print("{}".format(name))
+        print(" name      : {}".format(name))
+        print(" allocator : {}".format(allocator))
+
 def show(argc, argv):
     if (argc < 2):
         usage_show()
@@ -252,6 +282,8 @@ def show(argc, argv):
     if (option == "vnfs"): show_vnfs()
     elif (option == "ports"): show_ports()
     elif (option == "system"): show_system()
+    elif (option == "vnfcat"): show_vnfcat()
+    elif (option == "portcat"): show_portcat()
     else:
         print("show: unknown option")
         usage_show()

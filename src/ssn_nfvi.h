@@ -49,7 +49,7 @@ class ssn_nfvi final {
     size_t n_vnf = nfvi->vnfs.size();
     for (size_t i=0; i<n_vnf; i++) {
       auto* vnf = nfvi->vnfs[i];
-      vnf->update_stats();
+      if (vnf->is_running()) vnf->update_stats();
     }
   }
 
@@ -67,8 +67,38 @@ class ssn_nfvi final {
 
  public:
 
+  void del_port(ssn_vnf_port* port)
+  {
+    size_t n_ele = ports.size();
+    for (size_t i=0; i<n_ele; i++) {
+      if (ports[i] == port) {
+        ports.erase(ports.begin() + i);
+        return ;
+      }
+    }
+    std::string err = "ssn_nfvi::del_port: ";
+    err += slankdev::format("not found port (%s)", port->name);
+    throw slankdev::exception(err.c_str());
+  }
+
+  void del_vnf(ssn_vnf* vnf)
+  {
+    size_t n_ele = vnfs.size();
+    for (size_t i=0; i<n_ele; i++) {
+      if (vnfs[i] == vnf) {
+        vnfs.erase(vnfs.begin() + i);
+        return ;
+      }
+    }
+    std::string err = "ssn_nfvi::del_vnf: ";
+    err += slankdev::format("not found vnf (%s)", vnf->name);
+    throw slankdev::exception(err.c_str());
+  }
+
   const std::vector<ssn_vnf*>& get_vnfs() const { return vnfs; }
   const std::vector<ssn_vnf_port*>& get_ports() const { return ports; }
+  const ssn_vnf_catalog& get_vcat() const { return vnf_catalog; }
+  const ssn_port_catalog& get_pcat() const { return port_catalog; }
 
   void vnf_alloc_from_catalog(const char* catname, const char* instancename)
   {
@@ -201,12 +231,9 @@ class ssn_nfvi final {
   {
     using std::string;
 
-    printf("\n\n");
+    printf("\n");
 
-    printf("vnfs \n\n");
-    printf("  %3s  %-10s  %-5s  %-5s  %-8s\n",
-        "idx", "name", "blks", "ports", "running");
-    printf(" ------------------------------------------\n");
+    printf("[+] vnfs (n:name, b:n_block, p:n_port, r:is_running)\n");
     const size_t n_vnfs = vnfs.size();
     for (size_t i=0; i<n_vnfs; i++) {
       const auto* vnf = vnfs[i];
@@ -214,21 +241,33 @@ class ssn_nfvi final {
       size_t n_ports  = vnf->n_ports();
       size_t n_blocks = vnf->n_blocks();
       string run = vnf->is_running()?"true":"false";
-      printf("  %3zd  %-10s  %-5zd  %-5zd  %-8s \n",
+      printf("vnfs[%zd]: n=%s b=%zd p=%zd r=%s \n",
           i, name.c_str(), n_blocks, n_ports, run.c_str());
     }
 
-    printf("\n\n");
+    printf("\n");
 
-    printf("ports \n\n");
-    printf("  %3s  %-10s  \n", "idx", "name");
-    printf(" ------------------------------------------\n");
+    printf("[+] ports (n:name)\n");
     const size_t n_ports = ports.size();
     for (size_t i=0; i<n_ports; i++) {
-      printf("  %3zd  %-10s \n", i, ports[i]->name.c_str());
+      printf("ports[%zd] n=%s \n", i, ports[i]->name.c_str());
     }
 
-    printf("\n\n");
+    printf("\n");
+
+    printf("[+] vnf catalog (n:name)\n");
+    const size_t n_vcat = vnf_catalog.size();
+    for (size_t i=0; i<n_vcat; i++) {
+      printf("vcat[%zd] n=%s \n", i, vnf_catalog[i].name.c_str());
+    }
+
+    printf("\n");
+
+    printf("[+] port catalog (n:name)\n");
+    const size_t n_pcat = port_catalog.size();
+    for (size_t i=0; i<n_pcat; i++) {
+      printf("pcat[%zd] n=%s \n", i, port_catalog[i].name.c_str());
+    }
   }
 
   struct rte_mempool* get_mp() { return mp; }
