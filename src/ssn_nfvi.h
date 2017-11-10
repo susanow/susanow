@@ -49,7 +49,7 @@ class ssn_nfvi final {
     size_t n_vnf = nfvi->vnfs.size();
     for (size_t i=0; i<n_vnf; i++) {
       auto* vnf = nfvi->vnfs[i];
-      vnf->update_stats();
+      if (vnf->is_running()) vnf->update_stats();
     }
   }
 

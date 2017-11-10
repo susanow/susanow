@@ -54,25 +54,25 @@ void user_operation_mock(ssn_nfvi* nfvi)
   nfvi->vnf_alloc_from_catalog("l2fwd1b", "vnf0");
   nfvi->vnf_alloc_from_catalog("l2fwd1b", "vnf1");
 
-  nfvi->find_port("pci0")->config_hw(4, 4);;
-  nfvi->find_port("pci1")->config_hw(4, 4);;
-  nfvi->find_port("tap0")->config_hw(4, 4);;
-  nfvi->find_port("tap1")->config_hw(4, 4);;
+  nfvi->find_port("pci0")->config_hw(4, 4); // not yet
+  nfvi->find_port("pci1")->config_hw(4, 4); // not yet
+  nfvi->find_port("tap0")->config_hw(4, 4); // not yet
+  nfvi->find_port("tap1")->config_hw(4, 4); // not yet
 
   ssn_vnf* vnf;
 
   vnf = nfvi->find_vnf("vnf0");
-  vnf->attach_port(0, nfvi->find_port("pci0"));
-  vnf->attach_port(1, nfvi->find_port("pci1"));
+  vnf->attach_port(0, nfvi->find_port("pci0")); // not yet
+  vnf->attach_port(1, nfvi->find_port("pci1")); // not yet
   vnf->reset_allport_acc();
-  vnf->set_coremask(0, 0b00000100);
+  vnf->set_coremask(0, 0b00000100); // not yet
   vnf->deploy();
 
   vnf = nfvi->find_vnf("vnf1");
-  vnf->attach_port(0, nfvi->find_port("tap0"));
-  vnf->attach_port(1, nfvi->find_port("tap1"));
+  vnf->attach_port(0, nfvi->find_port("tap0")); // not yet
+  vnf->attach_port(1, nfvi->find_port("tap1")); // not yet
   vnf->reset_allport_acc();
-  vnf->set_coremask(0, 0b00001000);
+  vnf->set_coremask(0, 0b00001000); // not yet
   vnf->deploy();
 }
 
