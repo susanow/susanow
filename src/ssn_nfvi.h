@@ -67,6 +67,34 @@ class ssn_nfvi final {
 
  public:
 
+  void del_port(ssn_vnf_port* port)
+  {
+    size_t n_ele = ports.size();
+    for (size_t i=0; i<n_ele; i++) {
+      if (ports[i] == port) {
+        ports.erase(ports.begin() + i);
+        return ;
+      }
+    }
+    std::string err = "ssn_nfvi::del_port: ";
+    err += slankdev::format("not found port (%s)", port->name);
+    throw slankdev::exception(err.c_str());
+  }
+
+  void del_vnf(ssn_vnf* vnf)
+  {
+    size_t n_ele = vnfs.size();
+    for (size_t i=0; i<n_ele; i++) {
+      if (vnfs[i] == vnf) {
+        vnfs.erase(vnfs.begin() + i);
+        return ;
+      }
+    }
+    std::string err = "ssn_nfvi::del_vnf: ";
+    err += slankdev::format("not found vnf (%s)", vnf->name);
+    throw slankdev::exception(err.c_str());
+  }
+
   const std::vector<ssn_vnf*>& get_vnfs() const { return vnfs; }
   const std::vector<ssn_vnf_port*>& get_ports() const { return ports; }
   const ssn_vnf_catalog& get_vcat() const { return vnf_catalog; }

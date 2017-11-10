@@ -195,8 +195,8 @@ int rest_api_thread(ssn_nfvi* nfviptr)
         /* Alloc new port */
         /* # User send JSON
          * {
-         *    "catname"      : "pci"
-         *    "instancename" : "pci0"
+         *    "cname"      : "pci"
+         *    "iname" : "pci0"
          *    "options" : {
          *      ...
          *      "pciaddr" : "0000:01:00.1"
@@ -269,10 +269,30 @@ int rest_api_thread(ssn_nfvi* nfviptr)
         /* Delete port */
         /* # User send JSON
          * {
-         *    "instancename" : "pci0"
+         *    "iname" : "pci0"
          * }
          */
+        auto req_json = crow::json::load(req.body);
+        std::string iname = req_json["iname"].s();
+        printf("iname: %s \n", iname.c_str());
 
+        try {
+
+          auto* port = nfvi.find_port(iname.c_str());
+          printf("found: %p \n", port);
+          nfvi.del_port(port);
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(true, "");
+          return x_root;
+
+        } catch (std::exception& e) {
+
+          printf("not found err: %s", e.what());
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(false, "some exception throwed");
+          return x_root;
+
+        }
       }
 
   });
