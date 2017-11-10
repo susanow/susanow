@@ -108,6 +108,7 @@ int rest_api_thread(ssn_nfvi* nfviptr)
 
   crow::SimpleApp app;
   app.loglevel(crow::LogLevel::Critical);
+  app.loglevel(crow::LogLevel::Debug);
 
   CROW_ROUTE(app,"/") ( []() {
       crow::json::wvalue x;
@@ -156,29 +157,124 @@ int rest_api_thread(ssn_nfvi* nfviptr)
       return x_root;
   });
 
-  CROW_ROUTE(app,"/portcatalog") ( [&nfvi]() {
-      /*
-       * "n_vcat" : 2
-       * "0"  : {
-       *    "name" : "pci",
-       *    "allocator" : "0x033ef1" // pointer
-       * },
-       * "1" : {
-       *    "name" : "l2fwd2b",
-       *    "allocator" : "0x033ef2" // pointer
-       * }
-       */
-      crow::json::wvalue x_root;
-      const size_t n_pcat = nfvi.get_pcat().size();
-      x_root["result"] = responce_info(true, "");
-      x_root["n_pcat"] = n_pcat;
-      crow::json::wvalue x_pcat;
-      for (size_t i=0; i<n_pcat; i++) {
-        x_pcat["name"] = nfvi.get_pcat()[i].name;
-        x_pcat["allocator"] = format("%p", nfvi.get_pcat()[i].allocator);
-        x_root[std::to_string(i)] = std::move(x_pcat);
+  CROW_ROUTE(app, "/portcatalog")
+  .methods("GET"_method, "PUT"_method, "DELETE"_method)
+  ([&nfvi](const crow::request& req) {
+
+      assert(  (req.method == crow::HTTPMethod::GET)
+            || (req.method == crow::HTTPMethod::PUT)
+            || (req.method == crow::HTTPMethod::DELETE)  );
+
+      if (req.method == crow::HTTPMethod::GET) {
+
+        /*
+         * "n_vcat" : 2
+         * "0"  : {
+         *    "name" : "pci",
+         *    "allocator" : "0x033ef1" // pointer
+         * },
+         * "1" : {
+         *    "name" : "l2fwd2b",
+         *    "allocator" : "0x033ef2" // pointer
+         * }
+         */
+        crow::json::wvalue x_root;
+        const size_t n_pcat = nfvi.get_pcat().size();
+        x_root["result"] = responce_info(true, "");
+        x_root["n_pcat"] = n_pcat;
+        crow::json::wvalue x_pcat;
+        for (size_t i=0; i<n_pcat; i++) {
+          x_pcat["name"] = nfvi.get_pcat()[i].name;
+          x_pcat["allocator"] = format("%p", nfvi.get_pcat()[i].allocator);
+          x_root[std::to_string(i)] = std::move(x_pcat);
+        }
+        return x_root;
+
+      } else if (req.method == crow::HTTPMethod::PUT) {
+
+        /* Alloc new port */
+        /* # User send JSON
+         * {
+         *    "catname"      : "pci"
+         *    "instancename" : "pci0"
+         *    "options" : {
+         *      ...
+         *      "pciaddr" : "0000:01:00.1"
+         *      ""
+         *    }
+         * }
+         */
+        auto req_json = crow::json::load(req.body);
+        std::string cname   = req_json["cname"].s();
+        std::string iname   = req_json["iname"].s();
+
+        if (cname == "tap") {
+
+          /*
+           * "options" :
+           *    {
+           *       "ifname" : "eth0"
+           *    }
+           */
+          std::string ifname = req_json["options"]["ifname"].s();
+          rte_mempool* mp = nfvi.get_mp();
+          ssn_portalloc_tap_arg arg = { mp, ifname };
+          nfvi.port_alloc_from_catalog(cname.c_str(), iname.c_str(), &arg);
+
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(true, "");
+          return x_root;
+
+        } else if (cname == "pci") {
+
+          /*
+           * "options" :
+           *    {
+           *       "pciaddr" : "0000:01:00.1"
+           *    }
+           */
+          std::string pciaddr = req_json["options"]["pciaddr"].s();
+          rte_mempool* mp = nfvi.get_mp();
+          ssn_portalloc_pci_arg arg = { mp, pciaddr };
+          nfvi.port_alloc_from_catalog(cname.c_str(), iname.c_str(), &arg);
+
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(true, "");
+          return x_root;
+
+        } else if (cname == "virt") {
+
+          /*
+           * "options" :
+           *    {
+           *    }
+           */
+          ssn_portalloc_virt_arg arg;
+          nfvi.port_alloc_from_catalog(cname.c_str(), iname.c_str(), &arg);
+
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(true, "");
+          return x_root;
+
+        } else {
+
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(false, "catalog name is invalid");
+          return x_root;
+
+        }
+
+      } else if (req.method == crow::HTTPMethod::DELETE) {
+
+        /* Delete port */
+        /* # User send JSON
+         * {
+         *    "instancename" : "pci0"
+         * }
+         */
+
       }
-      return x_root;
+
   });
 
   CROW_ROUTE(app,"/ports") ( [&nfvi]() {
