@@ -32,7 +32,7 @@ LDFLAGS  += -lpthread -lboost_system -lboost_thread
 
 TARGET = susanow.out
 
-SRC = main.cc ssn_rest_api.cc
+SRC = main.cc ssn_rest_api.cc wip.cc
 OBJ = $(SRC:.cc=.o)
 
 TARGET: $(OBJ)
