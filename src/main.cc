@@ -61,15 +61,15 @@ void user_operation_mock(ssn_nfvi* nfvi)
   ssn_vnf* vnf;
 
   vnf = nfvi->find_vnf("vnf0");
-  vnf->attach_port(0, nfvi->find_port("pci0")); // not yet
-  vnf->attach_port(1, nfvi->find_port("pci1")); // not yet
+  vnf->attach_port(0, nfvi->find_port("pci0"));
+  vnf->attach_port(1, nfvi->find_port("pci1"));
   vnf->reset_allport_acc();
   vnf->set_coremask(0, 0b00000100);
   vnf->deploy();
 
   vnf = nfvi->find_vnf("vnf1");
-  vnf->attach_port(0, nfvi->find_port("tap0")); // not yet
-  vnf->attach_port(1, nfvi->find_port("tap1")); // not yet
+  vnf->attach_port(0, nfvi->find_port("tap0"));
+  vnf->attach_port(1, nfvi->find_port("tap1"));
   vnf->reset_allport_acc();
   vnf->set_coremask(0, 0b00001000);
   vnf->deploy();

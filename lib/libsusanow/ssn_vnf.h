@@ -227,6 +227,7 @@ class ssn_vnf_block {
   virtual bool is_running() const = 0;
 
   void attach_port(size_t pid, ssn_vnf_port* p) { ports.at(pid) = p; }
+  void dettach_port(size_t pid) { ports.at(pid) = nullptr; }
 
   void set_coremask(uint32_t lcore_mask)
   {
@@ -352,6 +353,15 @@ class ssn_vnf {
     auto n = blocks.size();
     for (size_t i=0; i<n; i++) {
       blocks.at(i)->attach_port(pid, port);
+    }
+  }
+
+  void dettach_port(size_t pid)
+  {
+    ports.at(pid) = nullptr;
+    auto n = blocks.size();
+    for (size_t i=0; i<n; i++) {
+      blocks.at(i)->dettach_port(pid);
     }
   }
 
