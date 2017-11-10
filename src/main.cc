@@ -41,23 +41,22 @@ void user_operation_mock(ssn_nfvi* nfvi)
 
   ssn_portalloc_pci_arg pci0arg = { mp, "0000:01:00.0" };
   nfvi->port_alloc_from_catalog("pci", "pci0", &pci0arg);
+  nfvi->find_port("pci0")->config_hw(4, 4);
 
   ssn_portalloc_pci_arg pci1arg = { mp, "0000:01:00.1" };
   nfvi->port_alloc_from_catalog("pci", "pci1", &pci1arg);
+  nfvi->find_port("pci1")->config_hw(4, 4);
 
   ssn_portalloc_tap_arg tap0arg = { mp, "tap0" };
   nfvi->port_alloc_from_catalog("tap", "tap0", &tap0arg);
+  nfvi->find_port("tap0")->config_hw(4, 4);
 
   ssn_portalloc_tap_arg tap1arg = { mp, "tap1" };
   nfvi->port_alloc_from_catalog("tap", "tap1", &tap1arg);
+  nfvi->find_port("tap1")->config_hw(4, 4);
 
   nfvi->vnf_alloc_from_catalog("l2fwd1b", "vnf0");
   nfvi->vnf_alloc_from_catalog("l2fwd1b", "vnf1");
-
-  nfvi->find_port("pci0")->config_hw(4, 4); // not yet
-  nfvi->find_port("pci1")->config_hw(4, 4); // not yet
-  nfvi->find_port("tap0")->config_hw(4, 4); // not yet
-  nfvi->find_port("tap1")->config_hw(4, 4); // not yet
 
   ssn_vnf* vnf;
 
@@ -65,14 +64,14 @@ void user_operation_mock(ssn_nfvi* nfvi)
   vnf->attach_port(0, nfvi->find_port("pci0")); // not yet
   vnf->attach_port(1, nfvi->find_port("pci1")); // not yet
   vnf->reset_allport_acc();
-  vnf->set_coremask(0, 0b00000100); // not yet
+  vnf->set_coremask(0, 0b00000100);
   vnf->deploy();
 
   vnf = nfvi->find_vnf("vnf1");
   vnf->attach_port(0, nfvi->find_port("tap0")); // not yet
   vnf->attach_port(1, nfvi->find_port("tap1")); // not yet
   vnf->reset_allport_acc();
-  vnf->set_coremask(0, 0b00001000); // not yet
+  vnf->set_coremask(0, 0b00001000);
   vnf->deploy();
 }
 

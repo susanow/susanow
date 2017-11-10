@@ -282,10 +282,6 @@ void add_route_about_port_operation(ssn_nfvi& nfvi, crow::SimpleApp& app)
           ssn_portalloc_tap_arg arg = { mp, ifname };
           nfvi.port_alloc_from_catalog(cname.c_str(), iname.c_str(), &arg);
 
-          crow::json::wvalue x_root;
-          x_root["result"] = responce_info(true, "");
-          return x_root;
-
         } else if (cname == "pci") {
 
           /*
@@ -299,10 +295,6 @@ void add_route_about_port_operation(ssn_nfvi& nfvi, crow::SimpleApp& app)
           ssn_portalloc_pci_arg arg = { mp, pciaddr };
           nfvi.port_alloc_from_catalog(cname.c_str(), iname.c_str(), &arg);
 
-          crow::json::wvalue x_root;
-          x_root["result"] = responce_info(true, "");
-          return x_root;
-
         } else if (cname == "virt") {
 
           /*
@@ -313,10 +305,6 @@ void add_route_about_port_operation(ssn_nfvi& nfvi, crow::SimpleApp& app)
           ssn_portalloc_virt_arg arg;
           nfvi.port_alloc_from_catalog(cname.c_str(), iname.c_str(), &arg);
 
-          crow::json::wvalue x_root;
-          x_root["result"] = responce_info(true, "");
-          return x_root;
-
         } else {
 
           crow::json::wvalue x_root;
@@ -324,6 +312,12 @@ void add_route_about_port_operation(ssn_nfvi& nfvi, crow::SimpleApp& app)
           return x_root;
 
         }
+
+        ssn_vnf_port* port = nfvi.find_port(iname.c_str());
+        port->config_hw(4,4);
+        crow::json::wvalue x_root;
+        x_root["result"] = responce_info(true, "");
+        return x_root;
 
       } else if (req.method == crow::HTTPMethod::DELETE) {
 
