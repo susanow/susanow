@@ -7,7 +7,6 @@
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
 #include <ssn_nfvi.h>
-#include "wip.h"
 #include "json_macro.h"
 
 
@@ -542,7 +541,6 @@ int rest_api_thread(ssn_nfvi* nfviptr)
 
   add_route_about_port_operation(nfvi, app);
   add_route_about_vnf_operation(nfvi, app);
-  add_route_work_in_progress(nfvi, app);
 
   app.port(8888).run();
 
