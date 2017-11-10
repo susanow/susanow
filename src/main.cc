@@ -32,45 +32,45 @@
 #include <ssn_nfvi.h>
 #include <ssn_vnf_l2fwd1b.h>
 #include <ssn_vnf_l2fwd2b.h>
-#include "rest_api.h"
+// #include "rest_api.h"
 
 
-void init(ssn_nfvi* nfvi0)
+void user_operation_mock(ssn_nfvi* nfvi)
 {
-  rte_mempool* mp = nfvi0->get_mp();
+  rte_mempool* mp = nfvi->get_mp();
 
   ssn_portalloc_pci_arg pci0arg = { mp, "0000:01:00.0" };
-  nfvi0->port_alloc_from_catalog("pci", "pci0", &pci0arg);
+  nfvi->port_alloc_from_catalog("pci", "pci0", &pci0arg);
 
   ssn_portalloc_pci_arg pci1arg = { mp, "0000:01:00.1" };
-  nfvi0->port_alloc_from_catalog("pci", "pci1", &pci1arg);
+  nfvi->port_alloc_from_catalog("pci", "pci1", &pci1arg);
 
   ssn_portalloc_tap_arg tap0arg = { mp, "tap0" };
-  nfvi0->port_alloc_from_catalog("tap", "tap0", &tap0arg);
+  nfvi->port_alloc_from_catalog("tap", "tap0", &tap0arg);
 
   ssn_portalloc_tap_arg tap1arg = { mp, "tap1" };
-  nfvi0->port_alloc_from_catalog("tap", "tap1", &tap1arg);
+  nfvi->port_alloc_from_catalog("tap", "tap1", &tap1arg);
 
-  nfvi0->vnf_alloc_from_catalog("l2fwd1b", "vnf0");
-  nfvi0->vnf_alloc_from_catalog("l2fwd1b", "vnf1");
+  nfvi->vnf_alloc_from_catalog("l2fwd1b", "vnf0");
+  nfvi->vnf_alloc_from_catalog("l2fwd1b", "vnf1");
 
-  nfvi0->find_port("pci0")->config_hw(4, 4);;
-  nfvi0->find_port("pci1")->config_hw(4, 4);;
-  nfvi0->find_port("tap0")->config_hw(4, 4);;
-  nfvi0->find_port("tap1")->config_hw(4, 4);;
+  nfvi->find_port("pci0")->config_hw(4, 4);;
+  nfvi->find_port("pci1")->config_hw(4, 4);;
+  nfvi->find_port("tap0")->config_hw(4, 4);;
+  nfvi->find_port("tap1")->config_hw(4, 4);;
 
   ssn_vnf* vnf;
 
-  vnf = nfvi0->find_vnf("vnf0");
-  vnf->attach_port(0, nfvi0->find_port("pci0"));
-  vnf->attach_port(1, nfvi0->find_port("pci1"));
+  vnf = nfvi->find_vnf("vnf0");
+  vnf->attach_port(0, nfvi->find_port("pci0"));
+  vnf->attach_port(1, nfvi->find_port("pci1"));
   vnf->reset_allport_acc();
   vnf->set_coremask(0, 0b00000100);
   vnf->deploy();
 
-  vnf = nfvi0->find_vnf("vnf1");
-  vnf->attach_port(0, nfvi0->find_port("tap0"));
-  vnf->attach_port(1, nfvi0->find_port("tap1"));
+  vnf = nfvi->find_vnf("vnf1");
+  vnf->attach_port(0, nfvi->find_port("tap0"));
+  vnf->attach_port(1, nfvi->find_port("tap1"));
   vnf->reset_allport_acc();
   vnf->set_coremask(0, 0b00001000);
   vnf->deploy();
@@ -80,19 +80,21 @@ void init(ssn_nfvi* nfvi0)
 
 int main(int argc, char** argv)
 {
-  ssn_nfvi nfvi0(argc, argv);
-  nfvi0.vnf_register_to_catalog("l2fwd1b", ssn_vnfalloc_l2fwd1b);
-  nfvi0.vnf_register_to_catalog("l2fwd2b", ssn_vnfalloc_l2fwd2b);
-  nfvi0.port_register_to_catalog("pci" , ssn_portalloc_pci );
-  nfvi0.port_register_to_catalog("tap" , ssn_portalloc_tap );
-  nfvi0.port_register_to_catalog("virt", ssn_portalloc_virt);
+  ssn_nfvi nfvi(argc, argv);
+  nfvi.vnf_register_to_catalog("l2fwd1b", ssn_vnfalloc_l2fwd1b);
+  nfvi.vnf_register_to_catalog("l2fwd2b", ssn_vnfalloc_l2fwd2b);
+  nfvi.port_register_to_catalog("pci" , ssn_portalloc_pci );
+  nfvi.port_register_to_catalog("tap" , ssn_portalloc_tap );
+  nfvi.port_register_to_catalog("virt", ssn_portalloc_virt);
 
-  init(&nfvi0);
-  std::thread rest_api(rest_api_thread, &nfvi0);
+  user_operation_mock(&nfvi);
+  nfvi.debug_dump(stdout);
+  return 0;
+  // std::thread rest_api(rest_api_thread, &nfvi);
 
   getchar();
-  nfvi0.undeploy_all_vnfs();
-  rest_api.join();
+  nfvi.undeploy_all_vnfs();
+  // rest_api.join();
 }
 
 
