@@ -32,10 +32,15 @@ LDFLAGS  += -lpthread -lboost_system -lboost_thread
 
 TARGET = susanow.out
 
-all:
-	@$(CXX) $(CXXFLAGS) main.cc -o $(TARGET) $(LDFLAGS)
+SRC = main.cc ssn_rest_api.cc
+OBJ = $(SRC:.cc=.o)
+
+TARGET: $(OBJ)
+	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET) $(LDFLAGS)
 	@echo LD $(TARGET)
 	@cp $(TARGET) $(SSN_SDK)/bin/susanow
+
+rest_api.o: rest_api.h rest_api.cc
 
 clean:
 	rm -rf *.out *.o $(TARGET)

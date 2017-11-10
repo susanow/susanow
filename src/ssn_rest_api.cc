@@ -8,7 +8,6 @@
 #include <slankdev/exception.h>
 #include <ssn_nfvi.h>
 
-
 /*
  * JSON Macros
  */
@@ -100,19 +99,12 @@ crow::json::wvalue vnf_info(const ssn_vnf* vnf)
 
 
 
-/*
- * @brief REST API to controll nfvi
- * @param sys ssn_nfvi pointer
- * @details
- *   User can extend this function to add new REST-API easily
- */
+
 int rest_api_thread(ssn_nfvi* nfviptr)
 {
   using std::string;
   using slankdev::format;
   ssn_nfvi& nfvi = *nfviptr;
-  const std::vector<ssn_vnf*>& vnfs = nfvi.get_vnfs();
-  const std::vector<ssn_vnf_port*>& ports = nfvi.get_ports();
 
   crow::SimpleApp app;
   app.loglevel(crow::LogLevel::Critical);
@@ -127,24 +119,69 @@ int rest_api_thread(ssn_nfvi* nfviptr)
       return x;
   });
 
-  CROW_ROUTE(app,"/system") ( [&nfvi, &vnfs, &ports]() {
-
-      crow::json::wvalue x_mempool;
-      rte_mempool* mp = nfvi.get_mp();
-      x_mempool["ptr"] = format("%p", mp);
-      x_mempool["avail_cnt"] = rte_mempool_avail_count(mp);
-      x_mempool["free_cnt"] = rte_mempool_in_use_count(mp);
+  CROW_ROUTE(app,"/system") ( [&nfvi]() {
 
       crow::json::wvalue x_root;
       x_root["result"] = responce_info(true, "");
-      x_root["n_vnf"]  = vnfs.size();
-      x_root["n_port"] = ports.size();
-      x_root["mempool"] = std::move(x_mempool);
+      x_root["n_vnf"]  = nfvi.get_vnfs().size();
+      x_root["n_port"] = nfvi.get_ports().size();
+      x_root["n_vcat"] = nfvi.get_vcat().size();
+      x_root["n_pcat"] = nfvi.get_pcat().size();
       return x_root;
 
   });
 
-  CROW_ROUTE(app,"/ports") ( [&nfvi, &vnfs, &ports]() {
+  CROW_ROUTE(app,"/vnfcatalog") ( [&nfvi]() {
+      /*
+       * "n_vcat" : 2
+       * "0"  : {
+       *    "name" : "l2fwd1b",
+       *    "allocator" : "0x033ef1" // pointer
+       * },
+       * "1" : {
+       *    "name" : "l2fwd2b",
+       *    "allocator" : "0x033ef2" // pointer
+       * }
+       */
+      crow::json::wvalue x_root;
+      const size_t n_vcat = nfvi.get_vcat().size();
+      x_root["result"] = responce_info(true, "");
+      x_root["n_vcat"] = n_vcat;
+      crow::json::wvalue x_vcat;
+      for (size_t i=0; i<n_vcat; i++) {
+        x_vcat["name"] = nfvi.get_vcat()[i].name;
+        x_vcat["allocator"] = format("%p", nfvi.get_vcat()[i].allocator);
+        x_root[std::to_string(i)] = std::move(x_vcat);
+      }
+      return x_root;
+  });
+
+  CROW_ROUTE(app,"/portcatalog") ( [&nfvi]() {
+      /*
+       * "n_vcat" : 2
+       * "0"  : {
+       *    "name" : "pci",
+       *    "allocator" : "0x033ef1" // pointer
+       * },
+       * "1" : {
+       *    "name" : "l2fwd2b",
+       *    "allocator" : "0x033ef2" // pointer
+       * }
+       */
+      crow::json::wvalue x_root;
+      const size_t n_pcat = nfvi.get_pcat().size();
+      x_root["result"] = responce_info(true, "");
+      x_root["n_pcat"] = n_pcat;
+      crow::json::wvalue x_pcat;
+      for (size_t i=0; i<n_pcat; i++) {
+        x_pcat["name"] = nfvi.get_pcat()[i].name;
+        x_pcat["allocator"] = format("%p", nfvi.get_pcat()[i].allocator);
+        x_root[std::to_string(i)] = std::move(x_pcat);
+      }
+      return x_root;
+  });
+
+  CROW_ROUTE(app,"/ports") ( [&nfvi]() {
       /*
        * "n_port" : 1
        * "port0"  : {
@@ -156,17 +193,17 @@ int rest_api_thread(ssn_nfvi* nfviptr)
        * }
        */
       crow::json::wvalue x;
-      size_t n_port = ports.size();
+      size_t n_port = nfvi.get_ports().size();
       x["result"] = responce_info(true, "");
       x["n_port"] = n_port;
       for (size_t i=0; i<n_port; i++) {
-        const ssn_vnf_port* port = ports.at(i);
+        const ssn_vnf_port* port = nfvi.get_ports().at(i);
         x[std::to_string(i)] = std::move(vnf_port_info(port));
       }
       return x;
   });
 
-  CROW_ROUTE(app,"/vnfs") ( [&nfvi, &vnfs, &ports]() {
+  CROW_ROUTE(app,"/vnfs") ( [&nfvi]() {
       /*
        * "n_vnf" : 1,
        * "0" : {
@@ -194,10 +231,10 @@ int rest_api_thread(ssn_nfvi* nfviptr)
        */
       crow::json::wvalue x;
       x["result"] = responce_info(true, "");
-      size_t n_vnf = vnfs.size();
+      size_t n_vnf = nfvi.get_vnfs().size();
       x["n_vnf"] = n_vnf;
       for (size_t i=0; i<n_vnf; i++) {
-        const ssn_vnf* vnf = vnfs.at(i);
+        const ssn_vnf* vnf = nfvi.get_vnfs().at(i);
         x[std::to_string(i)] = std::move(vnf_info(vnf));
       }
       return x;

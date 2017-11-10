@@ -69,6 +69,8 @@ class ssn_nfvi final {
 
   const std::vector<ssn_vnf*>& get_vnfs() const { return vnfs; }
   const std::vector<ssn_vnf_port*>& get_ports() const { return ports; }
+  const ssn_vnf_catalog& get_vcat() const { return vnf_catalog; }
+  const ssn_port_catalog& get_pcat() const { return port_catalog; }
 
   void vnf_alloc_from_catalog(const char* catname, const char* instancename)
   {

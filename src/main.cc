@@ -32,7 +32,7 @@
 #include <ssn_nfvi.h>
 #include <ssn_vnf_l2fwd1b.h>
 #include <ssn_vnf_l2fwd2b.h>
-// #include "rest_api.h"
+#include <ssn_rest_api.h>
 
 
 void user_operation_mock(ssn_nfvi* nfvi)
@@ -89,12 +89,11 @@ int main(int argc, char** argv)
 
   user_operation_mock(&nfvi);
   nfvi.debug_dump(stdout);
-  return 0;
-  // std::thread rest_api(rest_api_thread, &nfvi);
+  std::thread rest_api(rest_api_thread, &nfvi);
 
   getchar();
   nfvi.undeploy_all_vnfs();
-  // rest_api.join();
+  rest_api.join();
 }
 
 
