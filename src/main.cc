@@ -37,6 +37,7 @@
 
 void user_operation_mock(ssn_nfvi* nfvi)
 {
+#if 0
   rte_mempool* mp = nfvi->get_mp();
 
   ssn_portalloc_pci_arg pci0arg = { mp, "0000:01:00.0" };
@@ -73,6 +74,7 @@ void user_operation_mock(ssn_nfvi* nfvi)
   vnf->reset_allport_acc();
   vnf->set_coremask(0, 0b00001000);
   vnf->deploy();
+#endif
 }
 
 
