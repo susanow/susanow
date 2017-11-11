@@ -77,7 +77,7 @@ class ssn_nfvi final {
       }
     }
     std::string err = "ssn_nfvi::del_port: ";
-    err += slankdev::format("not found port (%s)", port->name);
+    err += slankdev::format("not found port (%s)", port->name.c_str());
     throw slankdev::exception(err.c_str());
   }
 
@@ -91,7 +91,7 @@ class ssn_nfvi final {
       }
     }
     std::string err = "ssn_nfvi::del_vnf: ";
-    err += slankdev::format("not found vnf (%s)", vnf->name);
+    err += slankdev::format("not found vnf (%s)", vnf->name.c_str());
     throw slankdev::exception(err.c_str());
   }
 
