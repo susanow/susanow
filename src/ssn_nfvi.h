@@ -41,6 +41,29 @@
 class ssn_nfvi final {
  private:
 
+  void add_timer(ssn_timer* tim)
+  {
+    tims.push_back(tim);
+    timer_sched->add(tim);
+  }
+
+  void del_timer(ssn_timer* tim)
+  {
+    size_t n_tims = tims.size();
+    for (size_t i=0; i<n_tims; i++) {
+      if (tims[i] == tim) {
+        tims.erase(tims.begin() + i);
+        timer_sched->del(tim);
+        delete tim;
+        return ;
+      }
+    }
+    std::string err;
+    err = slankdev::format("ssn_nfvi::del_timer: not found timer %p", tim);
+    throw slankdev::exception(err.c_str());
+  }
+
+
   static void _timercallback(void* arg)
   {
     ssn_nfvi* nfvi = reinterpret_cast<ssn_nfvi*>(arg);
@@ -170,29 +193,6 @@ class ssn_nfvi final {
     rte_mempool_free(mp);
     ssn_fin();
   }
-
-  void add_timer(ssn_timer* tim)
-  {
-    tims.push_back(tim);
-    timer_sched->add(tim);
-  }
-
-  void del_timer(ssn_timer* tim)
-  {
-    size_t n_tims = tims.size();
-    for (size_t i=0; i<n_tims; i++) {
-      if (tims[i] == tim) {
-        tims.erase(tims.begin() + i);
-        timer_sched->del(tim);
-        delete tim;
-        return ;
-      }
-    }
-    std::string err;
-    err = slankdev::format("ssn_nfvi::del_timer: not found timer %p", tim);
-    throw slankdev::exception(err.c_str());
-  }
-
   ssn_vnf_port* find_port(const char* name)
   {
     const size_t n_port = ports.size();

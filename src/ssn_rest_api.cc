@@ -10,35 +10,12 @@
 #include "json_macro.h"
 
 
-void add_route_about_vnf_operation(ssn_nfvi& nfvi, crow::SimpleApp& app)
+namespace {
+
+void addroute__vnfs(ssn_nfvi& nfvi, crow::SimpleApp& app)
 {
   using std::string;
   using slankdev::format;
-
-  CROW_ROUTE(app,"/vnfcatalog") ( [&nfvi]() {
-      /*
-       * "n_vcat" : 2
-       * "0"  : {
-       *    "name" : "l2fwd1b",
-       *    "allocator" : "0x033ef1" // pointer
-       * },
-       * "1" : {
-       *    "name" : "l2fwd2b",
-       *    "allocator" : "0x033ef2" // pointer
-       * }
-       */
-      crow::json::wvalue x_root;
-      const size_t n_vcat = nfvi.get_vcat().size();
-      x_root["result"] = responce_info(true, "");
-      x_root["n_vcat"] = n_vcat;
-      crow::json::wvalue x_vcat;
-      for (size_t i=0; i<n_vcat; i++) {
-        x_vcat["name"] = nfvi.get_vcat()[i].name;
-        x_vcat["allocator"] = format("%p", nfvi.get_vcat()[i].allocator);
-        x_root[std::to_string(i)] = std::move(x_vcat);
-      }
-      return x_root;
-  });
 
   CROW_ROUTE(app,"/vnfs")
   .methods("GET"_method, "PUT"_method, "DELETE"_method)
@@ -140,6 +117,43 @@ void add_route_about_vnf_operation(ssn_nfvi& nfvi, crow::SimpleApp& app)
       }
 
   });
+}
+
+void addroute__vnfcatalog(ssn_nfvi& nfvi, crow::SimpleApp& app)
+{
+  using std::string;
+  using slankdev::format;
+
+  CROW_ROUTE(app,"/vnfcatalog") ( [&nfvi]() {
+      /*
+       * "n_vcat" : 2
+       * "0"  : {
+       *    "name" : "l2fwd1b",
+       *    "allocator" : "0x033ef1" // pointer
+       * },
+       * "1" : {
+       *    "name" : "l2fwd2b",
+       *    "allocator" : "0x033ef2" // pointer
+       * }
+       */
+      crow::json::wvalue x_root;
+      const size_t n_vcat = nfvi.get_vcat().size();
+      x_root["result"] = responce_info(true, "");
+      x_root["n_vcat"] = n_vcat;
+      crow::json::wvalue x_vcat;
+      for (size_t i=0; i<n_vcat; i++) {
+        x_vcat["name"] = nfvi.get_vcat()[i].name;
+        x_vcat["allocator"] = format("%p", nfvi.get_vcat()[i].allocator);
+        x_root[std::to_string(i)] = std::move(x_vcat);
+      }
+      return x_root;
+  });
+}
+
+void addroute__vnf_STR_ports_INT(ssn_nfvi& nfvi, crow::SimpleApp& app)
+{
+  using std::string;
+  using slankdev::format;
 
   CROW_ROUTE(app, "/vnfs/<str>/ports/<int>")
   .methods("PUT"_method, "DELETE"_method)
@@ -180,6 +194,12 @@ void add_route_about_vnf_operation(ssn_nfvi& nfvi, crow::SimpleApp& app)
 
     }
   });
+}
+
+void addroute__vnfs_STR_coremask(ssn_nfvi& nfvi, crow::SimpleApp& app)
+{
+  using std::string;
+  using slankdev::format;
 
   CROW_ROUTE(app, "/vnfs/<str>/coremask") .methods("PUT"_method, "DELETE"_method)
   ([&nfvi](const crow::request& req, std::string str) {
@@ -248,6 +268,12 @@ void add_route_about_vnf_operation(ssn_nfvi& nfvi, crow::SimpleApp& app)
 
     }
   });
+}
+
+void addroute__vnfs_STR_running(ssn_nfvi& nfvi, crow::SimpleApp& app)
+{
+  using std::string;
+  using slankdev::format;
 
   CROW_ROUTE(app, "/vnfs/<str>/running") .methods("PUT"_method,"GET"_method,"DELETE"_method)
   ([&nfvi](const crow::request& req, std::string str) {
@@ -323,7 +349,7 @@ void add_route_about_vnf_operation(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-void add_route_about_port_operation(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__portcatalog(ssn_nfvi& nfvi, crow::SimpleApp& app)
 {
   using std::string;
   using slankdev::format;
@@ -360,6 +386,12 @@ void add_route_about_port_operation(ssn_nfvi& nfvi, crow::SimpleApp& app)
 
       }
   });
+}
+
+void addroute__ports(ssn_nfvi& nfvi, crow::SimpleApp& app)
+{
+  using std::string;
+  using slankdev::format;
 
   CROW_ROUTE(app,"/ports")
   .methods("GET"_method, "PUT"_method, "DELETE"_method)
@@ -490,6 +522,12 @@ void add_route_about_port_operation(ssn_nfvi& nfvi, crow::SimpleApp& app)
         }
       }
   });
+}
+
+void addroute__ports_STR_config(ssn_nfvi& nfvi, crow::SimpleApp& app)
+{
+  using std::string;
+  using slankdev::format;
 
   CROW_ROUTE(app, "/ports/<str>/config") .methods("GET"_method)
   ([&nfvi](const crow::request& req, std::string str) {
@@ -507,15 +545,26 @@ void add_route_about_port_operation(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-int rest_api_thread(ssn_nfvi* nfviptr)
+void addroute__system(ssn_nfvi& nfvi, crow::SimpleApp& app)
 {
   using std::string;
   using slankdev::format;
-  ssn_nfvi& nfvi = *nfviptr;
 
-  crow::SimpleApp app;
-  app.loglevel(crow::LogLevel::Critical);
-  // app.loglevel(crow::LogLevel::Debug);
+  CROW_ROUTE(app,"/system") ( [&nfvi]() {
+      crow::json::wvalue x_root;
+      x_root["result"] = responce_info(true, "");
+      x_root["n_vnf"]  = nfvi.get_vnfs().size();
+      x_root["n_port"] = nfvi.get_ports().size();
+      x_root["n_vcat"] = nfvi.get_vcat().size();
+      x_root["n_pcat"] = nfvi.get_pcat().size();
+      return x_root;
+  });
+}
+
+void addroute__(ssn_nfvi& nfvi, crow::SimpleApp& app)
+{
+  using std::string;
+  using slankdev::format;
 
   CROW_ROUTE(app,"/") ( []() {
       crow::json::wvalue x;
@@ -526,24 +575,35 @@ int rest_api_thread(ssn_nfvi* nfviptr)
       x["cmds"] = std::move(child);
       return x;
   });
+}
 
-  CROW_ROUTE(app,"/system") ( [&nfvi]() {
+} /* namespace */
 
-      crow::json::wvalue x_root;
-      x_root["result"] = responce_info(true, "");
-      x_root["n_vnf"]  = nfvi.get_vnfs().size();
-      x_root["n_port"] = nfvi.get_ports().size();
-      x_root["n_vcat"] = nfvi.get_vcat().size();
-      x_root["n_pcat"] = nfvi.get_pcat().size();
-      return x_root;
 
-  });
 
-  add_route_about_port_operation(nfvi, app);
-  add_route_about_vnf_operation(nfvi, app);
+int rest_api_thread(ssn_nfvi* nfviptr)
+{
+  using std::string;
+  using slankdev::format;
+  ssn_nfvi& nfvi = *nfviptr;
+
+  crow::SimpleApp app;
+  app.loglevel(crow::LogLevel::Critical);
+  // app.loglevel(crow::LogLevel::Debug);
+
+  addroute__vnfs              (nfvi, app);
+  addroute__vnfcatalog        (nfvi, app);
+  addroute__vnf_STR_ports_INT (nfvi, app);
+  addroute__vnfs_STR_coremask (nfvi, app);
+  addroute__vnfs_STR_running  (nfvi, app);
+  addroute__portcatalog       (nfvi, app);
+  addroute__ports             (nfvi, app);
+  addroute__ports_STR_config  (nfvi, app);
+  addroute__system            (nfvi, app);
+  addroute__                  (nfvi, app);
 
   app.port(8888).run();
 
-} /* rest_api_thread(ssn_nfvi& nfvi) */
+}
 
 
