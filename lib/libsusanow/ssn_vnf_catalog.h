@@ -25,7 +25,6 @@
  */
 
 #pragma once
-
 #include <ssn_types.h>
 #include <ssn_vnf.h>
 
@@ -47,32 +46,75 @@ class ssn_vnf_catalog final {
 
  public:
 
+  /**
+   * @brief get catalog elements size
+   * @return number of elements
+   */
   size_t size() const { return catalog.size(); }
+
+  /**
+   * @brief get element reference for debugging
+   * @param [in] num catalog index
+   * @return catalog-element
+   * @details
+   *    if num is invalid, this operation is undefined
+   */
   const catalog_ele& operator[](size_t num) const { return catalog[num]; }
 
-  ssn_vnf* alloc_vnf(const char* catalog_name, const char* instance_name)
+  /**
+   * @brief Allocate new VNF
+   * @param [in] cname catalog-name
+   * @param [in] iname instance-name
+   * @return valid-pointer success allocation
+   * @return nullptr unsuccess, maybe invalid cname or iname
+   */
+  ssn_vnf* alloc_vnf(const char* cname, const char* iname)
   {
     size_t n_cat = catalog.size();
     for (size_t i=0; i<n_cat; i++) {
-      if (catalog[i].name == catalog_name)
-        return catalog[i].allocator(instance_name);
+      if (catalog[i].name == cname)
+        return catalog[i].allocator(iname);
     }
-    throw slankdev::exception("ssn_vnf_catalog::alloc_vnf: not found vnf");
+    return nullptr;
   }
 
-  void register_vnf(const char* catalog_name, ssn_vnfallocfunc_t allocator)
-  { catalog.emplace_back(catalog_name, allocator); }
-
-  void unregister_vnf(const char* catalog_name)
+  /**
+   * @brief Register new VNF-catalog
+   * @param [in] cname catalog-name
+   * @param [in] allocator allocator function
+   * @return 0 success
+   * @return -1 cname is already registered
+   */
+  int register_vnf(const char* cname, ssn_vnfallocfunc_t allocator)
   {
-    size_t n_cat = catalog.size();
-    for (size_t i=0; i<n_cat; i++) {
-      if (catalog[i].name == catalog_name) {
+    /*
+     * Check if cname is already registered
+     */
+    const size_t n_ele = catalog.size();
+    for (size_t i=0; i<n_ele; i++) {
+      if (catalog[i].name == cname)
+        return -1;
+    }
+    catalog.emplace_back(cname, allocator);
+    return 0;
+  }
+
+  /**
+   * @brief Unregister VNF catalog
+   * @param cname catalog-name
+   * @return 0 success
+   * @return -1 cname is invalid
+   */
+  int unregister_vnf(const char* cname)
+  {
+    const size_t n_ele = catalog.size();
+    for (size_t i=0; i<n_ele; i++) {
+      if (catalog[i].name == cname) {
         catalog.erase(catalog.begin() + i);
-        return ;
+        return 0;
       }
     }
-    throw slankdev::exception("ssn_vnf_catalog::register_vnf: not found vnf");
+    return -1;
   }
 
 }; /* class ssn_vnf_catalog */

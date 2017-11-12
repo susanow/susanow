@@ -36,9 +36,26 @@
 #include <ssn_timer.h>
 #include <ssn_vnf_catalog.h>
 #include <ssn_port_catalog.h>
-
+#include <mutex>
 
 class ssn_nfvi final {
+ private:
+
+  // std::mutex mtx;
+  // using auto_lock = std::lock_guard<std::mutex>;
+
+  rte_mempool* mp;
+  ssn_vnf_catalog  vnf_catalog;
+  ssn_port_catalog port_catalog;
+
+  ssn_timer_sched* timer_sched;
+  uint64_t timer_thread_tid;
+  const size_t lcoreid_timer  = 1;
+  std::vector<ssn_timer*> tims;
+
+  std::vector<ssn_vnf*>      vnfs;
+  std::vector<ssn_vnf_port*> ports;
+
  private:
 
   void add_timer(ssn_timer* tim)
@@ -63,7 +80,6 @@ class ssn_nfvi final {
     throw slankdev::exception(err.c_str());
   }
 
-
   static void _timercallback(void* arg)
   {
     ssn_nfvi* nfvi = reinterpret_cast<ssn_nfvi*>(arg);
@@ -75,19 +91,6 @@ class ssn_nfvi final {
       if (vnf->is_running()) vnf->update_stats();
     }
   }
-
-  rte_mempool* mp;
-  ssn_vnf_catalog  vnf_catalog;
-  ssn_port_catalog port_catalog;
-
-  ssn_timer_sched* timer_sched;
-  uint64_t timer_thread_tid;
-  const size_t lcoreid_timer  = 1;
-  std::vector<ssn_timer*> tims;
-
-  std::vector<ssn_vnf*>      vnfs;
-  std::vector<ssn_vnf_port*> ports;
-
  public:
 
   void del_port(ssn_vnf_port* port)
@@ -123,11 +126,22 @@ class ssn_nfvi final {
   const ssn_vnf_catalog& get_vcat() const { return vnf_catalog; }
   const ssn_port_catalog& get_pcat() const { return port_catalog; }
 
-  void vnf_alloc_from_catalog(const char* catname, const char* instancename)
+  /**
+   * @brief Allocate new VNF from catalog
+   * @param [in] cname catalog-name
+   * @param [in] iname instance-name
+   * @return nullptr iname or cname is invalid
+   * @return vnfs pointer
+   */
+  ssn_vnf* vnf_alloc_from_catalog(const char* cname, const char* iname)
   {
-    ssn_vnf* vnf = vnf_catalog.alloc_vnf(
-        catname, instancename);
+    if (find_vnf(iname)) return nullptr;
+
+    ssn_vnf* vnf = vnf_catalog.alloc_vnf(cname, iname);
+    if (!vnf) return nullptr;
+
     vnfs.push_back(vnf);
+    return vnf;
   }
 
   void port_alloc_from_catalog(const char* catname,
@@ -139,10 +153,14 @@ class ssn_nfvi final {
   }
 
   void vnf_register_to_catalog(const char* catname, ssn_vnfallocfunc_t f)
-  { vnf_catalog.register_vnf(catname, f); }
+  {
+    vnf_catalog.register_vnf(catname, f);
+  }
 
   void port_register_to_catalog(const char* catname, ssn_portallocfunc_t f)
-  { port_catalog.register_port(catname , f); }
+  {
+    port_catalog.register_port(catname , f);
+  }
 
   ssn_nfvi(int argc, char** argv) : mp(nullptr), timer_sched(nullptr)
   {
@@ -193,6 +211,13 @@ class ssn_nfvi final {
     rte_mempool_free(mp);
     ssn_fin();
   }
+
+  /**
+   * @brief find port by name
+   * @param [in] name port name
+   * @return valid-pointer found port's pointer
+   * @return nullptr not found port
+   */
   ssn_vnf_port* find_port(const char* name)
   {
     const size_t n_port = ports.size();
@@ -201,11 +226,15 @@ class ssn_nfvi final {
         return ports[i];
       }
     }
-    std::string err = "ssn_nfvi::find_port: not found";
-    err += slankdev::format("(%s)", name);
-    throw slankdev::exception(err.c_str());
+    return nullptr;
   }
 
+  /**
+   * @brief find vnf by name
+   * @param [in] name vnf name
+   * @return valid-pointer found vnf's pointer
+   * @return nullptr not found vnf
+   */
   ssn_vnf* find_vnf(const char* name)
   {
     const size_t n_vnf = vnfs.size();
@@ -214,9 +243,7 @@ class ssn_nfvi final {
         return vnfs[i];
       }
     }
-    std::string err = "ssn_nfvi::find_vnf: not found";
-    err += slankdev::format("(%s)", name);
-    throw slankdev::exception(err.c_str());
+    return nullptr;
   }
 
   void undeploy_all_vnfs()

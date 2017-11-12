@@ -45,6 +45,8 @@
 #include <dpdk/dpdk.h>
 #include <slankdev/vector.h>
 
+class ssn_vnf;
+
 /**
  * @brief get dpdk_port_id of tap_pmd by defice-name
  * @details
@@ -89,6 +91,7 @@ class ssn_vnf_port {
 
  protected:
 
+  ssn_vnf* attached_vnf;
   size_t n_rxq;         /*! num of rx queues (hardware) */
   size_t n_txq;         /*! num of tx queues (hardware) */
   size_t n_rxacc;       /*! num of rx accessor */
@@ -109,7 +112,7 @@ class ssn_vnf_port {
    *   - num of tx queues (hardware multiqueues)
    */
   ssn_vnf_port(const char* n)
-    : n_rxq(0), n_txq(0), n_rxacc(0), n_txacc(0), name(n) {}
+    : attached_vnf(nullptr), n_rxq(0), n_txq(0), n_rxacc(0), n_txacc(0), name(n) {}
 
   /**
    * @brief Send a burst of output packets of an Ethernet device
@@ -123,6 +126,9 @@ class ssn_vnf_port {
    *   This function calls ssn_ma_port_tx_burst internally
    */
   virtual size_t tx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) = 0;
+
+  void attach_vnf(ssn_vnf* vnf) { attached_vnf = vnf; }
+  void dettach_vnf() { attached_vnf = nullptr; }
 
   /**
    * @brief Receive a burst of output packets from an Ethernet device

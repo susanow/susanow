@@ -313,7 +313,13 @@ class ssn_vnf {
    * @brief constructor
    * @param [in] nport number of ports included vnf.
    */
-  ssn_vnf(size_t nport, const char* n) : ports(nport), name(n) {}
+  ssn_vnf(size_t nport, const char* n) : ports(nport), name(n)
+  {
+    const size_t n_ele = ports.size();
+    for (size_t i=0; i<n_ele; i++) {
+      ports.at(i) = nullptr;
+    }
+  }
 
   /**
    * @brief reset all port's access config.
@@ -343,26 +349,19 @@ class ssn_vnf {
   { blocks.at(block_id)->set_coremask(cmask); }
 
   /**
-   * @brief attach vnf's port
-   * @param [in] pid vnf's port id
-   * @param [in] port port class's pointer to attach to vnf
+   * @brief check vnf is deletable
+   * @return true deletable
+   * @return false undeletable
    */
-  void attach_port(size_t pid, ssn_vnf_port* port)
+  bool is_deletable() const
   {
-    ports.at(pid) = port;
-    auto n = blocks.size();
-    for (size_t i=0; i<n; i++) {
-      blocks.at(i)->attach_port(pid, port);
+    const size_t n_ele = ports.size();
+    for (size_t i=0; i<n_ele; i++) {
+      if (ports.at(i) != nullptr) {
+        return false;
+      }
     }
-  }
-
-  void dettach_port(size_t pid)
-  {
-    ports.at(pid) = nullptr;
-    auto n = blocks.size();
-    for (size_t i=0; i<n; i++) {
-      blocks.at(i)->dettach_port(pid);
-    }
+    return true;
   }
 
   /**
@@ -448,6 +447,47 @@ class ssn_vnf {
       if (!blocks.at(i)->is_running()) return false;
     }
     return true;
+  }
+
+  /**
+   * @brief attach vnf's port
+   * @param [in] pid vnf's port id
+   * @param [in] port port class's pointer to attach to vnf
+   * @return 0 success
+   * @return -1 invalid port or already attached
+   */
+  int attach_port(size_t pid, ssn_vnf_port* port)
+  {
+    if (ports.at(pid) || !port) {
+      /* port already attached */
+      return -1;
+    }
+    ports.at(pid) = port;
+    auto n = blocks.size();
+    for (size_t i=0; i<n; i++) {
+      blocks.at(i)->attach_port(pid, port);
+    }
+    return 0;
+  }
+
+  /**
+   * @brief dettach vnf's port
+   * @param [in] pid vnf's port id
+   * @return 0 success
+   * @return -1 port does not attached
+   */
+  int dettach_port(size_t pid)
+  {
+    if (!ports.at(pid)) {
+      /* unattached port yet */
+      return -1;
+    }
+    ports.at(pid) = nullptr;
+    auto n = blocks.size();
+    for (size_t i=0; i<n; i++) {
+      blocks.at(i)->dettach_port(pid);
+    }
+    return 0;
   }
 
 }; /* class ssn_vnf */
