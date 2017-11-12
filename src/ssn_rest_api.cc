@@ -12,46 +12,34 @@
 
 namespace {
 
+using std::string;
+using slankdev::format;
+
+
+void addroute__(ssn_nfvi& nfvi, crow::SimpleApp& app)
+{
+  CROW_ROUTE(app,"/")
+  .methods("GET"_method)
+  ([&nfvi]() {
+      crow::json::wvalue x_root;
+      x_root["result"] = responce_info(true, "");
+      x_root["n_vnf"]  = nfvi.get_vnfs().size();
+      x_root["n_port"] = nfvi.get_ports().size();
+      x_root["n_vcat"] = nfvi.get_vcat().size();
+      x_root["n_pcat"] = nfvi.get_pcat().size();
+      return x_root;
+  });
+}
+
 void addroute__vnfs(ssn_nfvi& nfvi, crow::SimpleApp& app)
 {
-  using std::string;
-  using slankdev::format;
-
   CROW_ROUTE(app,"/vnfs")
-  .methods("GET"_method, "PUT"_method, "DELETE"_method)
+  .methods("GET"_method)
   ([&nfvi](const crow::request& req) {
 
-      assert(  (req.method == crow::HTTPMethod::GET)
-           ||  (req.method == crow::HTTPMethod::PUT)
-           ||  (req.method == crow::HTTPMethod::DELETE)  );
-
+      assert( req.method == crow::HTTPMethod::GET );
       if (req.method == crow::HTTPMethod::GET) {
 
-        /*
-         * "n_vnf" : 1,
-         * "0" : {
-         *    "name"     : "vnf0",
-         *    "n_port"   : 2,
-         *    "n_block"  : 1,
-         *    "cmask"    : 0x0000,
-         *    "ports" : {
-         *      "port0" : {
-         *         "n_rxq"  : 4,
-         *         "n_txq"  : 4,
-         *         "n_rxa"  : 2,
-         *         "n_txa"  : 2,
-         *         "perfred": 0.8
-         *      },
-         *      "port1" : {
-         *         "n_rxq"  : 4,
-         *         "n_txq"  : 4,
-         *         "n_rxa"  : 2,
-         *         "n_txa"  : 2,
-         *         "perfred": 0.8
-         *      }
-         *    }
-         * }
-         */
         crow::json::wvalue x;
         x["result"] = responce_info(true, "");
         size_t n_vnf = nfvi.get_vnfs().size();
@@ -62,63 +50,73 @@ void addroute__vnfs(ssn_nfvi& nfvi, crow::SimpleApp& app)
         }
         return x;
 
-      } else if (req.method == crow::HTTPMethod::PUT) {
+      }
+  });
+}
 
-        /*
-         * {
-         *    "cname" : "l2fwd1b",
-         *    "iname" : "vnf0"
-         * }
-         */
+void addroute__vnfs_NAME(ssn_nfvi& nfvi, crow::SimpleApp& app)
+{
+  CROW_ROUTE(app,"/vnfs/<str>")
+  .methods("GET"_method, "POST"_method, "DELETE"_method)
+  ([&nfvi](const crow::request& req, std::string iname) {
+
+      assert(  (req.method == crow::HTTPMethod::GET   )
+           ||  (req.method == crow::HTTPMethod::POST  )
+           ||  (req.method == crow::HTTPMethod::DELETE)  );
+
+      if (req.method == crow::HTTPMethod::GET) {
+
+        const ssn_vnf* vnf = nfvi.find_vnf(iname.c_str());
+        if (!vnf) {
+          crow::json::wvalue x;
+          x["result"] = responce_info(false, "vnf not found");
+          return x;
+        }
+        crow::json::wvalue x;
+        x["result"] = responce_info(true, "found");
+        x["vnf"] = std::move(vnf_info(vnf));
+        return x;
+
+      } else if (req.method == crow::HTTPMethod::POST) {
+
         auto req_json = crow::json::load(req.body);
         std::string cname = req_json["cname"].s();
-        std::string iname = req_json["iname"].s();
 
-        try {
-
-          nfvi.vnf_alloc_from_catalog(cname.c_str(), iname.c_str());
+        ssn_vnf* vnf = nfvi.vnf_alloc_from_catalog(cname.c_str(), iname.c_str());
+        if (!vnf) {
           crow::json::wvalue x_root;
-          x_root["result"] = responce_info(true, "");
+          x_root["result"] = responce_info(false, "invalid cname or iname");
           return x_root;
-
-        } catch (std::exception& e) {
-
-          crow::json::wvalue x_root;
-          x_root["result"] = responce_info(false, e.what());
-          return x_root;
-
         }
+        crow::json::wvalue x_root;
+        x_root["result"] = responce_info(true, "");
+        return x_root;
 
       } else if (req.method == crow::HTTPMethod::DELETE) {
 
-        /*
-         * {
-         *    "iname" : "vnf0"
-         * }
-         */
-        auto req_json = crow::json::load(req.body);
-        std::string iname = req_json["iname"].s();
-
-        try {
-
-          ssn_vnf* vnf = nfvi.find_vnf(iname.c_str());
-          nfvi.del_vnf(vnf);
+        ssn_vnf* vnf = nfvi.find_vnf(iname.c_str());
+        if (!vnf) {
           crow::json::wvalue x_root;
-          x_root["result"] = responce_info(true, "");
+          x_root["result"] = responce_info(false, "iname is invalid");
           return x_root;
-
-        } catch (std::exception& e) {
-
-          crow::json::wvalue x_root;
-          x_root["result"] = responce_info(false, e.what());
-          return x_root;
-
         }
+
+        if (vnf->is_deletable() == false) {
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(false, "vnf is not deletable");
+          return x_root;
+        }
+
+        nfvi.del_vnf(vnf);
+        crow::json::wvalue x_root;
+        x_root["result"] = responce_info(true, "");
+        return x_root;
       }
 
   });
 }
 
+#if 0
 void addroute__vnfcatalog(ssn_nfvi& nfvi, crow::SimpleApp& app)
 {
   using std::string;
@@ -544,41 +542,9 @@ void addroute__ports_STR_config(ssn_nfvi& nfvi, crow::SimpleApp& app)
 
   });
 }
-
-void addroute__system(ssn_nfvi& nfvi, crow::SimpleApp& app)
-{
-  using std::string;
-  using slankdev::format;
-
-  CROW_ROUTE(app,"/system") ( [&nfvi]() {
-      crow::json::wvalue x_root;
-      x_root["result"] = responce_info(true, "");
-      x_root["n_vnf"]  = nfvi.get_vnfs().size();
-      x_root["n_port"] = nfvi.get_ports().size();
-      x_root["n_vcat"] = nfvi.get_vcat().size();
-      x_root["n_pcat"] = nfvi.get_pcat().size();
-      return x_root;
-  });
-}
-
-void addroute__(ssn_nfvi& nfvi, crow::SimpleApp& app)
-{
-  using std::string;
-  using slankdev::format;
-
-  CROW_ROUTE(app,"/") ( []() {
-      crow::json::wvalue x;
-      x["result"] = responce_info(true, "");
-      crow::json::wvalue child;
-      child["ports"] = "ports operation";
-      child["vnfs"]  = "vnfs operation";
-      x["cmds"] = std::move(child);
-      return x;
-  });
-}
+#endif
 
 } /* namespace */
-
 
 
 int rest_api_thread(ssn_nfvi* nfviptr)
@@ -591,16 +557,19 @@ int rest_api_thread(ssn_nfvi* nfviptr)
   app.loglevel(crow::LogLevel::Critical);
   // app.loglevel(crow::LogLevel::Debug);
 
-  addroute__vnfs              (nfvi, app);
-  addroute__vnfcatalog        (nfvi, app);
-  addroute__vnf_STR_ports_INT (nfvi, app);
-  addroute__vnfs_STR_coremask (nfvi, app);
-  addroute__vnfs_STR_running  (nfvi, app);
-  addroute__portcatalog       (nfvi, app);
-  addroute__ports             (nfvi, app);
-  addroute__ports_STR_config  (nfvi, app);
-  addroute__system            (nfvi, app);
-  addroute__                  (nfvi, app);
+  addroute__                           (nfvi, app);
+  addroute__vnfs                       (nfvi, app);
+  addroute__vnfs_NAME                  (nfvi, app);
+
+#if 0
+  addroute__vnfs_NAME_deploy           (nfvi, app); // not yet
+  addroute__vnfs_NAME_undeploy         (nfvi, app); // not yet
+  addroute__vnfs_NAME_coremask_BLOCKID (nfvi, app); // not yet
+  addroute__vnfs_NAME_reset            (nfvi, app); // not yet
+  addroute__vnfs_NAME_ports_PORTID     (nfvi, app); // not yet
+  addroute__ports                      (nfvi, app); // not yet
+  addroute__ports_NAME                 (nfvi, app); // not yet
+#endif
 
   app.port(8888).run();
 
