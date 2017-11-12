@@ -100,6 +100,9 @@ class ssn_vnf_port {
  public:
   const std::string name;
 
+  bool is_attached_vnf() const { return attached_vnf!=nullptr; }
+  const ssn_vnf* get_attached_vnf() const { return attached_vnf; }
+
   /**
    * @brief constructor
    * @param [in] a_port_id dpdk port id
@@ -299,8 +302,8 @@ class ssn_vnf_port {
   {
     size_t irx = get_inner_rx_perf();
     size_t orx = get_outer_rx_perf();
-    double ret = double(irx)/double(orx);
     if (orx == 0) return 1.0;
+    double ret = double(irx)/double(orx);
     return ret;
   }
 
@@ -529,7 +532,7 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
    * @param [in] n_txq_ number of tx queues for RSS multiqueues
    */
   ssn_vnf_port_virt(const char* n)
-    : ssn_vnf_port(n) {}
+    : ssn_vnf_port(n), tx(nullptr), rx(nullptr) {}
 
   virtual void config_hw(size_t nrxq, size_t ntxq) override
   {
@@ -538,7 +541,8 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
   }
 
   /**
-   * @brief Send a burst of output packets of an Ethernet device ( ssn_vnf_port::tx_burst() )
+   * @brief Send a burst of output packets of an Ethernet device
+   *        ( ssn_vnf_port::tx_burst() )
    * @param [in] aid Access ID
    * @param [in] mbufs The address of an array of nb_pkts pointers
    *             to rte_mbuf structures which contain the output packets.
@@ -552,7 +556,8 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
   }
 
   /**
-   * @brief Receive a burst of output packets from an Ethernet device ( ssn_vnf_port::rx_burst() )
+   * @brief Receive a burst of output packets from an Ethernet device
+   *        ( ssn_vnf_port::rx_burst() )
    * @param [in] aid Access ID
    * @param [in] mbufs The address of an array of pointers to rte_mbuf
    *             structures that must be large enough to store nb_pkts
@@ -594,16 +599,28 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
   }
 
   virtual size_t get_inner_rx_perf() const override
-  { return rx->get_cons_perf(); }
+  {
+    if (rx) return rx->get_cons_perf();
+    else    return 0;
+  }
 
   virtual size_t get_inner_tx_perf() const override
-  { return tx->get_prod_perf(); }
+  {
+    if (tx) return tx->get_prod_perf();
+    else    return 0;
+  }
 
   virtual size_t get_outer_rx_perf() const override
-  { return rx->get_prod_perf(); }
+  {
+    if (rx) return rx->get_prod_perf();
+    else    return 0;
+  }
 
   virtual size_t get_outer_tx_perf() const override
-  { return tx->get_cons_perf(); }
+  {
+    if (tx) return tx->get_cons_perf();
+    else    return 0;
+  }
 
   /**
    * @brief update port-statistics for timer-function.
@@ -612,7 +629,8 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
    */
   virtual void stats_update_per1sec() override
   {
-    rx->update_stats();
+    if (rx)
+      rx->update_stats();
   }
 
 }; /* class ssn_vnf_port_virt */

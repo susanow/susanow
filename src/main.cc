@@ -37,17 +37,18 @@
 
 void user_operation_mock(ssn_nfvi* nfvi)
 {
-  rte_mempool* mp = nfvi->get_mp();
-  nfvi->vnf_alloc_from_catalog("l2fwd1b", "vnf0");
+  // rte_mempool* mp = nfvi->get_mp();
+  // nfvi->vnf_alloc_from_catalog("l2fwd1b", "vnf0");
 
-  ssn_portalloc_tap_arg tap0arg = { mp, "tap0" };
-  nfvi->port_alloc_from_catalog("tap", "tap0", &tap0arg);
-  nfvi->find_port("tap0")->config_hw(4, 4);
-  ssn_portalloc_tap_arg tap1arg = { mp, "tap1" };
-  nfvi->port_alloc_from_catalog("tap", "tap1", &tap0arg);
-  nfvi->find_port("tap1")->config_hw(4, 4);
-  nfvi->find_vnf("vnf0")->attach_port(0, nfvi->find_port("tap0"));
-  nfvi->find_vnf("vnf0")->attach_port(1, nfvi->find_port("tap1"));
+  // ssn_portalloc_tap_arg tap0arg = { mp, "tap0" };
+  // nfvi->port_alloc_from_catalog("tap", "tap0", &tap0arg);
+  // nfvi->find_port("tap0")->config_hw(4, 4);
+  // ssn_portalloc_tap_arg tap1arg = { mp, "tap1" };
+  // nfvi->port_alloc_from_catalog("tap", "tap1", &tap0arg);
+  // nfvi->find_port("tap1")->config_hw(4, 4);
+
+  // nfvi->find_vnf("vnf0")->attach_port(0, nfvi->find_port("tap0"));
+  // nfvi->find_vnf("vnf0")->attach_port(1, nfvi->find_port("tap1"));
 
 #if 0
   rte_mempool* mp = nfvi->get_mp();

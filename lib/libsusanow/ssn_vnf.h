@@ -463,6 +463,7 @@ class ssn_vnf {
       return -1;
     }
     ports.at(pid) = port;
+    port->attach_vnf(this);
     auto n = blocks.size();
     for (size_t i=0; i<n; i++) {
       blocks.at(i)->attach_port(pid, port);
@@ -482,6 +483,7 @@ class ssn_vnf {
       /* unattached port yet */
       return -1;
     }
+    ports.at(pid)->dettach_vnf();
     ports.at(pid) = nullptr;
     auto n = blocks.size();
     for (size_t i=0; i<n; i++) {

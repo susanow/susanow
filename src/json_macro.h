@@ -33,6 +33,8 @@ crow::json::wvalue vnf_port_info(const ssn_vnf_port* port)
   x["n_rxa"   ] = port->get_n_rxacc();
   x["n_txa"   ] = port->get_n_txacc();
   x["perfred" ] = port->get_perf_reduction();
+  const ssn_vnf* vnf = port->get_attached_vnf();
+  x["attach"  ] = vnf ? vnf->name : "nill";
   return x;
 }
 
