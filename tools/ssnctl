@@ -30,7 +30,7 @@ import pprint
 import requests
 URL = "http://localhost:8888";
 
-def get_json_dict_from_url(uri):
+def get_json_dict_from_uri(uri):
     path = URL + uri;
     try:
         response = requests.get(path)
@@ -41,7 +41,7 @@ def get_json_dict_from_url(uri):
         print("error {}".format(str(ex)))
         exit(-1)
 
-def delete_json_dict_from_url(uri):
+def delete_json_dict_from_uri(uri):
     path = URL + uri;
     try:
         response = requests.delete(path)
@@ -52,7 +52,7 @@ def delete_json_dict_from_url(uri):
         print("error {}".format(str(ex)))
         exit(-1)
 
-def put_json_dict_to_url(uri, data):
+def put_json_dict_to_uri(uri, data):
     path = URL + uri;
     try:
         response = requests.put(path, data)
@@ -143,7 +143,7 @@ def usage_port():
 
 def show_system():
     uri = "/"
-    json_dict = get_json_dict_from_url(uri)
+    json_dict = get_json_dict_from_uri(uri)
 
     n_vnf  = json_dict["n_vnf"]
     n_port = json_dict["n_port"]
@@ -156,7 +156,7 @@ def show_system():
 
 def show_vnfs():
     uri = "/vnfs"
-    json_dict = get_json_dict_from_url(uri)
+    json_dict = get_json_dict_from_uri(uri)
     n_vnf = json_dict["n_vnf"]
     for i in range(n_vnf):
         vnf = json_dict[str(i)]
@@ -165,7 +165,7 @@ def show_vnfs():
 
 def show_ports():
     uri = "/ports"
-    json_dict = get_json_dict_from_url(uri)
+    json_dict = get_json_dict_from_uri(uri)
     n_port = json_dict["n_port"]
     for i in range(n_port):
         print("[{}]".format(i))
@@ -174,7 +174,7 @@ def show_ports():
 
 def show_vcat():
     uri = "/catalogs/vnf"
-    json_dict = get_json_dict_from_url(uri)
+    json_dict = get_json_dict_from_uri(uri)
     n_port = json_dict["n_ele"]
     for i in range(n_port):
         idx = str(i)
@@ -186,7 +186,7 @@ def show_vcat():
 
 def show_pcat():
     uri = "/catalogs/port"
-    json_dict = get_json_dict_from_url(uri)
+    json_dict = get_json_dict_from_uri(uri)
     n_port = json_dict["n_ele"]
     for i in range(n_port):
         idx = str(i)
@@ -213,7 +213,7 @@ def show(argc, argv):
 
 def vnf_NAME_stat(vnfname):
     uri = "/vnfs/" + vnfname
-    json_dict = get_json_dict_from_url(uri)
+    json_dict = get_json_dict_from_uri(uri)
     if (json_dict["result"]["success"]):
         vnf = json_dict["vnf"]
         print_vnf(vnf)
@@ -222,13 +222,13 @@ def vnf_NAME_stat(vnfname):
 
 def vnf_NAME_deploy(vnfname):
     uri = "/vnfs/" + vnfname + "/deploy"
-    result = put_json_dict_to_url(uri, "")["result"]
+    result = put_json_dict_to_uri(uri, "")["result"]
     if (result["success"]): return
     else: print("miss: {}".format(result["msg"]))
 
 def vnf_NAME_undeploy(vnfname):
     uri = "/vnfs/" + vnfname + "/undeploy"
-    result = put_json_dict_to_url(uri, "")["result"]
+    result = put_json_dict_to_uri(uri, "")["result"]
     if (result["success"]): return
     else: print("miss: {}".format(result["msg"]))
 
@@ -241,33 +241,33 @@ def vnf_NAME_alloc_CNAME(vnfname, cname):
 
 def vnf_NAME_delete(vnfname):
     uri = "/vnfs/" + vnfname
-    result = delete_json_dict_from_url(uri)["result"]
+    result = delete_json_dict_from_uri(uri)["result"]
     if (result["success"]): return
     else: print("miss: {}".format(result["msg"]))
 
 def vnf_NAME_attachport_PID_PNAME(vnfname, pid, pname):
     uri = "/vnfs/" + vnfname + "/ports/" + str(pid)
     data = "{\"pname\": \"" + str(pname) + "\" }"
-    result = put_json_dict_to_url(uri, data)["result"]
+    result = put_json_dict_to_uri(uri, data)["result"]
     if (result["success"]): return
     else: print("miss: {}".format(result["msg"]))
 
 def vnf_NAME_detachport_PID(vnfname, pid):
     uri = "/vnfs/" + vnfname + "/ports/" + str(pid)
-    result = delete_json_dict_from_url(uri)["result"]
+    result = delete_json_dict_from_uri(uri)["result"]
     if (result["success"]): return
     else: print("miss: {}".format(result["msg"]))
 
 def vnf_NAME_reset(vnfname):
     uri = "/vnfs/" + vnfname + "/reset"
-    result = put_json_dict_to_url(uri, "")["result"]
+    result = put_json_dict_to_uri(uri, "")["result"]
     if (result["success"]): return
     else: print("miss: {}".format(result["msg"]))
 
 def vnf_NAME_setcoremask_BID_CMASK(vnfname, bid, cmask):
     uri = "/vnfs/" + vnfname + "/coremask/" + str(bid)
     data = "{\"coremask\": " + str(cmask) + "}"
-    result = put_json_dict_to_url(uri, data)["result"]
+    result = put_json_dict_to_uri(uri, data)["result"]
     if (result["success"]): return
     else: print("miss: {}".format(result["msg"]))
 
@@ -319,7 +319,7 @@ def vnf(argc, argv):
 
 def port_NAME_stat(pname):
     uri = "/ports/" + pname
-    json_dict = get_json_dict_from_url(uri)
+    json_dict = get_json_dict_from_uri(uri)
     if (json_dict["result"]["success"]):
         port = json_dict["port"]
         print_port(port)
@@ -328,7 +328,7 @@ def port_NAME_stat(pname):
 
 def port_NAME_delete(pname):
     uri = "/ports/" + pname
-    result = delete_json_dict_from_url(uri)["result"]
+    result = delete_json_dict_from_uri(uri)["result"]
     if (result["success"]): return
     else: print("miss: {}".format(result["msg"]))
 
