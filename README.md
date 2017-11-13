@@ -13,9 +13,8 @@ Please see http://susanow.dpdk.ninja
 $ git clone http://github.com/susanow/susanow
 $ cd susanow
 $ export SSN_SDK=`pwd`
-$ ./setup.sh
-$ make
-$ $SSN_SDK/bin/susanow
+$ ./setup.sh && make
+$ sudo $SSN_SDK/src/susanow
 ```
 
 ## Licence and Author

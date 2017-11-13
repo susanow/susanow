@@ -38,7 +38,6 @@ OBJ = $(SRC:.cc=.o)
 TARGET: $(OBJ)
 	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET) $(LDFLAGS)
 	@echo LD $(TARGET)
-	@cp $(TARGET) $(SSN_SDK)/bin/susanow
 
 rest_api.o: rest_api.h rest_api.cc
 
