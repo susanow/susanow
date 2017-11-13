@@ -241,11 +241,14 @@ class ssn_vnf_block {
     set_coremask_impl(coremask);
   }
 
-  void deploy()
+  int deploy()
   {
+    if (vcores.size() == 0) return -1;
+
     for (size_t i=0; i<vcores.size(); i++) {
       tids.at(i) = ssn_thread_launch(_vnf_piece_spawner, this, vcores.at(i).lcore_id);
     }
+    return 0;
   }
 
   void undeploy()
@@ -322,15 +325,27 @@ class ssn_vnf {
   }
 
   /**
-   * @brief reset all port's access config.
+   * @brief reset vnf's running config.
    * @return 0 success
    * @return -1 unsuccess, maybe port is not attached
    * @details
    *   Calling this functions needs that vnf already attached all ports.
+   *   This function doesn't detach ports.
    *   This function must be called before colling set_coremask().
    */
-  int reset_allport_acc()
+  int reset()
   {
+    /*
+     * Reset coremask
+     */
+    const size_t n_ele = blocks.size();
+    for (size_t i=0; i<n_ele; i++) {
+      set_coremask(i, 0x00);
+    }
+
+    /*
+     * Reset all port accessor
+     */
     const size_t n_port = ports.size();
     for (size_t i=0; i<n_port; i++) {
       if (!ports.at(i)) return -1;
@@ -353,7 +368,7 @@ class ssn_vnf {
    *   coremask is 0x14 (0b00010100)
    *   ex. lcore3 only: coremask is 0x08 (0x00001000)
    *   ex. lcore2 and lcore3: coremask is 0x0c (0x00001100)
-   *   User must call this->reset_allport_acc() before calling this function.
+   *   User must call this->reset() before calling this function.
    */
   int set_coremask(size_t block_id, uint32_t cmask)
   {
@@ -427,7 +442,7 @@ class ssn_vnf {
   /**
    * @brief Deploy VNF
    * @return 0 success
-   * @return -1 unsuccess, maybe port is not attached
+   * @return -1 unsuccess, some-error occured
    * @details
    *   Calling this functions needs that vnf already attached all ports.
    *   This function calles ssn_vnf::configure_acc() inner itselfs.
@@ -441,7 +456,10 @@ class ssn_vnf {
     configre_acc();
     auto n_impl = blocks.size();
     for (size_t i=0; i<n_impl; i++) {
-      this->blocks.at(i)->deploy();
+      int ret = this->blocks.at(i)->deploy();
+      if (ret < 0) {
+        return -1;
+      }
     }
     return 0;
   }
