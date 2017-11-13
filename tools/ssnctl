@@ -96,12 +96,12 @@ def print_port(port, depth=0):
 def print_block(block, depth=0):
     dprint(depth, "name    : {}".format( block["name"   ] ))
     dprint(depth, "running : {}".format( block["running"] ))
-    dprint(depth, "cmask   : {}".format( block["cmask"  ] ))
+    dprint(depth, "coremask: {}".format( block["coremask"] ))
 
 def print_vnf(vnf, depth=0):
     dprint(depth, "name       : {}".format( vnf["name"   ] ))
     dprint(depth, "running    : {}".format( vnf["running"] ))
-    dprint(depth, "cmask      : {}".format( vnf["cmask"  ] ))
+    dprint(depth, "coremask   : {}".format( vnf["coremask"] ))
     dprint(depth, "n_port     : {}".format( vnf["n_port" ] ))
     dprint(depth, "n_block    : {}".format( vnf["n_block"] ))
     n_port = vnf["n_port"]
@@ -145,7 +145,7 @@ def usage_vnf():
     print("  deploy                         deploy vnf                ")
     print("  undeploy                       undeploy vnf              ")
     print("  reset                          reset vnf's accessor infos")
-    print("  setcoremask  <bid> <cmask>     set block's coremask      ")
+    print("  setcoremask  <bid> <coremask>  set block's coremask      ")
 
 def usage_port():
     print("Usage: ssnctl port <portname> [OPTIONS]\n")
@@ -279,9 +279,9 @@ def vnf_NAME_reset(vnfname):
     if (result["success"]): return
     else: print("miss: {}".format(result["msg"]))
 
-def vnf_NAME_setcoremask_BID_CMASK(vnfname, bid, cmask):
+def vnf_NAME_setcoremask_BID_COREMASK(vnfname, bid, coremask):
     uri = "/vnfs/" + vnfname + "/coremask/" + str(bid)
-    data = "{\"coremask\": " + str(cmask) + "}"
+    data = "{\"coremask\": " + str(coremask) + "}"
     result = put_json_dict_to_uri(uri, data)["result"]
     if (result["success"]): return
     else: print("miss: {}".format(result["msg"]))
@@ -320,8 +320,8 @@ def vnf(argc, argv):
     elif (option == "setcoremask"):
         if (argc >= 5):
             bid   = argv[3]
-            cmask = argv[4]
-            vnf_NAME_setcoremask_BID_CMASK(vnfname, bid, cmask)
+            coremask = argv[4]
+            vnf_NAME_setcoremask_BID_COREMASK(vnfname, bid, coremask)
             return
     elif (option == "deploy"    ):
         vnf_NAME_deploy(vnfname)

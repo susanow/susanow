@@ -46,7 +46,7 @@ crow::json::wvalue vnf_block_info(const ssn_vnf_block* block)
 
   crow::json::wvalue x;
   x["name"   ] = block->name;
-  x["cmask"  ] = block->get_coremask();
+  x["coremask"  ] = block->get_coremask();
   x["running"] = block->is_running();
   return x;
 }
@@ -69,7 +69,7 @@ crow::json::wvalue vnf_info(const ssn_vnf* vnf)
     x_blocks[std::to_string(i)] = vnf_block_info(vnf->get_block(i));
   }
   x["blocks"] = std::move(x_blocks);
-  x["cmask" ] = vnf->get_coremask();
+  x["coremask" ] = vnf->get_coremask();
 
   crow::json::wvalue x_ports;
   const size_t n_port = vnf->n_ports();
