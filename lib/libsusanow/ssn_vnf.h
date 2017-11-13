@@ -323,30 +323,47 @@ class ssn_vnf {
 
   /**
    * @brief reset all port's access config.
+   * @return 0 success
+   * @return -1 unsuccess, maybe port is not attached
    * @details
+   *   Calling this functions needs that vnf already attached all ports.
    *   This function must be called before colling set_coremask().
    */
-  void reset_allport_acc()
+  int reset_allport_acc()
   {
-    size_t n_ports = ports.size();
-    for (size_t i=0; i<n_ports; i++) {
+    const size_t n_port = ports.size();
+    for (size_t i=0; i<n_port; i++) {
+      if (!ports.at(i)) return -1;
+    }
+    for (size_t i=0; i<n_port; i++) {
       ports.at(i)->reset_acc();
     }
+    return 0;
   }
 
   /**
    * @brief set logical coremask to Block
    * @param [in] block_id block id
    * @param [in] cmask coremask
+   * @return 0 success
+   * @return -1 unsuccess, maybe port is not attached
    * @details
+   *   Calling this functions needs that vnf already attached all ports.
    *   ex. If user want bind 2 lcores (lcore2 and lcore4),
    *   coremask is 0x14 (0b00010100)
    *   ex. lcore3 only: coremask is 0x08 (0x00001000)
    *   ex. lcore2 and lcore3: coremask is 0x0c (0x00001100)
    *   User must call this->reset_allport_acc() before calling this function.
    */
-  void set_coremask(size_t block_id, uint32_t cmask)
-  { blocks.at(block_id)->set_coremask(cmask); }
+  int set_coremask(size_t block_id, uint32_t cmask)
+  {
+    const size_t n_port = ports.size();
+    for (size_t i=0; i<n_port; i++) {
+      if (!ports.at(i)) return -1;
+    }
+    blocks.at(block_id)->set_coremask(cmask);
+    return 0;
+  }
 
   /**
    * @brief check vnf is deletable
@@ -409,16 +426,24 @@ class ssn_vnf {
 
   /**
    * @brief Deploy VNF
+   * @return 0 success
+   * @return -1 unsuccess, maybe port is not attached
    * @details
+   *   Calling this functions needs that vnf already attached all ports.
    *   This function calles ssn_vnf::configure_acc() inner itselfs.
    */
-  void deploy()
+  int deploy()
   {
+    const size_t n_port = ports.size();
+    for (size_t i=0; i<n_port; i++) {
+      if (!ports.at(i)) return -1;
+    }
     configre_acc();
     auto n_impl = blocks.size();
     for (size_t i=0; i<n_impl; i++) {
       this->blocks.at(i)->deploy();
     }
+    return 0;
   }
 
   /**
