@@ -121,7 +121,6 @@ void addroute__vnfs_NAME_ports_PORTID(ssn_nfvi& nfvi, crow::SimpleApp& app)
   CROW_ROUTE(app, "/vnfs/<str>/ports/<int>")
   .methods("PUT"_method, "DELETE"_method)
   ([&nfvi](const crow::request& req, std::string iname, int pid) {
-   try {
 
       assert(  (req.method == crow::HTTPMethod::PUT   )
            ||  (req.method == crow::HTTPMethod::DELETE)  );
@@ -139,6 +138,12 @@ void addroute__vnfs_NAME_ports_PORTID(ssn_nfvi& nfvi, crow::SimpleApp& app)
       }
 
       if (req.method == crow::HTTPMethod::PUT) {
+
+        if (vnf->is_running()) {
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(false, "vnf is still running");
+          return x_root;
+        }
 
         auto req_json = crow::json::load(req.body);
         std::string pname = req_json["pname"].s();
@@ -161,6 +166,12 @@ void addroute__vnfs_NAME_ports_PORTID(ssn_nfvi& nfvi, crow::SimpleApp& app)
 
       } else if (req.method == crow::HTTPMethod::DELETE) {
 
+        if (vnf->is_running()) {
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(false, "vnf is still running");
+          return x_root;
+        }
+
         int ret = vnf->dettach_port(pid);
         if (ret < 0) {
           crow::json::wvalue x_root;
@@ -172,13 +183,6 @@ void addroute__vnfs_NAME_ports_PORTID(ssn_nfvi& nfvi, crow::SimpleApp& app)
         return x_root;
 
       }
-
-   } catch (std::exception& e) {
-      printf("throwed: %s \n", e.what());
-      crow::json::wvalue x_root;
-      x_root["result"] = responce_info(false, e.what());
-      return x_root;
-   }
   });
 }
 
@@ -232,7 +236,6 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::SimpleApp& app)
 
       } else if (req.method == crow::HTTPMethod::POST) {
 
-        printf("create port\n");
         if (nfvi.find_port(pname.c_str())) {
           crow::json::wvalue x_root;
           x_root["result"] = responce_info(false, "pname already exists");
@@ -362,70 +365,23 @@ void addroute__catalogs_port(ssn_nfvi& nfvi, crow::SimpleApp& app)
       }
   });
 }
-#if 0
 
-void addroute__vnf_STR_ports_INT(ssn_nfvi& nfvi, crow::SimpleApp& app)
+
+void addroute__vnfs_NAME_coremask_BLOCKID(ssn_nfvi& nfvi, crow::SimpleApp& app)
 {
-  using std::string;
-  using slankdev::format;
+  CROW_ROUTE(app, "/vnfs/<str>/coremask/<int>") .methods("PUT"_method)
+  ([&nfvi](const crow::request& req, std::string str, int blockId) {
 
-  CROW_ROUTE(app, "/vnfs/<str>/ports/<int>")
-  .methods("PUT"_method, "DELETE"_method)
-  ([&nfvi](const crow::request& req, std::string iname, int pid) {
-
-    try {
-      ssn_vnf* vnf = nfvi.find_vnf(iname.c_str());
-
-      if (req.method == crow::HTTPMethod::PUT) {
-
-        /*
-         * {
-         *    "piname" : "pci0"
-         * }
-         */
-
-        auto req_json = crow::json::load(req.body);
-        std::string piname = req_json["piname"].s();
-        ssn_vnf_port* port = nfvi.find_port(piname.c_str());
-        vnf->attach_port(pid, port);
-
-      } else if (req.method == crow::HTTPMethod::DELETE) {
-
-        /* no need options */
-        vnf->dettach_port(pid);
-
-      }
-
-      crow::json::wvalue x_root;
-      x_root["result"] = responce_info(true, "");
-      return x_root;
-
-    } catch (std::exception& e) {
-
-      crow::json::wvalue x_root;
-      x_root["result"] = responce_info(false, e.what());
-      return x_root;
-
-    }
-  });
-}
-
-void addroute__vnfs_STR_coremask(ssn_nfvi& nfvi, crow::SimpleApp& app)
-{
-  using std::string;
-  using slankdev::format;
-
-  CROW_ROUTE(app, "/vnfs/<str>/coremask") .methods("PUT"_method, "DELETE"_method)
-  ([&nfvi](const crow::request& req, std::string str) {
+    assert(req.method == crow::HTTPMethod::PUT);
 
     if (req.method == crow::HTTPMethod::PUT) {
 
-      crow::json::wvalue x;
       /*
        * Find VNF by name...
        */
       auto* vnf = nfvi.find_vnf(str.c_str());
       if (!vnf) {
+        crow::json::wvalue x;
         x["result"] = responce_info(false, "not found vnf");
         return x;
       }
@@ -434,87 +390,106 @@ void addroute__vnfs_STR_coremask(ssn_nfvi& nfvi, crow::SimpleApp& app)
        * Check VNF State. if state is running then, return with err.
        */
       if (vnf->is_running()) {
+        crow::json::wvalue x;
+        x["result"] = responce_info(false, "vnf still running");
+        return x;
+      }
+
+      auto req_json = crow::json::load(req.body);
+      const uint32_t coremask = req_json["coremask"].i();
+
+      /*
+       * Check coremask is valid
+       * TODO!!!! implement this part
+       */
+      // if (!coremask_is_valid(coremask)) {
+      //   crow::json::wvalue x;
+      //   x["result"] = responce_info(false, "coremask is invalid");
+      //   return x;
+      // }
+
+      /*
+       * Set coremask
+       */
+      int ret = vnf->set_coremask(blockId, coremask);
+      if (ret < 0) {
+        crow::json::wvalue x;
+        x["result"] = responce_info(false, "vnf can't set coremask");
+        return x;
+      }
+
+      crow::json::wvalue x;
+      std::string msg = format(
+          "%s: coremask bid=%d mask=0x%x",
+          vnf->name.c_str(), blockId, coremask);
+      x["result"] = responce_info(true, msg.c_str());
+      return x;
+    }
+  });
+}
+
+void addroute__vnfs_NAME_reset(ssn_nfvi& nfvi, crow::SimpleApp& app)
+{
+  CROW_ROUTE(app, "/vnfs/<str>/reset")
+  .methods("PUT"_method)
+  ([&nfvi](const crow::request& req, std::string str) {
+    assert(req.method == crow::HTTPMethod::PUT);
+
+    if (req.method == crow::HTTPMethod::PUT) {
+
+      /*
+       * Find VNF by name...
+       */
+      auto* vnf = nfvi.find_vnf(str.c_str());
+      if (!vnf) {
+        crow::json::wvalue x;
+        x["result"] = responce_info(false, "not found vnf");
+        return x;
+      }
+
+      /*
+       * Check VNF State. if state is running then, return with err.
+       */
+      if (vnf->is_running()) {
+        crow::json::wvalue x;
         x["result"] = responce_info(false, "vnf still running");
         return x;
       }
 
       /*
-       * {
-       *    {
-       *      "blockid"  : 0,
-       *      "coremask" : 4
-       *    }
-       * }
+       * Reset port accessor
        */
-      auto req_json = crow::json::load(req.body);
-      size_t   blockid  = req_json["blockid"].i();
-      uint32_t coremask = req_json["coremask"].i();
-      vnf->set_coremask(blockid, coremask);
-
-      x["result"] = responce_info(true, "found vnf");
-      x["vnf"]    = std::move(vnf_info(vnf));
-      return x;
-
-    } else if (req.method == crow::HTTPMethod::DELETE) {
+      int ret = vnf->reset();
+      if (ret < 0) {
+        crow::json::wvalue x;
+        x["result"] = responce_info(false, "vnf can't port access config");
+        return x;
+      }
 
       crow::json::wvalue x;
-      /*
-       * Find VNF by name...
-       */
-      auto* vnf = nfvi.find_vnf(str.c_str());
-      if (!vnf) {
-        x["result"] = responce_info(false, "not found vnf");
-        return x;
-      }
-
-      /*
-       * Check VNF State. if state is running then, return with err.
-       */
-      if (vnf->is_running()) {
-        x["result"] = responce_info(false, "vnf is still runing");
-        return x;
-      }
-
-      vnf->reset_allport_acc();
-      x["result"] = responce_info(true, "found vnf");
-      x["vnf"]    = std::move(vnf_info(vnf));
+      x["result"] = responce_info(true, "reset vnf's running config");
       return x;
-
     }
   });
 }
 
-void addroute__vnfs_STR_running(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__vnfs_NAME_deploy(ssn_nfvi& nfvi, crow::SimpleApp& app)
 {
-  using std::string;
-  using slankdev::format;
 
-  CROW_ROUTE(app, "/vnfs/<str>/running") .methods("PUT"_method,"GET"_method,"DELETE"_method)
+  CROW_ROUTE(app, "/vnfs/<str>/deploy")
+  .methods("PUT"_method)
   ([&nfvi](const crow::request& req, std::string str) {
 
-    if (req.method == crow::HTTPMethod::GET) {
+    assert(req.method == crow::HTTPMethod::PUT);
 
-      printf("GET name: %s\n", str.c_str());
-      crow::json::wvalue x;
-      auto* vnf = nfvi.find_vnf(str.c_str());
-      if (!vnf) {
-        x["result"] = responce_info(false, "not found vnf");
-        return x;
-      }
-      x["result"] = responce_info(true, "found");
-      x["vnf"]    = std::move(vnf_info(vnf));
-      return x;
-
-    } else if (req.method == crow::HTTPMethod::PUT) {
-
-      crow::json::wvalue x;
-      printf("PUT name: %s\n", str.c_str());
+    if (req.method == crow::HTTPMethod::PUT) {
 
       /*
        * Find VNF by name...
        */
       auto* vnf = nfvi.find_vnf(str.c_str());
       if (!vnf) {
+        crow::json::wvalue x;
         x["result"] = responce_info(false, "not found vnf");
         return x;
       }
@@ -523,106 +498,62 @@ void addroute__vnfs_STR_running(ssn_nfvi& nfvi, crow::SimpleApp& app)
        * Check VNF State. if state is running then, return with err.
        */
       if (vnf->is_running()) {
+        crow::json::wvalue x;
         x["result"] = responce_info(false, "already running");
         return x;
       }
 
-      vnf->deploy();
-      x["result"] = responce_info(true, "found");
-      x["vnf"]    = std::move(vnf_info(vnf));
-      return x;
+      int ret = vnf->deploy();
+      if (ret < 0) {
+        crow::json::wvalue x;
+        x["result"] = responce_info(false, "vnf could't deploy");
+        return x;
+      }
 
-    } else if (req.method == crow::HTTPMethod::DELETE) {
-
-      printf("DELETE name: %s\n", str.c_str());
       crow::json::wvalue x;
+      x["result"] = responce_info(true, "deploy successful");
+      return x;
+    }
+  });
+}
+
+void addroute__vnfs_NAME_undeploy(ssn_nfvi& nfvi, crow::SimpleApp& app)
+{
+  CROW_ROUTE(app, "/vnfs/<str>/undeploy")
+  .methods("PUT"_method)
+  ([&nfvi](const crow::request& req, std::string str) {
+
+    assert(req.method == crow::HTTPMethod::PUT);
+
+    if (req.method == crow::HTTPMethod::PUT) {
 
       /*
        * Find VNF by name...
        */
-      ssn_vnf* vnf = nfvi.find_vnf(str.c_str());
+      auto* vnf = nfvi.find_vnf(str.c_str());
       if (!vnf) {
-        x["result"] = responce_info(false, "not found");
+        crow::json::wvalue x;
+        x["result"] = responce_info(false, "not found vnf");
         return x;
       }
 
       /*
-       * Check VNF State. if state is running then, return with err.
+       * Check VNF is running
        */
       if (!vnf->is_running()) {
+        crow::json::wvalue x;
         x["result"] = responce_info(false, "vnf is not running");
         return x;
       }
 
       vnf->undeploy();
-      x["result"] = responce_info(true, "found");
-      x["vnf"]    = std::move(vnf_info(vnf));
+      crow::json::wvalue x;
+      x["result"] = responce_info(true, "undeploy successful");
       return x;
     }
-
   });
 }
 
-void addroute__portcatalog(ssn_nfvi& nfvi, crow::SimpleApp& app)
-{
-  using std::string;
-  using slankdev::format;
-
-  CROW_ROUTE(app, "/portcatalog").methods("GET"_method)
-  ([&nfvi](const crow::request& req) {
-
-      assert(  (req.method == crow::HTTPMethod::GET)  );
-
-      if (req.method == crow::HTTPMethod::GET) {
-
-        /*
-         * "n_vcat" : 2
-         * "0"  : {
-         *    "name" : "pci",
-         *    "allocator" : "0x033ef1" // pointer
-         * },
-         * "1" : {
-         *    "name" : "l2fwd2b",
-         *    "allocator" : "0x033ef2" // pointer
-         * }
-         */
-        crow::json::wvalue x_root;
-        const size_t n_pcat = nfvi.get_pcat().size();
-        x_root["result"] = responce_info(true, "");
-        x_root["n_pcat"] = n_pcat;
-        crow::json::wvalue x_pcat;
-        for (size_t i=0; i<n_pcat; i++) {
-          x_pcat["name"] = nfvi.get_pcat()[i].name;
-          x_pcat["allocator"] = format("%p", nfvi.get_pcat()[i].allocator);
-          x_root[std::to_string(i)] = std::move(x_pcat);
-        }
-        return x_root;
-
-      }
-  });
-}
-
-void addroute__ports_STR_config(ssn_nfvi& nfvi, crow::SimpleApp& app)
-{
-  using std::string;
-  using slankdev::format;
-
-  CROW_ROUTE(app, "/ports/<str>/config") .methods("GET"_method)
-  ([&nfvi](const crow::request& req, std::string str) {
-
-    crow::json::wvalue x;
-    auto* port = nfvi.find_port(str.c_str());
-    if (!port) {
-      x["result"] = responce_info(false, "port not found");
-      return x;
-    }
-    x["result"] = responce_info(true, "found");
-    x["port"]   = std::move(vnf_port_info(port));
-    return x;
-
-  });
-}
-#endif
 
 } /* namespace */
 
@@ -635,26 +566,21 @@ int rest_api_thread(ssn_nfvi* nfviptr)
 
   crow::SimpleApp app;
   app.loglevel(crow::LogLevel::Critical);
-  // app.loglevel(crow::LogLevel::Debug);
 
-  addroute__                           (nfvi, app);
-  addroute__vnfs                       (nfvi, app);
-  addroute__vnfs_NAME                  (nfvi, app);
-  addroute__vnfs_NAME_ports_PORTID     (nfvi, app);
-  addroute__ports                      (nfvi, app);
-  addroute__ports_NAME                 (nfvi, app);
-  addroute__catalogs_vnf               (nfvi, app); // need test
-  addroute__catalogs_port              (nfvi, app); // need test
-
-#if 0
-  addroute__vnfs_NAME_deploy           (nfvi, app); // not yet
-  addroute__vnfs_NAME_undeploy         (nfvi, app); // not yet
-  addroute__vnfs_NAME_coremask_BLOCKID (nfvi, app); // not yet
-  addroute__vnfs_NAME_reset            (nfvi, app); // not yet
-#endif
+  addroute__                             (nfvi, app);
+  addroute__vnfs                         (nfvi, app);
+  addroute__vnfs_NAME                    (nfvi, app);
+  addroute__vnfs_NAME_ports_PORTID       (nfvi, app);
+  addroute__ports                        (nfvi, app);
+  addroute__ports_NAME                   (nfvi, app);
+  addroute__catalogs_vnf                 (nfvi, app);
+  addroute__catalogs_port                (nfvi, app);
+  addroute__vnfs_NAME_coremask_BLOCKID   (nfvi, app);
+  addroute__vnfs_NAME_reset              (nfvi, app);
+  addroute__vnfs_NAME_deploy             (nfvi, app);
+  addroute__vnfs_NAME_undeploy           (nfvi, app);
 
   app.port(8888).run();
-
 }
 
 

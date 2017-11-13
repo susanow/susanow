@@ -27,6 +27,7 @@
 #include <ssn_log.h>
 #include <ssn_native_thread.h>
 #include <slankdev/exception.h>
+#include <slankdev/string.h>
 #include <mutex>
 #include <dpdk/dpdk.h>
 
@@ -109,7 +110,9 @@ void ssn_native_thread_join(uint32_t tid)
       return ;
     }
   }
-  throw slankdev::exception("OKASHIII");
+  std::string err = "ssn_native_thread_join: ";
+  err += slankdev::format("invalid  thread-id");
+  throw slankdev::exception(err.c_str());
 }
 
 bool ssn_native_thread_joinable(uint32_t tid)
