@@ -126,7 +126,7 @@ def usage_vnf():
     print("  alloc <cname>                  allocate new vnf          ")
     print("  delete                         delete vnf                ")
     print("  attachport <pid> <pname>       attach port to vnf        ")
-    print("  detachport <pid> <pname>       detach port from vnf      ")
+    print("  detachport <pid>               detach port from vnf      ")
     print("  deploy                         deploy vnf                ")
     print("  undeploy                       undeploy vnf              ")
     print("  reset                          reset vnf's accessor infos")
@@ -211,90 +211,70 @@ def show(argc, argv):
         usage_show()
         exit(-1)
 
-# TODO
 def vnf_NAME_stat(vnfname):
     uri = "/vnfs/" + vnfname
     json_dict = get_json_dict_from_url(uri)
     if (json_dict["result"]["success"]):
         vnf = json_dict["vnf"]
         print_vnf(vnf)
-
         return
-    else:
-        print("vnf \'{}\' not found".format(vnfname))
-
+    else: print("miss: {}".format(json_dict["result"]["msg"]))
 
 def vnf_NAME_deploy(vnfname):
-    uri = "/vnfs/" + vnfname + "/running"
-    data = "";
-    json_dict = put_json_dict_to_url(uri, data)
-
-    if (json_dict["result"]["success"]):
-        running  = json_dict["vnf"]["running"]
-        if (running): print("deploy success")
-        else:         print("deploy unsuccess")
-        return
-    else:
-        print("vnf \'{}\' not found".format(vnfname))
+    uri = "/vnfs/" + vnfname + "/deploy"
+    result = put_json_dict_to_url(uri, "")["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
 
 def vnf_NAME_undeploy(vnfname):
-    uri = "/vnfs/" + vnfname + "/running"
-    json_dict = delete_json_dict_from_url(uri)
-
-    if (json_dict["result"]["success"]):
-        running  = json_dict["vnf"]["running"]
-        if (running): print("still running")
-        else:         print("undeploy success")
-        return
-    else:
-        print("vnf \'{}\' not found".format(vnfname))
+    uri = "/vnfs/" + vnfname + "/undeploy"
+    result = put_json_dict_to_url(uri, "")["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
 
 def vnf_NAME_alloc_CNAME(vnfname, cname):
     f = sys._getframe().f_code.co_name
     print("NOTIMPLE f={}".format(f))
     print(" vnfname: {}".format(vnfname))
     print(" cname  : {}".format(cname  ))
-    print("NOTIMPLE")
     exit(-1)
 
 def vnf_NAME_delete(vnfname):
-    f = sys._getframe().f_code.co_name
-    print("NOTIMPLE f={}".format(f))
-    print(" vnfname: {}".format(vnfname))
-    exit(-1)
+    uri = "/vnfs/" + vnfname
+    result = delete_json_dict_from_url(uri)["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
 
 def vnf_NAME_attachport_PID_PNAME(vnfname, pid, pname):
-    f = sys._getframe().f_code.co_name
-    print("NOTIMPLE f={}".format(f))
-    exit(-1)
+    uri = "/vnfs/" + vnfname + "/ports/" + str(pid)
+    data = "{\"pname\": \"" + str(pname) + "\" }"
+    result = put_json_dict_to_url(uri, data)["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
 
-def vnf_NAME_attachport_PID(vnfname, pid):
-    f = sys._getframe().f_code.co_name
-    print("NOTIMPLE f={}".format(f))
-    exit(-1)
+def vnf_NAME_detachport_PID(vnfname, pid):
+    uri = "/vnfs/" + vnfname + "/ports/" + str(pid)
+    result = delete_json_dict_from_url(uri)["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
 
 def vnf_NAME_reset(vnfname):
-    f = sys._getframe().f_code.co_name
-    print("NOTIMPLE f={}".format(f))
-    exit(-1)
-    # def vnf_NAME_coremask_reset(vnfname):
-    #     uri = "/vnfs/" + vnfname + "/coremask"
-    #     json_dict = delete_json_dict_from_url(uri)
-    #     if (json_dict["result"]["success"]): print("success")
-    #     else: print("unsuccess")
+    uri = "/vnfs/" + vnfname + "/reset"
+    result = put_json_dict_to_url(uri, "")["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
 
 def vnf_NAME_setcoremask_BID_CMASK(vnfname, bid, cmask):
     f = sys._getframe().f_code.co_name
     print("NOTIMPLE f={}".format(f))
     exit(-1)
-    # def vnf_NAME_coremask_set_COREMASK_BID(vnfname, coremask, blockid):
-    #     uri = "/vnfs/" + vnfname + "/coremask"
-    #     data = "{\"coremask\": " + str(coremask) + ","
-    #     data +=  "\"blockid\": " + str(blockid) + "}"
-    #     print(data)
-    #     json_dict = put_json_dict_to_url(uri, data)
-    #     if (json_dict["result"]["success"]): print("success")
-    #     else: print("unsuccess")
+    # uri = "/vnfs/" + vnfname + "/coremask"
+    # data = "{\"coremask\": " + str(coremask) + ","
+    # data +=  "\"blockid\": " + str(blockid) + "}"
+    # print(data)
+    # json_dict = put_json_dict_to_url(uri, data)
+    # if (json_dict["result"]["success"]): print("success")
+    # else: print("unsuccess")
 
 # TODO
 def vnf(argc, argv):
@@ -350,13 +330,13 @@ def port_NAME_stat(pname):
         port = json_dict["port"]
         print_port(port)
         return
-    else:
-        print("port \'{}\' not found".format(portname))
+    else: print("miss: {}".format(json_dict["result"]["msg"]))
 
 def port_NAME_delete(pname):
-    f = sys._getframe().f_code.co_name
-    print("NOTIMPLE f={}".format(f))
-    exit(-1)
+    uri = "/ports/" + pname
+    result = delete_json_dict_from_url(uri)["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
 
 def port_NAME_alloc_pci(pname, pciaddr):
     f = sys._getframe().f_code.co_name
