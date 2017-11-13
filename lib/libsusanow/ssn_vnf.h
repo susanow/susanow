@@ -507,10 +507,16 @@ class ssn_vnf {
    */
   int attach_port(size_t pid, ssn_vnf_port* port)
   {
-    if (ports.at(pid) || !port) {
-      /* port already attached */
+    if (ports.at(pid)) {
+      /* my-port was already attached */
       return -1;
     }
+
+    if (port->is_attached_vnf()) {
+      /* port has attached vnf */
+      return -1;
+    }
+
     ports.at(pid) = port;
     port->attach_vnf(this);
     auto n = blocks.size();

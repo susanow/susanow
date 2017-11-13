@@ -154,10 +154,16 @@ void addroute__vnfs_NAME_ports_PORTID(ssn_nfvi& nfvi, crow::SimpleApp& app)
           return x_root;
         }
 
+        if (port->is_attached_vnf()) {
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(false, "port has attached vnf");
+          return x_root;
+        }
+
         int ret = vnf->attach_port(pid, port);
         if (ret < 0) {
           crow::json::wvalue x_root;
-          x_root["result"] = responce_info(false, "some error occured");
+          x_root["result"] = responce_info(false, "vnf::attach_port returned -1");
           return x_root;
         }
         crow::json::wvalue x_root;
@@ -175,7 +181,7 @@ void addroute__vnfs_NAME_ports_PORTID(ssn_nfvi& nfvi, crow::SimpleApp& app)
         int ret = vnf->dettach_port(pid);
         if (ret < 0) {
           crow::json::wvalue x_root;
-          x_root["result"] = responce_info(false, "some error occured");
+          x_root["result"] = responce_info(false, "vnf::dettach_port returned -1");
           return x_root;
         }
         crow::json::wvalue x_root;
@@ -462,7 +468,7 @@ void addroute__vnfs_NAME_reset(ssn_nfvi& nfvi, crow::SimpleApp& app)
       int ret = vnf->reset();
       if (ret < 0) {
         crow::json::wvalue x;
-        x["result"] = responce_info(false, "vnf can't port access config");
+        x["result"] = responce_info(false, "vnf can't reset port-access-config");
         return x;
       }
 
