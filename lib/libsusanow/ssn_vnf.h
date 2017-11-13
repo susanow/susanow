@@ -451,13 +451,19 @@ class ssn_vnf {
   {
     const size_t n_port = ports.size();
     for (size_t i=0; i<n_port; i++) {
-      if (!ports.at(i)) return -1;
+      if (!ports.at(i)) {
+        // TODO: return with Error Code
+        // printf("port not attached pid=%zd\n", i);
+        return -1;
+      }
     }
     configre_acc();
     auto n_impl = blocks.size();
     for (size_t i=0; i<n_impl; i++) {
       int ret = this->blocks.at(i)->deploy();
       if (ret < 0) {
+        // TODO: return with Error Code
+        // printf("block deploy miss bid=%zd\n", i);
         return -1;
       }
     }
