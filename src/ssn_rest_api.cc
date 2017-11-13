@@ -401,6 +401,16 @@ void addroute__vnfs_NAME_coremask_BLOCKID(ssn_nfvi& nfvi, crow::SimpleApp& app)
         return x;
       }
 
+      /*
+       * Check VNF access-infos were already reset.
+       * If unreset that, return error-msg
+       */
+      if (vnf->get_coremask() != 0) {
+        crow::json::wvalue x;
+        x["result"] = responce_info(false, "vnf is not reset yet");
+        return x;
+      }
+
       auto req_json = crow::json::load(req.body);
       const uint32_t coremask = req_json["coremask"].i();
 

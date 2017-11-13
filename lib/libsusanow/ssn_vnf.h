@@ -381,6 +381,23 @@ class ssn_vnf {
   }
 
   /**
+   * @brief return VNF's all coremask
+   * @return coremask
+   * @details
+   *    if n_blocks:2, block0:0x2, block1:0x1,
+   *    this function ret 0x3
+   */
+  uint32_t get_coremask() const
+  {
+    uint32_t coremask = 0;
+    const size_t n_ele = n_blocks();
+    for (size_t i=0; i<n_ele; i++) {
+      coremask |= blocks.at(i)->get_coremask();
+    }
+    return coremask;
+  }
+
+  /**
    * @brief check vnf is deletable
    * @return true deletable
    * @return false undeletable
