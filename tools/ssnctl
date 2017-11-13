@@ -21,19 +21,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-#
-# Available Commands
-# - [x] show
-# - [x] show ports
-# - [x] show vnfs
-# - [ ] vnf
-# - [x] vnf <name> stat
-# - [ ] vnf <name> deploy
-# - [ ] vnf <name> coremask reset
-# - [ ] vnf <name> coremask set <coremask> <blockid>
-# - [x] vnf <name> undeploy
-# - [x] port
-# - [x] port <name> stat
+
 
 import json
 import time
@@ -42,7 +30,8 @@ import pprint
 import requests
 URL = "http://localhost:8888";
 
-def get_json_dict_from_url(path):
+def get_json_dict_from_url(uri):
+    path = URL + uri;
     try:
         response = requests.get(path)
         r = response.text
@@ -52,7 +41,8 @@ def get_json_dict_from_url(path):
         print("error {}".format(str(ex)))
         exit(-1)
 
-def delete_json_dict_from_url(path):
+def delete_json_dict_from_url(uri):
+    path = URL + uri;
     try:
         response = requests.delete(path)
         r = response.text
@@ -62,7 +52,8 @@ def delete_json_dict_from_url(path):
         print("error {}".format(str(ex)))
         exit(-1)
 
-def put_json_dict_to_url(path, data):
+def put_json_dict_to_url(uri, data):
+    path = URL + uri;
     try:
         response = requests.put(path, data)
         r = response.text
@@ -72,135 +63,87 @@ def put_json_dict_to_url(path, data):
         print("error {}".format(str(ex)))
         exit(-1)
 
+def dprint(depth, string):
+    print('  '*depth + string)
+
+def print_port(port, depth=0):
+    if (type(port) == str):
+        print("OKASHIIIIII")
+        exit(-1)
+    dprint(depth, "name    : {}".format(port["name"   ] ))
+    dprint(depth, "attach  : {}".format(port["attach" ] ))
+    dprint(depth, "n_rxq   : {}".format(port["n_rxq"  ] ))
+    dprint(depth, "n_txq   : {}".format(port["n_txq"  ] ))
+    dprint(depth, "n_rxa   : {}".format(port["n_rxa"  ] ))
+    dprint(depth, "n_txa   : {}".format(port["n_txa"  ] ))
+    dprint(depth, "perfred : {}".format(port["perfred"] ))
+
+def print_block(block, depth=0):
+    dprint(depth, "name    : {}".format( block["name"   ] ))
+    dprint(depth, "running : {}".format( block["running"] ))
+    dprint(depth, "cmask   : {}".format( block["cmask"  ] ))
+
+def print_vnf(vnf, depth=0):
+    dprint(depth, "name       : {}".format( vnf["name"   ] ))
+    dprint(depth, "running    : {}".format( vnf["running"] ))
+    dprint(depth, "cmask      : {}".format( vnf["cmask"  ] ))
+    dprint(depth, "n_port     : {}".format( vnf["n_port" ] ))
+    dprint(depth, "n_block    : {}".format( vnf["n_block"] ))
+    n_port = vnf["n_port"]
+    for i in range(n_port):
+        port = vnf["ports"][str(i)]
+        if (type(port) == str):
+            dprint(depth, "port[{}]: nil".format(i))
+        else:
+            dprint(depth, "port[{}]:".format(i))
+            print_port(port, depth+1)
+    n_block = vnf["n_block"]
+    for i  in range(n_block):
+        dprint(depth, "block[{}]".format(i))
+        block = vnf["blocks"][str(i)]
+        print_block(block, depth+1)
+
 def usage():
-    print("Usage: ssnctl [OPTIONS]")
-    print("")
-    print(" OPTIONS")
-    print("   show")
-    print("   vnf")
-    print("   port")
+    print("Usage: ssnctl [OPTIONS]\n")
+    print("OPTIONS")
+    print("  show      show susanow informations")
+    print("  vnf       operate vnfs             ")
+    print("  port      operate ports            ")
 
 def usage_show():
-    print("Usage: ssnctl show [OPTIONS]")
-    print("")
-    print(" OPTIONS")
-    print("   vnfs ")
-    print("   ports ")
-    print("   system ")
-    print("   portcat ")
-    print("   vnfcat ")
+    print("Usage: ssnctl show [OPTIONS]\n")
+    print("OPTIONS")
+    print("  vnfs      vnf status   ")
+    print("  ports     port status  ")
+    print("  system    system status")
+    print("  pcat      port catalog status")
+    print("  vcat      vnf catalog status ")
 
 def usage_vnf():
-    print("Usage: ssnctl vnf <vnfname> [OPTIONS]")
-    print("")
-    print(" OPTIONS")
-    print("   stat ")
-    print("   deploy ")
-    print("   undeploy ")
-    print("   coremask reset ")
-    print("   coremask set <coremask> <blockid> ")
+    print("Usage: ssnctl vnf <vnfname> [OPTIONS]\n")
+    print("OPTIONS")
+    print("  stat                           get vnf status            ")
+    print("  alloc <cname>                  allocate new vnf          ")
+    print("  delete                         delete vnf                ")
+    print("  attachport <pid> <pname>       attach port to vnf        ")
+    print("  detachport <pid> <pname>       detach port from vnf      ")
+    print("  deploy                         deploy vnf                ")
+    print("  undeploy                       undeploy vnf              ")
+    print("  reset                          reset vnf's accessor infos")
+    print("  setcoremask  <cmask> <bid>     set block's coremask      ")
 
 def usage_port():
-    print("Usage: ssnctl port <portname> [OPTIONS]")
-    print("")
-    print(" OPTIONS")
-    print("   stat ")
-
-def vnf_NAME_stat(vnfname):
-    path = URL + "/vnfs/" + vnfname + "/running"
-    json_dict = get_json_dict_from_url(path)
-    if (json_dict["result"]["success"]):
-        name     = json_dict["vnf"]["name"]
-        n_port   = json_dict["vnf"]["n_port"]
-        n_block  = json_dict["vnf"]["n_block"]
-        running  = json_dict["vnf"]["running"]
-
-        print("name    : {}".format(name))
-        print("running : {}".format(running))
-        print("n_port  : {}".format(n_port))
-        for i  in range(n_port):
-            p_idx = "port" + str(i);
-            portname = json_dict["vnf"]["ports"][p_idx]["name"]
-            print(" port[{}]: {}".format(i, portname))
-
-        print("n_block : {}".format(n_block))
-        for i  in range(n_block):
-            b_idx = "block" + str(i);
-            block = json_dict["vnf"]["blocks"][b_idx]
-            blockname = block["name"]
-            runnning  = block["running"]
-            cmask     = block["cmask"]
-            print(" block[{}]: {}".format(i, blockname))
-            print("   running: {}".format(running))
-            print("   cmask  : {}".format(cmask))
-
-        return
-    else:
-        print("vnf \'{}\' not found".format(vnfname))
-
-def vnf_NAME_coremask_set_COREMASK_BID(vnfname, coremask, blockid):
-    path = URL + "/vnfs/" + vnfname + "/coremask"
-    data = "{\"coremask\": " + str(coremask) + ","
-    data +=  "\"blockid\": " + str(blockid) + "}"
-    print(data)
-    json_dict = put_json_dict_to_url(path, data)
-    if (json_dict["result"]["success"]): print("success")
-    else: print("unsuccess")
-
-def vnf_NAME_coremask_reset(vnfname):
-    path = URL + "/vnfs/" + vnfname + "/coremask"
-    json_dict = delete_json_dict_from_url(path)
-    if (json_dict["result"]["success"]): print("success")
-    else: print("unsuccess")
-
-def vnf_NAME_deploy(vnfname):
-    path = URL + "/vnfs/" + vnfname + "/running"
-    data = "";
-    json_dict = put_json_dict_to_url(path, data)
-
-    if (json_dict["result"]["success"]):
-        running  = json_dict["vnf"]["running"]
-        if (running): print("deploy success")
-        else:         print("deploy unsuccess")
-        return
-    else:
-        print("vnf \'{}\' not found".format(vnfname))
-
-def vnf_NAME_undeploy(vnfname):
-    path = URL + "/vnfs/" + vnfname + "/running"
-    json_dict = delete_json_dict_from_url(path)
-
-    if (json_dict["result"]["success"]):
-        running  = json_dict["vnf"]["running"]
-        if (running): print("still running")
-        else:         print("undeploy success")
-        return
-    else:
-        print("vnf \'{}\' not found".format(vnfname))
-
-def port_NAME_stat(portname):
-    path = URL + "/ports/" + portname + "/config"
-    json_dict = get_json_dict_from_url(path)
-    if (json_dict["result"]["success"]):
-        name     = json_dict["port"]["name"]
-        n_rxq    = json_dict["port"]["n_rxq"]
-        n_txq    = json_dict["port"]["n_txq"]
-        n_rxa    = json_dict["port"]["n_rxa"]
-        n_txa    = json_dict["port"]["n_txa"]
-        pr       = json_dict["port"]["perfred"]
-        print("name          : {}".format(name))
-        print("n_rxq         : {}".format(n_rxq))
-        print("n_txq         : {}".format(n_txq))
-        print("n_rxq         : {}".format(n_rxa))
-        print("n_txq         : {}".format(n_txa))
-        print("perf-reduction: {}".format(pr   ))
-        return
-    else:
-        print("port \'{}\' not found".format(portname))
+    print("Usage: ssnctl port <portname> [OPTIONS]\n")
+    print("OPTIONS")
+    print("  stat                      get port status       ")
+    print("  alloc pci <01:00.0>       allocate new pci port ")
+    print("  alloc tap <tap0>          allocate new tap port ")
+    print("  alloc virt                allocate new virt port")
+    print("  delete                    delete port           ")
 
 def show_system():
-    path = URL + "/system"
-    json_dict = get_json_dict_from_url(path)
+    uri = "/"
+    json_dict = get_json_dict_from_url(uri)
 
     n_vnf  = json_dict["n_vnf"]
     n_port = json_dict["n_port"]
@@ -210,49 +153,29 @@ def show_system():
     print("n_port: {}".format(n_port))
     print("n_vcat: {}".format(n_vcat))
     print("n_pcat: {}".format(n_pcat))
-    exit(0)
-
 
 def show_vnfs():
-    path = URL + "/vnfs"
-    json_dict = get_json_dict_from_url(path)
+    uri = "/vnfs"
+    json_dict = get_json_dict_from_url(uri)
     n_vnf = json_dict["n_vnf"]
     for i in range(n_vnf):
-        idx   = "{}".format(i)
-        name    = json_dict[idx]["name"]
-        n_port  = json_dict[idx]["n_port"]
-        n_block = json_dict[idx]["n_block"]
-        running = json_dict[idx]["running"]
-
-        print("{}".format(name))
-        print(" n_port  : {}".format(n_port))
-        print(" n_block : {}".format(n_block))
-        print(" running : {}".format(running))
-    exit(0)
+        vnf = json_dict[str(i)]
+        print("[{}]".format(i))
+        print_vnf(vnf, 1)
 
 def show_ports():
-    path = URL + "/ports"
-    json_dict = get_json_dict_from_url(path)
+    uri = "/ports"
+    json_dict = get_json_dict_from_url(uri)
     n_port = json_dict["n_port"]
     for i in range(n_port):
-        idx = str(i)
-        name  = json_dict[idx]["name"]
-        n_rxq = json_dict[idx]["n_rxq"]
-        n_txq = json_dict[idx]["n_txq"]
-        n_rxa = json_dict[idx]["n_rxa"]
-        n_txa = json_dict[idx]["n_txa"]
-        pr    = json_dict[idx]["perfred"]
-        print("{}".format(name))
-        print(" n_rxq   : {}".format(n_rxq))
-        print(" n_txq   : {}".format(n_txq))
-        print(" n_rxacc : {}".format(n_rxa))
-        print(" n_txacc : {}".format(n_txa))
-        print(" pref-red: {}".format(pr))
+        print("[{}]".format(i))
+        port = json_dict[str(i)]
+        if (type(port) == dict): print_port(port, 1)
 
-def show_vnfcat():
-    path = URL + "/vnfcatalog"
-    json_dict = get_json_dict_from_url(path)
-    n_port = json_dict["n_vcat"]
+def show_vcat():
+    uri = "/catalogs/vnf"
+    json_dict = get_json_dict_from_url(uri)
+    n_port = json_dict["n_ele"]
     for i in range(n_port):
         idx = str(i)
         name      = json_dict[idx]["name"]
@@ -261,10 +184,10 @@ def show_vnfcat():
         print(" name      : {}".format(name))
         print(" allocator : {}".format(allocator))
 
-def show_portcat():
-    path = URL + "/portcatalog"
-    json_dict = get_json_dict_from_url(path)
-    n_port = json_dict["n_pcat"]
+def show_pcat():
+    uri = "/catalogs/port"
+    json_dict = get_json_dict_from_url(uri)
+    n_port = json_dict["n_ele"]
     for i in range(n_port):
         idx = str(i)
         name      = json_dict[idx]["name"]
@@ -277,61 +200,207 @@ def show(argc, argv):
     if (argc < 2):
         usage_show()
         exit(-1)
-
     option = argv[1]
-    if (option == "vnfs"): show_vnfs()
-    elif (option == "ports"): show_ports()
+    if   (option == "vnfs"  ): show_vnfs()
+    elif (option == "ports" ): show_ports()
     elif (option == "system"): show_system()
-    elif (option == "vnfcat"): show_vnfcat()
-    elif (option == "portcat"): show_portcat()
+    elif (option == "vcat"  ): show_vcat()
+    elif (option == "pcat"  ): show_pcat()
     else:
-        print("show: unknown option")
+        print("show: unknown option\n")
         usage_show()
         exit(-1)
 
+# TODO
+def vnf_NAME_stat(vnfname):
+    uri = "/vnfs/" + vnfname
+    json_dict = get_json_dict_from_url(uri)
+    if (json_dict["result"]["success"]):
+        vnf = json_dict["vnf"]
+        print_vnf(vnf)
+
+        return
+    else:
+        print("vnf \'{}\' not found".format(vnfname))
+
+
+def vnf_NAME_deploy(vnfname):
+    uri = "/vnfs/" + vnfname + "/running"
+    data = "";
+    json_dict = put_json_dict_to_url(uri, data)
+
+    if (json_dict["result"]["success"]):
+        running  = json_dict["vnf"]["running"]
+        if (running): print("deploy success")
+        else:         print("deploy unsuccess")
+        return
+    else:
+        print("vnf \'{}\' not found".format(vnfname))
+
+def vnf_NAME_undeploy(vnfname):
+    uri = "/vnfs/" + vnfname + "/running"
+    json_dict = delete_json_dict_from_url(uri)
+
+    if (json_dict["result"]["success"]):
+        running  = json_dict["vnf"]["running"]
+        if (running): print("still running")
+        else:         print("undeploy success")
+        return
+    else:
+        print("vnf \'{}\' not found".format(vnfname))
+
+def vnf_NAME_alloc_CNAME(vnfname, cname):
+    f = sys._getframe().f_code.co_name
+    print("NOTIMPLE f={}".format(f))
+    print(" vnfname: {}".format(vnfname))
+    print(" cname  : {}".format(cname  ))
+    print("NOTIMPLE")
+    exit(-1)
+
+def vnf_NAME_delete(vnfname):
+    f = sys._getframe().f_code.co_name
+    print("NOTIMPLE f={}".format(f))
+    print(" vnfname: {}".format(vnfname))
+    exit(-1)
+
+def vnf_NAME_attachport_PID_PNAME(vnfname, pid, pname):
+    f = sys._getframe().f_code.co_name
+    print("NOTIMPLE f={}".format(f))
+    exit(-1)
+
+def vnf_NAME_attachport_PID(vnfname, pid):
+    f = sys._getframe().f_code.co_name
+    print("NOTIMPLE f={}".format(f))
+    exit(-1)
+
+def vnf_NAME_reset(vnfname):
+    f = sys._getframe().f_code.co_name
+    print("NOTIMPLE f={}".format(f))
+    exit(-1)
+    # def vnf_NAME_coremask_reset(vnfname):
+    #     uri = "/vnfs/" + vnfname + "/coremask"
+    #     json_dict = delete_json_dict_from_url(uri)
+    #     if (json_dict["result"]["success"]): print("success")
+    #     else: print("unsuccess")
+
+def vnf_NAME_setcoremask_BID_CMASK(vnfname, bid, cmask):
+    f = sys._getframe().f_code.co_name
+    print("NOTIMPLE f={}".format(f))
+    exit(-1)
+    # def vnf_NAME_coremask_set_COREMASK_BID(vnfname, coremask, blockid):
+    #     uri = "/vnfs/" + vnfname + "/coremask"
+    #     data = "{\"coremask\": " + str(coremask) + ","
+    #     data +=  "\"blockid\": " + str(blockid) + "}"
+    #     print(data)
+    #     json_dict = put_json_dict_to_url(uri, data)
+    #     if (json_dict["result"]["success"]): print("success")
+    #     else: print("unsuccess")
+
+# TODO
 def vnf(argc, argv):
     if (argc < 3):
         usage_vnf()
         exit(-1)
-
     vnfname  = argv[1]
     option   = argv[2]
-
-    if (option == "stat"):
+    if   (option == "stat"      ):
         vnf_NAME_stat(vnfname)
-        exit(0)
-    elif (option == "undeploy"):
-        vnf_NAME_undeploy(vnfname)
-        exit(0)
-    elif (option == "deploy"):
-        vnf_NAME_deploy(vnfname)
-        exit(0)
-    elif (option == "coremask"):
+        return
+    elif (option == "alloc"     ):
         if (argc >= 4):
-            subop = argv[3]
-            if (subop == "reset"):
-                vnf_NAME_coremask_reset(vnfname)
-                exit(0)
-            elif (subop == "set"):
-                if (argc >= 6):
-                    coremask = [4]
-                    blockid  = [5]
-                    vnf_NAME_coremask_set_COREMASK_BID(coremask,blockid)
-
+            cname = argv[3]
+            vnf_NAME_alloc_CNAME(vnfname, cname)
+            return
+    elif (option == "delete"    ):
+        vnf_NAME_delete(vnfname)
+        return
+    elif (option == "attachport"):
+        if (argc >= 5):
+            pid   = argv[3]
+            pname = argv[4]
+            vnf_NAME_attachport_PID_PNAME(vnfname, pid, pname)
+            return
+    elif (option == "detachport"):
+        if (argc >= 4):
+            pid   = argv[3]
+            vnf_NAME_detachport_PID(vnfname, pid)
+            return
+    elif (option == "reset"     ):
+        vnf_NAME_reset(vnfname)
+        return
+    elif (option == "setcoremask"):
+        if (argc >= 5):
+            bid   = argv[3]
+            cmask = argv[4]
+            vnf_NAME_setcoremask_BID_CMASK(vnfname, bid, cmask)
+            return
+    elif (option == "deploy"    ):
+        vnf_NAME_deploy(vnfname)
+        return
+    elif (option == "undeploy"  ):
+        vnf_NAME_undeploy(vnfname)
+        return
     usage_vnf()
+    exit(-1)
+
+def port_NAME_stat(pname):
+    uri = "/ports/" + pname
+    json_dict = get_json_dict_from_url(uri)
+    if (json_dict["result"]["success"]):
+        port = json_dict["port"]
+        print_port(port)
+        return
+    else:
+        print("port \'{}\' not found".format(portname))
+
+def port_NAME_delete(pname):
+    f = sys._getframe().f_code.co_name
+    print("NOTIMPLE f={}".format(f))
+    exit(-1)
+
+def port_NAME_alloc_pci(pname, pciaddr):
+    f = sys._getframe().f_code.co_name
+    print("NOTIMPLE f={}".format(f))
+    exit(-1)
+
+def port_NAME_alloc_tap(pname, ifname):
+    f = sys._getframe().f_code.co_name
+    print("NOTIMPLE f={}".format(f))
+    exit(-1)
+
+def port_NAME_alloc_virt(pname):
+    f = sys._getframe().f_code.co_name
+    print("NOTIMPLE f={}".format(f))
     exit(-1)
 
 def port(argc, argv):
     if (argc < 3):
         usage_port()
         exit(-1)
-
-    portname = argv[1]
+    pname = argv[1]
     option   = argv[2]
-    if (option == "stat"):
-        port_NAME_stat(portname)
-        exit(0)
-
+    if   (option == "stat"  ):
+        port_NAME_stat(pname)
+        return
+    elif (option == "delete"):
+        port_NAME_delete(pname)
+        return
+    elif (option == "alloc" ):
+        if (argc >= 4):
+            subop = argv[3]
+            if   (subop == "pci"):
+                if (argc >= 5):
+                    pciaddr = argv[4]
+                    port_NAME_alloc_pci(pname, pciaddr)
+                    return
+            elif (subop == "tap"):
+                if (argc >= 5):
+                    ifname = argv[4]
+                    port_NAME_alloc_tap(pname, ifname)
+                    return
+            elif (subop == "virt"):
+                port_NAME_alloc_virt(pname)
+                return
     usage_port()
     exit(-1)
 
