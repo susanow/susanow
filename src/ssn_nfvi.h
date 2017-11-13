@@ -29,6 +29,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <unistd.h>
+#include <mutex>
+#include <crow.h>
 
 #include <ssn_log.h>
 #include <ssn_port.h>
@@ -36,13 +39,11 @@
 #include <ssn_timer.h>
 #include <ssn_vnf_catalog.h>
 #include <ssn_port_catalog.h>
-#include <mutex>
+#include <ssn_rest_api.h>
+
 
 class ssn_nfvi final {
  private:
-
-  // std::mutex mtx;
-  // using auto_lock = std::lock_guard<std::mutex>;
 
   rte_mempool* mp;
   ssn_vnf_catalog  vnf_catalog;
@@ -55,6 +56,8 @@ class ssn_nfvi final {
 
   std::vector<ssn_vnf*>      vnfs;
   std::vector<ssn_vnf_port*> ports;
+  bool running;
+  crow::SimpleApp app;
 
  private:
 
@@ -162,8 +165,10 @@ class ssn_nfvi final {
     port_catalog.register_port(catname , f);
   }
 
-  ssn_nfvi(int argc, char** argv) : mp(nullptr), timer_sched(nullptr)
+  ssn_nfvi(int argc, char** argv, ssn_log_level ll=SSN_LOG_EMERG)
+    : mp(nullptr), timer_sched(nullptr), running(false)
   {
+    ssn_log_set_level(ll);
     ssn_init(argc, argv);
     const size_t n_ports = ssn_dev_count();
     for (size_t i=0; i<n_ports; i++) {
@@ -177,7 +182,6 @@ class ssn_nfvi final {
 
     uint64_t one_sec = ssn_timer_get_hz();
     add_timer(new ssn_timer(_timercallback, this, one_sec));
-    printf("FINISH nfvi initialization\n\n");
   }
 
   virtual ~ssn_nfvi()
@@ -246,12 +250,37 @@ class ssn_nfvi final {
     return nullptr;
   }
 
-  void undeploy_all_vnfs()
+  void stop()
   {
+    app.stop();
+    running = false;
+  }
+
+  void run(uint16_t rest_server_port)
+  {
+    /*
+     * Launch REST API server
+     */
+    std::thread rest_api(rest_api_thread, this, &app, rest_server_port);
+
+    /*
+     * Running loop
+     */
+    running = true;
+    while (running) {
+      sleep(1);
+    }
+
+    /*
+     * Undeploy all vnfs
+     */
     const size_t n_vnf = vnfs.size();
     for (size_t i=0; i<n_vnf; i++) {
-      vnfs[i]->undeploy();
+      if (vnfs[i]->is_running())
+        vnfs[i]->undeploy();
     }
+
+    rest_api.join();
   }
 
   void debug_dump(FILE* fp) const

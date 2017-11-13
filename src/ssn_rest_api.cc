@@ -558,29 +558,27 @@ void addroute__vnfs_NAME_undeploy(ssn_nfvi& nfvi, crow::SimpleApp& app)
 } /* namespace */
 
 
-int rest_api_thread(ssn_nfvi* nfviptr)
+void rest_api_thread(ssn_nfvi* nfviptr, crow::SimpleApp* app, uint16_t rest_server_port)
 {
   using std::string;
   using slankdev::format;
   ssn_nfvi& nfvi = *nfviptr;
+  app->loglevel(crow::LogLevel::Critical);
 
-  crow::SimpleApp app;
-  app.loglevel(crow::LogLevel::Critical);
+  addroute__                             (nfvi, *app);
+  addroute__vnfs                         (nfvi, *app);
+  addroute__vnfs_NAME                    (nfvi, *app);
+  addroute__vnfs_NAME_ports_PORTID       (nfvi, *app);
+  addroute__ports                        (nfvi, *app);
+  addroute__ports_NAME                   (nfvi, *app);
+  addroute__catalogs_vnf                 (nfvi, *app);
+  addroute__catalogs_port                (nfvi, *app);
+  addroute__vnfs_NAME_coremask_BLOCKID   (nfvi, *app);
+  addroute__vnfs_NAME_reset              (nfvi, *app);
+  addroute__vnfs_NAME_deploy             (nfvi, *app);
+  addroute__vnfs_NAME_undeploy           (nfvi, *app);
 
-  addroute__                             (nfvi, app);
-  addroute__vnfs                         (nfvi, app);
-  addroute__vnfs_NAME                    (nfvi, app);
-  addroute__vnfs_NAME_ports_PORTID       (nfvi, app);
-  addroute__ports                        (nfvi, app);
-  addroute__ports_NAME                   (nfvi, app);
-  addroute__catalogs_vnf                 (nfvi, app);
-  addroute__catalogs_port                (nfvi, app);
-  addroute__vnfs_NAME_coremask_BLOCKID   (nfvi, app);
-  addroute__vnfs_NAME_reset              (nfvi, app);
-  addroute__vnfs_NAME_deploy             (nfvi, app);
-  addroute__vnfs_NAME_undeploy           (nfvi, app);
-
-  app.port(8888).run();
+  app->port(rest_server_port).run();
 }
 
 

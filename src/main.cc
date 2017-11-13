@@ -94,6 +94,18 @@ void user_operation_mock(ssn_nfvi* nfvi)
 }
 
 
+void contoll(ssn_nfvi* nfvi)
+{
+  while (true) {
+    printf("ssn> ");
+    fflush(stdout);
+    std::string line;
+    std::getline(std::cin, line);
+    if (line == "quit") break;
+    else if (line == "dump") nfvi->debug_dump(stdout);
+  }
+  nfvi->stop();
+}
 
 int main(int argc, char** argv)
 {
@@ -105,12 +117,11 @@ int main(int argc, char** argv)
   nfvi.port_register_to_catalog("virt", ssn_portalloc_virt);
 
   user_operation_mock(&nfvi);
-  nfvi.debug_dump(stdout);
-  std::thread rest_api(rest_api_thread, &nfvi);
+  std::thread tt(contoll, &nfvi);
 
-  getchar();
-  nfvi.undeploy_all_vnfs();
-  rest_api.join();
+  nfvi.run(8888);
+  tt.join();
+  printf("bye...\n");
 }
 
 
