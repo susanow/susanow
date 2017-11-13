@@ -154,10 +154,16 @@ void addroute__vnfs_NAME_ports_PORTID(ssn_nfvi& nfvi, crow::SimpleApp& app)
           return x_root;
         }
 
+        if (port->is_attached_vnf()) {
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(false, "port has attached vnf");
+          return x_root;
+        }
+
         int ret = vnf->attach_port(pid, port);
         if (ret < 0) {
           crow::json::wvalue x_root;
-          x_root["result"] = responce_info(false, "some error occured");
+          x_root["result"] = responce_info(false, "vnf::attach_port returned -1");
           return x_root;
         }
         crow::json::wvalue x_root;
@@ -175,7 +181,7 @@ void addroute__vnfs_NAME_ports_PORTID(ssn_nfvi& nfvi, crow::SimpleApp& app)
         int ret = vnf->dettach_port(pid);
         if (ret < 0) {
           crow::json::wvalue x_root;
-          x_root["result"] = responce_info(false, "some error occured");
+          x_root["result"] = responce_info(false, "vnf::dettach_port returned -1");
           return x_root;
         }
         crow::json::wvalue x_root;
@@ -245,42 +251,49 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::SimpleApp& app)
         auto req_json = crow::json::load(req.body);
         const std::string cname   = req_json["cname"].s();
 
-        if (cname == "tap") {
+        try {
+          if (cname == "tap") {
 
-          /*
-           * - cname
-           * - options.ifname
-           */
-          std::string ifname = req_json["options"]["ifname"].s();
-          rte_mempool* mp = nfvi.get_mp();
-          ssn_portalloc_tap_arg arg = { mp, ifname };
-          nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
+            // TODO: hardning
+            /*
+             * - cname
+             * - options.ifname
+             */
+            std::string ifname = req_json["options"]["ifname"].s();
+            rte_mempool* mp = nfvi.get_mp();
+            ssn_portalloc_tap_arg arg = { mp, ifname };
+            nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
 
-        } else if (cname == "pci") {
+          } else if (cname == "pci") {
 
-          /*
-           * - cname
-           * - options.pciaddr
-           */
-          std::string pciaddr = req_json["options"]["pciaddr"].s();
-          rte_mempool* mp = nfvi.get_mp();
-          ssn_portalloc_pci_arg arg = { mp, pciaddr };
-          nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
+            // TODO: hardning
+            /*
+             * - cname
+             * - options.pciaddr
+             */
+            std::string pciaddr = req_json["options"]["pciaddr"].s();
+            rte_mempool* mp = nfvi.get_mp();
+            ssn_portalloc_pci_arg arg = { mp, pciaddr };
+            nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
 
-        } else if (cname == "virt") {
+          } else if (cname == "virt") {
 
-          /*
-           * - cname
-           */
-          ssn_portalloc_virt_arg arg;
-          nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
+            // TODO: hardning
+            /*
+             * - cname
+             */
+            ssn_portalloc_virt_arg arg;
+            nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
 
-        } else {
+          } else {
 
-          crow::json::wvalue x_root;
-          x_root["result"] = responce_info(false, "catalog name is invalid");
-          return x_root;
+            crow::json::wvalue x_root;
+            x_root["result"] = responce_info(false, "catalog name is invalid");
+            return x_root;
 
+          }
+        } catch (std::exception& e) {
+          printf("THROWED: %s \n", e.what());
         }
 
         ssn_vnf_port* port = nfvi.find_port(pname.c_str());
@@ -395,6 +408,16 @@ void addroute__vnfs_NAME_coremask_BLOCKID(ssn_nfvi& nfvi, crow::SimpleApp& app)
         return x;
       }
 
+      /*
+       * Check VNF access-infos were already reset.
+       * If unreset that, return error-msg
+       */
+      if (vnf->get_coremask() != 0) {
+        crow::json::wvalue x;
+        x["result"] = responce_info(false, "vnf is not reset yet");
+        return x;
+      }
+
       auto req_json = crow::json::load(req.body);
       const uint32_t coremask = req_json["coremask"].i();
 
@@ -462,7 +485,7 @@ void addroute__vnfs_NAME_reset(ssn_nfvi& nfvi, crow::SimpleApp& app)
       int ret = vnf->reset();
       if (ret < 0) {
         crow::json::wvalue x;
-        x["result"] = responce_info(false, "vnf can't port access config");
+        x["result"] = responce_info(false, "vnf can't reset port-access-config");
         return x;
       }
 
@@ -558,29 +581,27 @@ void addroute__vnfs_NAME_undeploy(ssn_nfvi& nfvi, crow::SimpleApp& app)
 } /* namespace */
 
 
-int rest_api_thread(ssn_nfvi* nfviptr)
+void rest_api_thread(ssn_nfvi* nfviptr, crow::SimpleApp* app, uint16_t rest_server_port)
 {
   using std::string;
   using slankdev::format;
   ssn_nfvi& nfvi = *nfviptr;
+  app->loglevel(crow::LogLevel::Critical);
 
-  crow::SimpleApp app;
-  app.loglevel(crow::LogLevel::Critical);
+  addroute__                             (nfvi, *app);
+  addroute__vnfs                         (nfvi, *app);
+  addroute__vnfs_NAME                    (nfvi, *app);
+  addroute__vnfs_NAME_ports_PORTID       (nfvi, *app);
+  addroute__ports                        (nfvi, *app);
+  addroute__ports_NAME                   (nfvi, *app);
+  addroute__catalogs_vnf                 (nfvi, *app);
+  addroute__catalogs_port                (nfvi, *app);
+  addroute__vnfs_NAME_coremask_BLOCKID   (nfvi, *app);
+  addroute__vnfs_NAME_reset              (nfvi, *app);
+  addroute__vnfs_NAME_deploy             (nfvi, *app);
+  addroute__vnfs_NAME_undeploy           (nfvi, *app);
 
-  addroute__                             (nfvi, app);
-  addroute__vnfs                         (nfvi, app);
-  addroute__vnfs_NAME                    (nfvi, app);
-  addroute__vnfs_NAME_ports_PORTID       (nfvi, app);
-  addroute__ports                        (nfvi, app);
-  addroute__ports_NAME                   (nfvi, app);
-  addroute__catalogs_vnf                 (nfvi, app);
-  addroute__catalogs_port                (nfvi, app);
-  addroute__vnfs_NAME_coremask_BLOCKID   (nfvi, app);
-  addroute__vnfs_NAME_reset              (nfvi, app);
-  addroute__vnfs_NAME_deploy             (nfvi, app);
-  addroute__vnfs_NAME_undeploy           (nfvi, app);
-
-  app.port(8888).run();
+  app->port(rest_server_port).run();
 }
 
 

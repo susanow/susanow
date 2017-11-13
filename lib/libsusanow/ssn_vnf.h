@@ -381,6 +381,23 @@ class ssn_vnf {
   }
 
   /**
+   * @brief return VNF's all coremask
+   * @return coremask
+   * @details
+   *    if n_blocks:2, block0:0x2, block1:0x1,
+   *    this function ret 0x3
+   */
+  uint32_t get_coremask() const
+  {
+    uint32_t coremask = 0;
+    const size_t n_ele = n_blocks();
+    for (size_t i=0; i<n_ele; i++) {
+      coremask |= blocks.at(i)->get_coremask();
+    }
+    return coremask;
+  }
+
+  /**
    * @brief check vnf is deletable
    * @return true deletable
    * @return false undeletable
@@ -451,13 +468,19 @@ class ssn_vnf {
   {
     const size_t n_port = ports.size();
     for (size_t i=0; i<n_port; i++) {
-      if (!ports.at(i)) return -1;
+      if (!ports.at(i)) {
+        // TODO: return with Error Code
+        // printf("port not attached pid=%zd\n", i);
+        return -1;
+      }
     }
     configre_acc();
     auto n_impl = blocks.size();
     for (size_t i=0; i<n_impl; i++) {
       int ret = this->blocks.at(i)->deploy();
       if (ret < 0) {
+        // TODO: return with Error Code
+        // printf("block deploy miss bid=%zd\n", i);
         return -1;
       }
     }
@@ -501,10 +524,16 @@ class ssn_vnf {
    */
   int attach_port(size_t pid, ssn_vnf_port* port)
   {
-    if (ports.at(pid) || !port) {
-      /* port already attached */
+    if (ports.at(pid)) {
+      /* my-port was already attached */
       return -1;
     }
+
+    if (port->is_attached_vnf()) {
+      /* port has attached vnf */
+      return -1;
+    }
+
     ports.at(pid) = port;
     port->attach_vnf(this);
     auto n = blocks.size();

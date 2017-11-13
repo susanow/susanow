@@ -100,9 +100,6 @@ class ssn_vnf_port {
  public:
   const std::string name;
 
-  bool is_attached_vnf() const { return attached_vnf!=nullptr; }
-  const ssn_vnf* get_attached_vnf() const { return attached_vnf; }
-
   /**
    * @brief constructor
    * @param [in] a_port_id dpdk port id
@@ -130,6 +127,8 @@ class ssn_vnf_port {
    */
   virtual size_t tx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) = 0;
 
+  bool is_attached_vnf() const { return attached_vnf!=nullptr; }
+  const ssn_vnf* get_attached_vnf() const { return attached_vnf; }
   void attach_vnf(ssn_vnf* vnf) { attached_vnf = vnf; }
   void dettach_vnf() { attached_vnf = nullptr; }
 
