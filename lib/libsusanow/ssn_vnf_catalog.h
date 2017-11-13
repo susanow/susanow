@@ -62,6 +62,19 @@ class ssn_vnf_catalog final {
   const catalog_ele& operator[](size_t num) const { return catalog[num]; }
 
   /**
+   * @brief get element reference for debugging with range-check
+   * @param [in] num catalog index
+   * @return catalog-element
+   * @details
+   *    if num is invalid, this operation throw exception.
+   */
+  const catalog_ele& at(size_t num) const
+  {
+    if (num >= size()) throw slankdev::exception("range error");
+    return catalog[num];
+  }
+
+  /**
    * @brief Allocate new VNF
    * @param [in] cname catalog-name
    * @param [in] iname instance-name
@@ -87,9 +100,7 @@ class ssn_vnf_catalog final {
    */
   int register_vnf(const char* cname, ssn_vnfallocfunc_t allocator)
   {
-    /*
-     * Check if cname is already registered
-     */
+    /* Check if cname is already registered */
     const size_t n_ele = catalog.size();
     for (size_t i=0; i<n_ele; i++) {
       if (catalog[i].name == cname)

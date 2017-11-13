@@ -251,42 +251,49 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::SimpleApp& app)
         auto req_json = crow::json::load(req.body);
         const std::string cname   = req_json["cname"].s();
 
-        if (cname == "tap") {
+        try {
+          if (cname == "tap") {
 
-          /*
-           * - cname
-           * - options.ifname
-           */
-          std::string ifname = req_json["options"]["ifname"].s();
-          rte_mempool* mp = nfvi.get_mp();
-          ssn_portalloc_tap_arg arg = { mp, ifname };
-          nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
+            // TODO: hardning
+            /*
+             * - cname
+             * - options.ifname
+             */
+            std::string ifname = req_json["options"]["ifname"].s();
+            rte_mempool* mp = nfvi.get_mp();
+            ssn_portalloc_tap_arg arg = { mp, ifname };
+            nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
 
-        } else if (cname == "pci") {
+          } else if (cname == "pci") {
 
-          /*
-           * - cname
-           * - options.pciaddr
-           */
-          std::string pciaddr = req_json["options"]["pciaddr"].s();
-          rte_mempool* mp = nfvi.get_mp();
-          ssn_portalloc_pci_arg arg = { mp, pciaddr };
-          nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
+            // TODO: hardning
+            /*
+             * - cname
+             * - options.pciaddr
+             */
+            std::string pciaddr = req_json["options"]["pciaddr"].s();
+            rte_mempool* mp = nfvi.get_mp();
+            ssn_portalloc_pci_arg arg = { mp, pciaddr };
+            nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
 
-        } else if (cname == "virt") {
+          } else if (cname == "virt") {
 
-          /*
-           * - cname
-           */
-          ssn_portalloc_virt_arg arg;
-          nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
+            // TODO: hardning
+            /*
+             * - cname
+             */
+            ssn_portalloc_virt_arg arg;
+            nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
 
-        } else {
+          } else {
 
-          crow::json::wvalue x_root;
-          x_root["result"] = responce_info(false, "catalog name is invalid");
-          return x_root;
+            crow::json::wvalue x_root;
+            x_root["result"] = responce_info(false, "catalog name is invalid");
+            return x_root;
 
+          }
+        } catch (std::exception& e) {
+          printf("THROWED: %s \n", e.what());
         }
 
         ssn_vnf_port* port = nfvi.find_port(pname.c_str());

@@ -49,32 +49,84 @@ class ssn_port_catalog final {
  public:
 
   size_t size() const { return catalog.size(); }
+
+  /**
+   * @brief get element reference for debugging
+   * @param [in] num catalog index
+   * @return catalog-element
+   * @details
+   *    if num is invalid, this operation is undefined
+   */
   const catalog_ele& operator[](size_t num) const { return catalog[num]; }
 
-  ssn_vnf_port* alloc_port(const char* catalog_name,
-                const char* instance_name, void* arg)
+  /**
+   * @brief get element reference for debugging with range-check
+   * @param [in] num catalog index
+   * @return catalog-element
+   * @details
+   *    if num is invalid, this operation throw exception.
+   */
+  const catalog_ele& at(size_t num) const
+  {
+    if (num >= size()) throw slankdev::exception("range error");
+    return catalog[num];
+  }
+
+  /**
+   * @brief allocate new port from port-catalog
+   * @param [in] cname catalog-name
+   * @param [in] iname instance-name
+   * @param [in] arg func-argument of allocator-function
+   * @return nullptr some-error occured
+   * @return valid-pointer allocated-port-instance's pointer
+   * @details
+   *    If cname is invalid, this function throw exception.
+   */
+  ssn_vnf_port* alloc_port(const char* cname, const char* iname, void* arg)
   {
     size_t n_cat = catalog.size();
     for (size_t i=0; i<n_cat; i++) {
-      if (catalog[i].name == catalog_name)
-        return catalog[i].allocator(instance_name, arg);
+      if (catalog[i].name == cname)
+        return catalog[i].allocator(iname, arg);
     }
     throw slankdev::exception("ssn_port_catalog::alloc_port: not found port");
   }
 
-  void register_port(const char* catalog_name, ssn_portallocfunc_t allocator)
-  { catalog.emplace_back(catalog_name, allocator); }
+  /**
+   * @brief Register new Port-catalog
+   * @param [in] cname catalog-name
+   * @param [in] allocator allocator function
+   * @return 0 success
+   * @return -1 cname is already registered
+   */
+  int register_port(const char* cname, ssn_portallocfunc_t allocator)
+  {
+    /* Check if cname is already registered */
+    const size_t n_ele = catalog.size();
+    for (size_t i=0; i<n_ele; i++) {
+      if (catalog[i].name == cname)
+        return -1;
+    }
+    catalog.emplace_back(cname, allocator);
+    return 0;
+  }
 
-  void unregister_port(const char* catalog_name)
+  /**
+   * @brief Unregister Port catalog
+   * @param cname catalog-name
+   * @return 0 success
+   * @return -1 cname is invalid
+   */
+  int unregister_port(const char* cname)
   {
     size_t n_cat = catalog.size();
     for (size_t i=0; i<n_cat; i++) {
-      if (catalog[i].name == catalog_name) {
+      if (catalog[i].name == cname) {
         catalog.erase(catalog.begin() + i);
-        return ;
+        return 0;
       }
     }
-    throw slankdev::exception("ssn_port_catalog::register_port: not found port");
+    return -1;
   }
 
 }; /* class ssn_port_catalog */

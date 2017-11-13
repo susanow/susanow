@@ -40,6 +40,7 @@
 #include <ssn_vnf_catalog.h>
 #include <ssn_port_catalog.h>
 #include <ssn_rest_api.h>
+#include <slankdev/exception.h>
 
 
 class ssn_nfvi final {
@@ -155,14 +156,46 @@ class ssn_nfvi final {
     ports.push_back(port);
   }
 
-  void vnf_register_to_catalog(const char* catname, ssn_vnfallocfunc_t f)
+  /*
+   * @brief register new vnf-catalog-element
+   * @param [in] cname catalog-name
+   * @param [in] f allocator-function
+   * @details
+   *    if cname was already registered,
+   *    this function throws exception.
+   */
+  void vnf_register_to_catalog(const char* cname, ssn_vnfallocfunc_t f)
   {
-    vnf_catalog.register_vnf(catname, f);
+    const size_t n_ele = vnf_catalog.size();
+    for (size_t i=0; i<n_ele; i++) {
+      if (vnf_catalog.at(i).name == cname) {
+        std::string err = "ssn_nfvi::vnf_register_to_catalog: ";
+        err += slankdev::format("cname already registerd (%s)", cname);
+        throw slankdev::exception(err.c_str());
+      }
+    }
+    vnf_catalog.register_vnf(cname, f);
   }
 
-  void port_register_to_catalog(const char* catname, ssn_portallocfunc_t f)
+  /*
+   * @brief register new port-catalog-element
+   * @param [in] cname catalog-name
+   * @param [in] f allocator-function
+   * @details
+   *    if cname was already registered,
+   *    this function throws exception.
+   */
+  void port_register_to_catalog(const char* cname, ssn_portallocfunc_t f)
   {
-    port_catalog.register_port(catname , f);
+    const size_t n_ele = vnf_catalog.size();
+    for (size_t i=0; i<n_ele; i++) {
+      if (vnf_catalog.at(i).name == cname) {
+        std::string err = "ssn_nfvi::port_register_to_catalog: ";
+        err += slankdev::format("cname already registerd (%s)", cname);
+        throw slankdev::exception(err.c_str());
+      }
+    }
+    port_catalog.register_port(cname , f);
   }
 
   ssn_nfvi(int argc, char** argv, ssn_log_level ll=SSN_LOG_EMERG)
