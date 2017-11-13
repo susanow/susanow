@@ -130,7 +130,7 @@ def usage_vnf():
     print("  deploy                         deploy vnf                ")
     print("  undeploy                       undeploy vnf              ")
     print("  reset                          reset vnf's accessor infos")
-    print("  setcoremask  <cmask> <bid>     set block's coremask      ")
+    print("  setcoremask  <bid> <cmask>     set block's coremask      ")
 
 def usage_port():
     print("Usage: ssnctl port <portname> [OPTIONS]\n")
@@ -265,18 +265,12 @@ def vnf_NAME_reset(vnfname):
     else: print("miss: {}".format(result["msg"]))
 
 def vnf_NAME_setcoremask_BID_CMASK(vnfname, bid, cmask):
-    f = sys._getframe().f_code.co_name
-    print("NOTIMPLE f={}".format(f))
-    exit(-1)
-    # uri = "/vnfs/" + vnfname + "/coremask"
-    # data = "{\"coremask\": " + str(coremask) + ","
-    # data +=  "\"blockid\": " + str(blockid) + "}"
-    # print(data)
-    # json_dict = put_json_dict_to_url(uri, data)
-    # if (json_dict["result"]["success"]): print("success")
-    # else: print("unsuccess")
+    uri = "/vnfs/" + vnfname + "/coremask/" + str(bid)
+    data = "{\"coremask\": " + str(cmask) + "}"
+    result = put_json_dict_to_url(uri, data)["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
 
-# TODO
 def vnf(argc, argv):
     if (argc < 3):
         usage_vnf()
