@@ -37,6 +37,7 @@
 
 void user_operation_mock(ssn_nfvi* nfvi) try
 {
+#if 0
   rte_mempool* mp = nfvi->get_mp();
   nfvi->vnf_alloc_from_catalog("l2fwd1b", "vnf0");
   nfvi->vnf_alloc_from_catalog("l2fwd1b", "vnf1");
@@ -58,13 +59,13 @@ void user_operation_mock(ssn_nfvi* nfvi) try
   nfvi->port_alloc_from_catalog("virt", "virt1", &virt1arg);
   nfvi->find_port("virt1")->config_hw(4, 4);
 
-  ssn_portalloc_pci_arg pci0arg = { mp, "0000:01:00.0" };
-  nfvi->port_alloc_from_catalog("pci", "pci0", &pci0arg);
-  nfvi->find_port("pci0")->config_hw(4, 4);
-
-  ssn_portalloc_pci_arg pci1arg = { mp, "0000:01:00.1" };
-  nfvi->port_alloc_from_catalog("pci", "pci1", &pci1arg);
-  nfvi->find_port("pci1")->config_hw(4, 4);
+  // ssn_portalloc_pci_arg pci0arg = { mp, "0000:01:00.0" };
+  // nfvi->port_alloc_from_catalog("pci", "pci0", &pci0arg);
+  // nfvi->find_port("pci0")->config_hw(4, 4);
+  //
+  // ssn_portalloc_pci_arg pci1arg = { mp, "0000:01:00.1" };
+  // nfvi->port_alloc_from_catalog("pci", "pci1", &pci1arg);
+  // nfvi->find_port("pci1")->config_hw(4, 4);
 
   /* vnf0 */
   {
@@ -79,15 +80,15 @@ void user_operation_mock(ssn_nfvi* nfvi) try
 
   /* l2fwd2b-vnf */
   {
-    auto* vnf   = nfvi->find_vnf("l2fwd2b-vnf");
-    auto* port0 = nfvi->find_port("pci0");
-    auto* port1 = nfvi->find_port("pci1");
-    vnf->attach_port(0, port0);
-    vnf->attach_port(1, port1);
-    vnf->set_coremask(0, 0b00010000);
-    vnf->set_coremask(1, 0b00100000);
+    // auto* vnf   = nfvi->find_vnf("l2fwd2b-vnf");
+    // auto* port0 = nfvi->find_port("pci0");
+    // auto* port1 = nfvi->find_port("pci1");
+    // vnf->attach_port(0, port0);
+    // vnf->attach_port(1, port1);
+    // vnf->set_coremask(0, 0b00010000);
+    // vnf->set_coremask(1, 0b00100000);
   }
-
+#endif
 } catch (std::exception& e) { printf("throwed: %s \n", e.what()); }
 
 
