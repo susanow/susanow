@@ -38,7 +38,8 @@ def get_json_dict_from_uri(uri):
         json_dict = json.loads(r)
         return json_dict
     except Exception as ex:
-        print("error {}".format(str(ex)))
+        print("error: {}".format(str(ex)))
+        print("content: {}".format(response.content))
         exit(-1)
 
 def delete_json_dict_from_uri(uri):
@@ -49,7 +50,8 @@ def delete_json_dict_from_uri(uri):
         json_dict = json.loads(r)
         return json_dict
     except Exception as ex:
-        print("error {}".format(str(ex)))
+        print("error: {}".format(str(ex)))
+        print("content: {}".format(response.content))
         exit(-1)
 
 def put_json_dict_to_uri(uri, data):
@@ -60,7 +62,8 @@ def put_json_dict_to_uri(uri, data):
         json_dict = json.loads(r)
         return json_dict
     except Exception as ex:
-        print("error {}".format(str(ex)))
+        print("error: {}".format(str(ex)))
+        print("content: {}".format(response.content))
         exit(-1)
 
 def dprint(depth, string):
