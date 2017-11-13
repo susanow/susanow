@@ -66,6 +66,18 @@ def put_json_dict_to_uri(uri, data):
         print("content: {}".format(response.content))
         exit(-1)
 
+def post_json_dict_to_uri(uri, data):
+    path = URL + uri;
+    try:
+        response = requests.post(path, data)
+        r = response.text
+        json_dict = json.loads(r)
+        return json_dict
+    except Exception as ex:
+        print("error: {}".format(str(ex)))
+        print("content: {}".format(response.content))
+        exit(-1)
+
 def dprint(depth, string):
     print('  '*depth + string)
 
@@ -236,11 +248,11 @@ def vnf_NAME_undeploy(vnfname):
     else: print("miss: {}".format(result["msg"]))
 
 def vnf_NAME_alloc_CNAME(vnfname, cname):
-    f = sys._getframe().f_code.co_name
-    print("NOTIMPLE f={}".format(f))
-    print(" vnfname: {}".format(vnfname))
-    print(" cname  : {}".format(cname  ))
-    exit(-1)
+    uri = "/vnfs/" + vnfname
+    data = "{\"cname\": \"" + cname + "\" }"
+    result = post_json_dict_to_uri(uri, data)["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
 
 def vnf_NAME_delete(vnfname):
     uri = "/vnfs/" + vnfname
@@ -336,19 +348,45 @@ def port_NAME_delete(pname):
     else: print("miss: {}".format(result["msg"]))
 
 def port_NAME_alloc_pci(pname, pciaddr):
-    f = sys._getframe().f_code.co_name
-    print("NOTIMPLE f={}".format(f))
-    exit(-1)
+    cname = "pci"
+    uri = "/ports/" + pname
+    data = ""
+    data += "{ \n"
+    data += "    \"cname\"  : \"" + cname + "\", \n"
+    data += "    \"options\": { \n"
+    data += "          \"pciaddr\"  : \"" + pciaddr + "\" \n"
+    data += "    } \n"
+    data += "} \n"
+    result = post_json_dict_to_uri(uri, data)["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
 
 def port_NAME_alloc_tap(pname, ifname):
-    f = sys._getframe().f_code.co_name
-    print("NOTIMPLE f={}".format(f))
-    exit(-1)
+    cname = "tap"
+    uri = "/ports/" + pname
+    data = ""
+    data += "{ \n"
+    data += "    \"cname\"  : \"" + cname + "\", \n"
+    data += "    \"options\": { \n"
+    data += "          \"ifname\"  : \"" + ifname + "\" \n"
+    data += "    } \n"
+    data += "} \n"
+    result = post_json_dict_to_uri(uri, data)["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
 
 def port_NAME_alloc_virt(pname):
-    f = sys._getframe().f_code.co_name
-    print("NOTIMPLE f={}".format(f))
-    exit(-1)
+    cname = "virt"
+    uri = "/ports/" + pname
+    data = ""
+    data += "{ \n"
+    data += "    \"cname\"  : \"" + cname + "\", \n"
+    data += "    \"options\": { \n"
+    data += "    } \n"
+    data += "} \n"
+    result = post_json_dict_to_uri(uri, data)["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
 
 def port(argc, argv):
     if (argc < 3):
