@@ -50,6 +50,14 @@ void user_operation_mock(ssn_nfvi* nfvi) try
   nfvi->port_alloc_from_catalog("tap", "tap1", &tap1arg);
   nfvi->find_port("tap1")->config_hw(4, 4);
 
+  ssn_portalloc_virt_arg virt0arg = {};
+  nfvi->port_alloc_from_catalog("virt", "virt0", &virt0arg);
+  nfvi->find_port("virt0")->config_hw(4, 4);
+
+  ssn_portalloc_virt_arg virt1arg = {};
+  nfvi->port_alloc_from_catalog("virt", "virt1", &virt1arg);
+  nfvi->find_port("virt1")->config_hw(4, 4);
+
   ssn_portalloc_pci_arg pci0arg = { mp, "0000:01:00.0" };
   nfvi->port_alloc_from_catalog("pci", "pci0", &pci0arg);
   nfvi->find_port("pci0")->config_hw(4, 4);
