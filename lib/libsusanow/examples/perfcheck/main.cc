@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 
   //-------------------------------------------------------
 
-  v0.reset_allport_acc();
+  v0.reset();
   v0.set_coremask(0, 0b00000010);
   v0.deploy();
   getchar();
@@ -81,7 +81,7 @@ int main(int argc, char** argv)
 
   //-------------------------------------------------------
 
-  v0.reset_allport_acc();
+  v0.reset();
   v0.set_coremask(0, 0b00000110);
   v0.deploy();
   getchar();

@@ -66,8 +66,8 @@ int main(int argc, char** argv)
 
   /*-------------------------------------------------------------------------*/
 
-  vnf0.reset_allport_acc();
-  vnf1.reset_allport_acc();
+  vnf0.reset();
+  vnf1.reset();
   vnf0.set_coremask(0, 0b00000010);
   vnf1.set_coremask(0, 0b00000100);
   vnf0.deploy();
@@ -77,8 +77,8 @@ int main(int argc, char** argv)
   vnf0.undeploy();
   vnf1.undeploy();
 
-  vnf0.reset_allport_acc();
-  vnf1.reset_allport_acc();
+  vnf0.reset();
+  vnf1.reset();
   vnf0.set_coremask(0, 0b00000110);
   vnf1.set_coremask(0, 0b00011000);
   vnf0.deploy();
