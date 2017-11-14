@@ -473,6 +473,7 @@ class ssn_vnf {
         // printf("port not attached pid=%zd\n", i);
         return -1;
       }
+      if (!ports.at(i)->deployable()) return -1;
     }
     configre_acc();
     auto n_impl = blocks.size();

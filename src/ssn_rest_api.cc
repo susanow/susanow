@@ -577,6 +577,101 @@ void addroute__vnfs_NAME_undeploy(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
+void addroute__ppps(ssn_nfvi& nfvi, crow::SimpleApp& app)
+{
+  CROW_ROUTE(app,"/ppps")
+  .methods("GET"_method)
+  ([&nfvi](const crow::request& req) {
+
+      assert(  (req.method == crow::HTTPMethod::GET   )  );
+
+      if (req.method == crow::HTTPMethod::GET) {
+
+        auto ppps = nfvi.get_ppps();
+        crow::json::wvalue x_root;
+        x_root["result"] = responce_info(true, "");
+        const size_t n_ele = ppps.size();
+        x_root["n_ele"] = n_ele;
+        for (size_t i=0; i<n_ele; i++) {
+          x_root[std::to_string(i)] = ppp_info(ppps[i]);
+        }
+        return x_root;
+
+      }
+  });
+}
+
+void addroute__ppps_NAME(ssn_nfvi& nfvi, crow::SimpleApp& app)
+{
+  CROW_ROUTE(app,"/ppps/<str>")
+  .methods("GET"_method, "POST"_method, "DELETE"_method)
+  ([&nfvi](const crow::request& req, const std::string name) {
+
+      assert(  (req.method == crow::HTTPMethod::GET   )
+           ||  (req.method == crow::HTTPMethod::POST  )
+           ||  (req.method == crow::HTTPMethod::DELETE)  );
+
+      if (req.method == crow::HTTPMethod::GET) {
+
+        ssn_vnf_port_patch_panel* ppp = nfvi.find_ppp(name.c_str());
+        if (!ppp) {
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(false, "ppp not found");
+          return x_root;
+        }
+
+        crow::json::wvalue x_root;
+        x_root["result"] = responce_info(true, "");
+        x_root["ppp"] = ppp_info(ppp);
+        return x_root;
+
+      } else if (req.method == crow::HTTPMethod::POST) {
+
+        if (nfvi.find_ppp(name.c_str())) {
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(false, "ppp already exists");
+          return x_root;
+        }
+
+        auto req_json = crow::json::load(req.body);
+        const std::string right_name = req_json["right"].s();
+        const std::string left_name  = req_json["left" ].s();
+
+        ssn_vnf_port* right_port = nfvi.find_port(right_name.c_str());
+        ssn_vnf_port* left_port  = nfvi.find_port(left_name.c_str() );
+        ssn_vnf_port_patch_panel* ppp = nfvi.ppp_alloc(name.c_str(), right_port, left_port);
+        if (!ppp) {
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(false, "unsuccess to allocate ppp");
+          return x_root;
+        }
+
+        crow::json::wvalue x_root;
+        x_root["result"] = responce_info(true, "");
+        return x_root;
+
+      } else if (req.method == crow::HTTPMethod::DELETE) {
+
+        ssn_vnf_port_patch_panel* ppp = nfvi.find_ppp(name.c_str());
+        if (!ppp) {
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(false, "ppp not found");
+          return x_root;
+        }
+
+        if (!ppp->deletable()) {
+          crow::json::wvalue x_root;
+          x_root["result"] = responce_info(false, "ppp is not deletable");
+          return x_root;
+        }
+
+        nfvi.del_ppp(ppp);
+        crow::json::wvalue x_root;
+        x_root["result"] = responce_info(true, "");
+        return x_root;
+      }
+  });
+}
 
 } /* namespace */
 
@@ -600,6 +695,8 @@ void rest_api_thread(ssn_nfvi* nfviptr, crow::SimpleApp* app, uint16_t rest_serv
   addroute__vnfs_NAME_reset              (nfvi, *app);
   addroute__vnfs_NAME_deploy             (nfvi, *app);
   addroute__vnfs_NAME_undeploy           (nfvi, *app);
+  addroute__ppps                         (nfvi, *app);
+  addroute__ppps_NAME                    (nfvi, *app);
 
   app->port(rest_server_port).run();
 }
