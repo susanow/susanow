@@ -37,10 +37,28 @@
 
 void user_operation_mock(ssn_nfvi* nfvi) try
 {
-#if 0
   rte_mempool* mp = nfvi->get_mp();
+
   nfvi->vnf_alloc_from_catalog("l2fwd1b", "vnf0");
   nfvi->vnf_alloc_from_catalog("l2fwd1b", "vnf1");
+
+  ssn_portalloc_tap_arg tap0arg = { mp, "tap0" };
+  nfvi->port_alloc_from_catalog("tap", "tap0", &tap0arg);
+  nfvi->find_port("tap0")->config_hw(4, 4);
+
+  ssn_portalloc_tap_arg tap1arg = { mp, "tap1" };
+  nfvi->port_alloc_from_catalog("tap", "tap1", &tap1arg);
+  nfvi->find_port("tap1")->config_hw(4, 4);
+
+  ssn_portalloc_virt_arg virt0arg = {};
+  nfvi->port_alloc_from_catalog("virt", "virt0", &virt0arg);
+  nfvi->find_port("virt0")->config_hw(4, 4);
+
+  ssn_portalloc_virt_arg virt1arg = {};
+  nfvi->port_alloc_from_catalog("virt", "virt1", &virt1arg);
+  nfvi->find_port("virt1")->config_hw(4, 4);
+#if 0
+  rte_mempool* mp = nfvi->get_mp();
   nfvi->vnf_alloc_from_catalog("l2fwd2b", "l2fwd2b-vnf");
 
   ssn_portalloc_tap_arg tap0arg = { mp, "tap0" };
