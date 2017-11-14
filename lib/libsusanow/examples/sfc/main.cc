@@ -52,7 +52,7 @@ int main(int argc, char** argv)
   dpdk1.config_hw(4, 4);
   virt0.config_hw(4, 4);
   virt1.config_hw(4, 4);
-  ssn_vnf_port_patch_panel pp(&virt0, &virt1, 8);
+  ssn_vnf_port_patch_panel pp("ppp0", &virt0, &virt1);
 
   /*-------------------------------------------------------------------------*/
 

@@ -37,6 +37,7 @@
 
 void user_operation_mock(ssn_nfvi* nfvi) try
 {
+#if 0
   rte_mempool* mp = nfvi->get_mp();
 
   ssn_vnf_port* tap0 = nfvi->port_alloc_tap("tap0", "tap0");
@@ -67,6 +68,7 @@ void user_operation_mock(ssn_nfvi* nfvi) try
   vnf1->deploy();
 
   printf("user operation was done !\n");
+#endif
 
 #if 0
   nfvi->vnf_alloc_from_catalog("l2fwd2b", "l2fwd2b-vnf");

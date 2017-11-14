@@ -241,6 +241,8 @@ class ssn_nfvi final {
 
     ssn_vnf_port_virt* r_ = dynamic_cast<ssn_vnf_port_virt*>(r);
     ssn_vnf_port_virt* l_ = dynamic_cast<ssn_vnf_port_virt*>(l);
+    if (!r_ || !l_) return nullptr;
+
     if (r_->patched() || l_->patched()) return nullptr;
 
     ssn_vnf_port_patch_panel* ppp = new ssn_vnf_port_patch_panel(iname, r, l);

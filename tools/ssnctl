@@ -161,7 +161,7 @@ def usage_port():
     print("Usage: ssnctl port <portname> [OPTIONS]\n")
     print("OPTIONS")
     print("  stat                      get port status       ")
-    print("  alloc pci <01:00.0>       allocate new pci port ")
+    print("  alloc pci <0000:01:00.0>  allocate new pci port ")
     print("  alloc tap <tap0>          allocate new tap port ")
     print("  alloc virt                allocate new virt port")
     print("  delete                    delete port           ")
