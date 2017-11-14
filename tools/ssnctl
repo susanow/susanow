@@ -118,12 +118,21 @@ def print_vnf(vnf, depth=0):
         block = vnf["blocks"][str(i)]
         print_block(block, depth+1)
 
+def print_ppp(ppp, depth=0):
+    dprint(depth, "{}".format(ppp["name"]))
+    dprint(depth, " name       : {}".format(ppp["name"]))
+    dprint(depth, " left")
+    print_port(ppp["left"], 2)
+    dprint(depth, " right")
+    print_port(ppp["right"], 2)
+
 def usage():
     print("Usage: ssnctl [OPTIONS]\n")
     print("OPTIONS")
     print("  show      show susanow informations")
     print("  vnf       operate vnfs             ")
     print("  port      operate ports            ")
+    print("  ppp       operate port-patch-panel ")
 
 def usage_show():
     print("Usage: ssnctl show [OPTIONS]\n")
@@ -133,6 +142,7 @@ def usage_show():
     print("  system    system status")
     print("  pcat      port catalog status")
     print("  vcat      vnf catalog status ")
+    print("  ppps      port patch panel status")
 
 def usage_vnf():
     print("Usage: ssnctl vnf <vnfname> [OPTIONS]\n")
@@ -155,6 +165,13 @@ def usage_port():
     print("  alloc tap <tap0>          allocate new tap port ")
     print("  alloc virt                allocate new virt port")
     print("  delete                    delete port           ")
+
+def usage_ppp():
+    print("Usage: ssnctl ppp <pppname> [OPTIONS]\n")
+    print("OPTIONS")
+    print("  stat                      get ppp's status        ")
+    print("  alloc <left> <right>      allocate new patch-panel")
+    print("  delete                    delete ppp              ")
 
 def show_system():
     uri = "/"
@@ -211,6 +228,14 @@ def show_pcat():
         print(" name      : {}".format(name))
         print(" allocator : {}".format(allocator))
 
+def show_ppps():
+    uri = "/ppps"
+    json_dict = get_json_dict_from_uri(uri)
+    n_ele = json_dict["n_ele"]
+    for i in range(n_ele):
+        ppp = json_dict[str(i)]
+        print_ppp(ppp)
+
 def show(argc, argv):
     if (argc < 2):
         usage_show()
@@ -221,6 +246,7 @@ def show(argc, argv):
     elif (option == "system"): show_system()
     elif (option == "vcat"  ): show_vcat()
     elif (option == "pcat"  ): show_pcat()
+    elif (option == "ppps"  ): show_ppps()
     else:
         print("show: unknown option\n")
         usage_show()
@@ -388,6 +414,53 @@ def port_NAME_alloc_virt(pname):
     if (result["success"]): return
     else: print("miss: {}".format(result["msg"]))
 
+def ppp_NAME_stat(name):
+    uri = "/ppps/" + name
+    json_dict = get_json_dict_from_uri(uri)
+    if (json_dict["result"]["success"]):
+        ppp = json_dict["ppp"]
+        print_ppp(ppp)
+        return
+    else: print("miss: {}".format(json_dict["result"]["msg"]))
+
+def ppp_NAME_delete(name):
+    uri = "/ppps/" + name
+    result = delete_json_dict_from_uri(uri)["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
+
+def ppp_NAME_alloc(name, left, right):
+    uri = "/ppps/" + name
+    data = ""
+    data += "{ \n"
+    data += "    \"left\"  : \"" + left  + "\", \n"
+    data += "    \"right\" : \"" + right + "\"  \n"
+    data += "} \n"
+    result = post_json_dict_to_uri(uri, data)["result"]
+    if (result["success"]): return
+    else: print("miss: {}".format(result["msg"]))
+
+def ppp (argc, argv):
+    if (argc < 3):
+        usage_ppp()
+        exit(-1)
+    name = argv[1]
+    option = argv[2]
+    if (option == "stat"):
+        ppp_NAME_stat(name)
+        return
+    elif (option == "delete"):
+        ppp_NAME_delete(name)
+        return
+    elif (option == "alloc"):
+        if (argc >= 5):
+            left  = argv[3]
+            right = argv[4]
+            ppp_NAME_alloc(name, left, right)
+            return
+    usage_ppp()
+    exit(-1)
+
 def port(argc, argv):
     if (argc < 3):
         usage_port()
@@ -427,15 +500,10 @@ def main():
         exit(-1)
 
     option = argv[1]
-    if (option == "show"):
-        show(argc-1, argv[1:])
-        exit(0)
-    elif (option == "vnf"):
-        vnf(argc-1, argv[1:])
-        exit(0)
-    elif (option == "port"):
-        port(argc-1, argv[1:])
-        exit(0)
+    if   (option == "show"):  show(argc-1, argv[1:])
+    elif (option == "vnf" ):  vnf (argc-1, argv[1:])
+    elif (option == "port"):  port(argc-1, argv[1:])
+    elif (option == "ppp" ):  ppp (argc-1, argv[1:])
     else:
         print("ssnctl: option not found")
         usage()

@@ -82,6 +82,20 @@ crow::json::wvalue vnf_info(const ssn_vnf* vnf)
   return x;
 }
 
+static inline
+crow::json::wvalue ppp_info(const ssn_vnf_port_patch_panel* ppp)
+{
+  using std::string;
+  using slankdev::format;
+
+  crow::json::wvalue x;
+  x["name"     ] = ppp->name;
+  x["deletable"] = ppp->deletable();
+  x["right"    ] = vnf_port_info(ppp->get_right());
+  x["left"     ] = vnf_port_info(ppp->get_left() );
+  return x;
+}
+
 } /* namespace */
 
 

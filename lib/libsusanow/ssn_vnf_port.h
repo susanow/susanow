@@ -127,6 +127,7 @@ class ssn_vnf_port {
    */
   virtual size_t tx_burst(size_t aid, rte_mbuf** mbufs, size_t n_mbufs) = 0;
 
+  virtual bool deployable() const = 0;
   bool is_attached_vnf() const { return attached_vnf!=nullptr; }
   const ssn_vnf* get_attached_vnf() const { return attached_vnf; }
   void attach_vnf(ssn_vnf* vnf) { attached_vnf = vnf; }
@@ -343,6 +344,8 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
     : ssn_vnf_port(n), port_id(a_port_id),
     irx_pps_sum(0), irx_pps_cur(0), mp(mp_) {}
 
+  virtual bool deployable() const override { return true; }
+
   virtual void config_hw(size_t nrxq, size_t ntxq) override
   {
     this->n_rxq = nrxq;
@@ -533,10 +536,18 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
   ssn_vnf_port_virt(const char* n)
     : ssn_vnf_port(n), tx(nullptr), rx(nullptr) {}
 
+  virtual bool deployable() const override { return patched(); }
+
   virtual void config_hw(size_t nrxq, size_t ntxq) override
   {
     this->n_rxq = nrxq;
     this->n_txq = ntxq;
+  }
+
+  bool patched() const
+  {
+    assert((tx==nullptr) == (rx==nullptr));
+    return tx!=nullptr;
   }
 
   /**
@@ -665,22 +676,29 @@ ssn_portalloc_virt(const char* instance_name, void* nouse)
  */
 class ssn_vnf_port_patch_panel {
 
-  ssn_vnf_port_virt* left;
-  ssn_vnf_port_virt* right;
-
   ssn_ma_ring left_enq;
   ssn_ma_ring right_enq;
 
+  ssn_vnf_port_virt* left;
+  ssn_vnf_port_virt* right;
+
  public:
+  const std::string name;
+  const ssn_vnf_port_virt* get_left () const { return left;  }
+  const ssn_vnf_port_virt* get_right() const { return right; }
+  bool deletable() const;
 
   /**
    * @brief constructor
    * @param [in] r right-side of port's pointer
    * @param [in] l left-side of port's pointer
-   * @param [in] n_que number of tx and rx queues for RSS multiqueues
    */
-  ssn_vnf_port_patch_panel(ssn_vnf_port_virt* r, ssn_vnf_port_virt* l, size_t n_que)
-    : right(r), left(l), left_enq("slankdev"), right_enq("slankdedf")
+  ssn_vnf_port_patch_panel(const char* n, ssn_vnf_port* r, ssn_vnf_port* l)
+    : name(n)
+    , left_enq (slankdev::format("%sLeftEnq" , n).c_str())
+    , right_enq(slankdev::format("%sRightEnq", n).c_str())
+    , right( dynamic_cast<ssn_vnf_port_virt*>(r) )
+    , left ( dynamic_cast<ssn_vnf_port_virt*>(l) )
   {
     if (!(r && l)) {
       std::string err = "ssn_vnf_port_patch_panel::ssn_vnf_port_patch_panel: ";
@@ -696,22 +714,28 @@ class ssn_vnf_port_patch_panel {
       err += "(n_rxq,n_txq are invalid)";
       throw slankdev::exception(err.c_str());
     }
+    size_t n_left_enq  = left->get_n_txq();
+    size_t n_right_enq = right->get_n_txq();
 
-    left_enq.configure_que(n_que);
-    right_enq.configure_que(n_que);
+    left_enq.configure_que(n_left_enq);
+    right_enq.configure_que(n_right_enq);
 
     left->tx  = &left_enq;
     left->rx  = &right_enq;
     right->tx = &right_enq;
     right->rx = &left_enq;
-
-    printf("patch panel create success\n");
   }
 
   /**
    * @brief destructor
    */
-  virtual ~ssn_vnf_port_patch_panel() {}
+  virtual ~ssn_vnf_port_patch_panel()
+  {
+    left->tx = nullptr;
+    left->rx = nullptr;
+    right->tx = nullptr;
+    right->rx = nullptr;
+  }
 
 }; /* class ssn_vnf_port_patch_panel */
 

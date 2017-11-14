@@ -57,6 +57,7 @@ class ssn_nfvi final {
 
   std::vector<ssn_vnf*>      vnfs;
   std::vector<ssn_vnf_port*> ports;
+  std::vector<ssn_vnf_port_patch_panel*> ppps;
   bool running;
   crow::SimpleApp app;
 
@@ -103,6 +104,7 @@ class ssn_nfvi final {
     for (size_t i=0; i<n_ele; i++) {
       if (ports[i] == port) {
         ports.erase(ports.begin() + i);
+        delete port;
         return ;
       }
     }
@@ -117,6 +119,7 @@ class ssn_nfvi final {
     for (size_t i=0; i<n_ele; i++) {
       if (vnfs[i] == vnf) {
         vnfs.erase(vnfs.begin() + i);
+        delete vnf;
         return ;
       }
     }
@@ -125,10 +128,26 @@ class ssn_nfvi final {
     throw slankdev::exception(err.c_str());
   }
 
+  void del_ppp(ssn_vnf_port_patch_panel* ppp)
+  {
+    size_t n_ele = vnfs.size();
+    for (size_t i=0; i<n_ele; i++) {
+      if (ppps[i] == ppp) {
+        ppps.erase(ppps.begin() + i);
+        delete ppp;
+        return ;
+      }
+    }
+    std::string err = "ssn_nfvi::del_ppp: ";
+    err += slankdev::format("not found ppp (%s)", ppp->name.c_str());
+    throw slankdev::exception(err.c_str());
+  }
+
   const std::vector<ssn_vnf*>& get_vnfs() const { return vnfs; }
   const std::vector<ssn_vnf_port*>& get_ports() const { return ports; }
   const ssn_vnf_catalog& get_vcat() const { return vnf_catalog; }
   const ssn_port_catalog& get_pcat() const { return port_catalog; }
+  const std::vector<ssn_vnf_port_patch_panel*>& get_ppps() const { return ppps; }
 
   /**
    * @brief Allocate new VNF from catalog
@@ -148,12 +167,87 @@ class ssn_nfvi final {
     return vnf;
   }
 
-  void port_alloc_from_catalog(const char* catname,
-      const char* instancename, void* arg)
+  /**
+   * @brief Allocate new Port from catalog
+   * @param [in] cname catalog-name
+   * @param [in] iname instance-name
+   * @return nullptr iname or cname is invalid
+   * @return port's pointer
+   */
+  ssn_vnf_port* port_alloc_from_catalog(const char* cname,
+      const char* iname, void* arg)
   {
-    ssn_vnf_port* port = port_catalog.alloc_port(
-        catname, instancename, arg);
+    if (find_port(iname)) return nullptr;
+
+    ssn_vnf_port* port = port_catalog.alloc_port(cname, iname, arg);
+    if (!port) return nullptr;
+
     ports.push_back(port);
+    return port;
+  }
+
+  /**
+   * @brief wrapper function of ssn_nfvi::port_alloc_from_catalog()
+   * @param [in] iname instance-name
+   * @param [in] ifname linux-if-name
+   * @return nullptr iname or cname is invalid
+   * @return port's pointer
+   */
+  ssn_vnf_port* port_alloc_tap(const char* iname, const char* ifname)
+  {
+    rte_mempool* mp = get_mp();
+    ssn_portalloc_tap_arg tap0arg = { mp, ifname };
+    return port_alloc_from_catalog("tap", iname, &tap0arg);
+  }
+
+  /**
+   * @brief wrapper function of ssn_nfvi::port_alloc_from_catalog()
+   * @param [in] iname instance-name
+   * @param [in] pciaddr pci-address string
+   * @return nullptr iname or cname is invalid
+   * @return port's pointer
+   */
+  ssn_vnf_port* port_alloc_pci(const char* iname, const char* pciaddr)
+  {
+    rte_mempool* mp = get_mp();
+    ssn_portalloc_pci_arg pci0arg = { mp, pciaddr };
+    return port_alloc_from_catalog("pci", iname, &pci0arg);
+  }
+
+  /**
+   * @brief wrapper function of ssn_nfvi::port_alloc_from_catalog()
+   * @param [in] iname instance-name
+   * @return nullptr iname or cname is invalid
+   * @return port's pointer
+   */
+  ssn_vnf_port* port_alloc_virt(const char* iname)
+  {
+    ssn_portalloc_virt_arg virt0arg = {};
+    return port_alloc_from_catalog("virt", iname, &virt0arg);
+  }
+
+  /**
+   * @brief Allocate new Port-patch-panel
+   * @param [in] iname instance-name
+   * @param [in] r right-port's pointer
+   * @param [in] l left-port's pointer
+   * @return nullptr iname or cname is invalid
+   * @return ppp's pointer
+   */
+  ssn_vnf_port_patch_panel*
+  ppp_alloc(const char* iname, ssn_vnf_port* r, ssn_vnf_port* l)
+  {
+    if (find_ppp(iname)) return nullptr;
+
+    ssn_vnf_port_virt* r_ = dynamic_cast<ssn_vnf_port_virt*>(r);
+    ssn_vnf_port_virt* l_ = dynamic_cast<ssn_vnf_port_virt*>(l);
+    if (r_->patched() || l_->patched()) return nullptr;
+
+    ssn_vnf_port_patch_panel* ppp = new ssn_vnf_port_patch_panel(iname, r, l);
+    if (!ppp) return nullptr;
+
+    ppps.push_back(ppp);
+    return ppp;
   }
 
   /*
@@ -245,6 +339,14 @@ class ssn_nfvi final {
       delete ports[i];
     }
 
+    /*
+     * Free ppp objects
+     */
+    size_t n_ppp = ppps.size();
+    for (size_t i=0; i<n_ppp; i++) {
+      delete ppps[i];
+    }
+
     rte_mempool_free(mp);
     ssn_fin();
   }
@@ -278,6 +380,23 @@ class ssn_nfvi final {
     for (size_t i=0; i<n_vnf; i++) {
       if (vnfs[i]->name == name) {
         return vnfs[i];
+      }
+    }
+    return nullptr;
+  }
+
+  /**
+   * @brief find port-patch-panel by name
+   * @param [in] name ppp name
+   * @return valid-pointer found ppp's pointer
+   * @return nullptr not found ppp
+   */
+  ssn_vnf_port_patch_panel* find_ppp(const char* name)
+  {
+    const size_t n_ppp = ppps.size();
+    for (size_t i=0; i<n_ppp; i++) {
+      if (ppps[i]->name == name) {
+        return ppps[i];
       }
     }
     return nullptr;
@@ -340,6 +459,14 @@ class ssn_nfvi final {
     const size_t n_ports = ports.size();
     for (size_t i=0; i<n_ports; i++) {
       printf("ports[%zd] n=%s \n", i, ports[i]->name.c_str());
+    }
+
+    printf("\n");
+
+    printf("[+] port-pathc-panels (n:name)\n");
+    const size_t n_ppps = ppps.size();
+    for (size_t i=0; i<n_ppps; i++) {
+      printf("ppps[%zd] n=%s \n", i, ppps[i]->name.c_str());
     }
 
     printf("\n");
