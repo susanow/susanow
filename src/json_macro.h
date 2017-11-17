@@ -63,6 +63,7 @@ crow::json::wvalue vnf_info(const ssn_vnf* vnf)
   x["n_port" ] = vnf->n_ports();
   x["n_block"] = vnf->n_blocks();
   x["perfred"] = vnf->get_perf_reduction();
+  x["rxrate" ] = vnf->get_rx_rate();
 
   crow::json::wvalue x_blocks;
   const size_t n_block = vnf->n_blocks();
