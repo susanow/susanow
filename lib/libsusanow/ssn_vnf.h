@@ -565,6 +565,23 @@ class ssn_vnf {
     return 0;
   }
 
+  /**
+   * @brief get performance reduction from attached ports
+   * @return perfred 0.8 means 20% perf-reduction.
+   */
+  double get_perf_reduction() const
+  {
+    double pr = 0.0;
+    const size_t n_port = ports.size();
+    for (size_t i=0; i<n_port;  i++) {
+      if (ports.at(i) == nullptr) {
+        return 1.0;
+      }
+      pr += ports.at(i)->get_perf_reduction();
+    }
+    return pr/n_port;
+  }
+
 }; /* class ssn_vnf */
 
 

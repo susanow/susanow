@@ -62,6 +62,7 @@ crow::json::wvalue vnf_info(const ssn_vnf* vnf)
   x["running"] = vnf->is_running();
   x["n_port" ] = vnf->n_ports();
   x["n_block"] = vnf->n_blocks();
+  x["perfred"] = vnf->get_perf_reduction();
 
   crow::json::wvalue x_blocks;
   const size_t n_block = vnf->n_blocks();
