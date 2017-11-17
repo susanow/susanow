@@ -104,6 +104,8 @@ def print_vnf(vnf, depth=0):
     dprint(depth, "coremask   : {}".format( vnf["coremask"] ))
     dprint(depth, "n_port     : {}".format( vnf["n_port" ] ))
     dprint(depth, "n_block    : {}".format( vnf["n_block"] ))
+    dprint(depth, "perfred    : {}".format( vnf["perfred"] ))
+    dprint(depth, "rxrate     : {}".format( vnf["rxrate" ] ))
     n_port = vnf["n_port"]
     for i in range(n_port):
         port = vnf["ports"][str(i)]

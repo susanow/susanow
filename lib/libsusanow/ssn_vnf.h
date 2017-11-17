@@ -582,6 +582,20 @@ class ssn_vnf {
     return pr/n_port;
   }
 
+  /**
+   * @brief get rx performance from attached ports
+   * @return rx performance [Mbps]
+   */
+  size_t get_rx_rate() const
+  {
+    size_t sum = 0;
+    const size_t n_port = ports.size();
+    for (size_t i=0; i<n_port; i++) {
+      sum += ports.at(i)->get_outer_rx_perf();
+    }
+    return sum;
+  }
+
 }; /* class ssn_vnf */
 
 
