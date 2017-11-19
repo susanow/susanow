@@ -1,0 +1,610 @@
+---
+swagger: "2.0"
+info:
+  version: "0.0.0"
+  title: "Susanow Control API"
+  license:
+    name: "MIT License"
+    url: "https://opensource.org/licenses/MIT"
+host: "virtserver.swaggerhub.com"
+basePath: "/susanow/ssnctl/0.0.0"
+schemes:
+- "https"
+- "http"
+paths:
+  /:
+    get:
+      summary: "Get system info"
+      parameters: []
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/inline_response_200"
+  /vnfs:
+    get:
+      summary: "Get list of VNFs"
+      parameters: []
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/inline_response_200_1"
+  /vnfs/{vnfName}:
+    get:
+      summary: "Get state of VNF"
+      parameters:
+      - name: "vnfName"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/inline_response_200_2"
+        400:
+          description: "nof found vnf"
+          schema:
+            $ref: "#/definitions/inline_response_400"
+    post:
+      summary: "Allocate new VNF"
+      parameters:
+      - name: "vnfName"
+        in: "path"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        required: false
+        schema:
+          $ref: "#/definitions/body"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/success"
+        400:
+          description: "vnf already exist or not found cname"
+          schema:
+            $ref: "#/definitions/unsuccess"
+    delete:
+      summary: "Delete VNF"
+      parameters:
+      - name: "vnfName"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/success"
+        400:
+          description: "not found vnf"
+          schema:
+            $ref: "#/definitions/unsuccess"
+  /vnfs/{vnfName}/deploy:
+    put:
+      summary: "Deploy VNF"
+      parameters:
+      - name: "vnfName"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/success"
+        400:
+          description: "not found vnf or coremask is  invalid or already running"
+          schema:
+            $ref: "#/definitions/unsuccess"
+  /vnfs/{vnfName}/undeploy:
+    put:
+      summary: "Undeploy VNF"
+      parameters:
+      - name: "vnfName"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/success"
+        400:
+          description: "not found vnf or coremask is  invalid or already running"
+          schema:
+            $ref: "#/definitions/unsuccess"
+  /vnfs/{vnfName}/coremask/{blockId}:
+    put:
+      summary: "Set coremask"
+      parameters:
+      - name: "vnfName"
+        in: "path"
+        required: true
+        type: "string"
+      - name: "blockId"
+        in: "path"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        required: false
+        schema:
+          $ref: "#/definitions/body_1"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/success"
+        400:
+          description: "not found vnf or coremask is  invalid or already running"
+          schema:
+            $ref: "#/definitions/unsuccess"
+  /vnfs/{vnfName}/reset:
+    put:
+      summary: "Reset vnf's running config"
+      description: "This operation doesn't detach ports"
+      parameters:
+      - name: "vnfName"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/success"
+        400:
+          description: "not found vnf or coremask is  invalid or already running"
+          schema:
+            $ref: "#/definitions/unsuccess"
+  /vnfs/{vnfName}/ports/{portId}:
+    put:
+      summary: "Attach port to VNF"
+      parameters:
+      - name: "vnfName"
+        in: "path"
+        required: true
+        type: "string"
+      - name: "portId"
+        in: "path"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        required: false
+        schema:
+          $ref: "#/definitions/body_2"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/success"
+        400:
+          description: "vnf or port not found.  or vnf already have attached port"
+          schema:
+            $ref: "#/definitions/unsuccess"
+    delete:
+      summary: "Dettach port to VNF"
+      parameters:
+      - name: "vnfName"
+        in: "path"
+        required: true
+        type: "string"
+      - name: "portId"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/success"
+        400:
+          description: "vnf or port not found.  or no port attached"
+          schema:
+            $ref: "#/definitions/unsuccess"
+  /ports:
+    get:
+      summary: "Get list of Ports"
+      parameters: []
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/inline_response_200_3"
+  /ports/{portName}:
+    get:
+      summary: "Get state of Port"
+      parameters:
+      - name: "portName"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful"
+    post:
+      summary: "Alloc new Port"
+      parameters:
+      - name: "portName"
+        in: "path"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        required: false
+        schema:
+          $ref: "#/definitions/body_3"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/success"
+        400:
+          description: "port already exist or not found cname"
+          schema:
+            $ref: "#/definitions/unsuccess"
+    delete:
+      summary: "Delete Port"
+      parameters:
+      - name: "portName"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/success"
+        400:
+          description: "port not found"
+          schema:
+            $ref: "#/definitions/unsuccess"
+  /catalogs/vnf:
+    get:
+      summary: "Get VNF Catalog"
+      parameters: []
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/inline_response_200_4"
+  /catalogs/port:
+    get:
+      summary: "Get Port Catalog"
+      parameters: []
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/inline_response_200_5"
+  /ppps:
+    get:
+      summary: "Get port patch panel infos"
+      parameters: []
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/inline_response_200_6"
+  /ppps/{pppName}:
+    get:
+      summary: "get port-patch-panel infos"
+      parameters:
+      - name: "pppName"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/inline_response_200_7"
+        400:
+          description: "some error occured"
+          schema:
+            $ref: "#/definitions/unsuccess"
+    post:
+      summary: "alloc new port-patch-panel"
+      parameters:
+      - name: "pppName"
+        in: "path"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        required: false
+        schema:
+          $ref: "#/definitions/body_4"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/success"
+        400:
+          description: "some error occured"
+          schema:
+            $ref: "#/definitions/unsuccess"
+    delete:
+      summary: "delete port-patch-panel"
+      parameters:
+      - name: "pppName"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/success"
+        400:
+          description: "some error occured"
+          schema:
+            $ref: "#/definitions/unsuccess"
+definitions:
+  vnf:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+        example: "vnf0"
+      running:
+        type: "boolean"
+        example: true
+      coremask:
+        type: "integer"
+        format: "uint64"
+        example: 4
+      n_port:
+        type: "integer"
+        format: "uint64"
+        example: 2
+      n_block:
+        type: "integer"
+        format: "uint64"
+        example: 1
+      perfred:
+        type: "number"
+        format: "double"
+        example: 0.6999999999999999555910790149937383830547332763671875
+      rxrate:
+        type: "number"
+        format: "uint64"
+        example: 28000000
+      blocks:
+        $ref: "#/definitions/vnf_blocks"
+      ports:
+        $ref: "#/definitions/vnf_ports"
+  block:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+        example: "vnf0block0"
+      coremask:
+        type: "integer"
+        format: "uint64"
+        example: 2
+      running:
+        type: "boolean"
+        example: false
+  port:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+        example: "pci0"
+      attach:
+        type: "string"
+        example: "vnf0"
+      n_rxq:
+        type: "integer"
+        format: "uint64"
+        example: 4
+      n_txq:
+        type: "integer"
+        format: "uint64"
+        example: 4
+      n_rxa:
+        type: "integer"
+        format: "uint64"
+        example: 2
+      n_txa:
+        type: "integer"
+        format: "uint64"
+        example: 2
+      perfred:
+        type: "number"
+        format: "double"
+        example: 0.6999999999999999555910790149937383830547332763671875
+  success:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        example: true
+      msg:
+        type: "string"
+        example: "successed"
+  unsuccess:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        example: false
+      msg:
+        type: "string"
+        example: "error message"
+  port-catalog-ele:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+        example: "pci"
+      allocator:
+        type: "string"
+        example: "0xfffffff"
+  vnf-catalog-ele:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+        example: "l2fwd1b"
+      allocator:
+        type: "string"
+        example: "0xfffffff"
+  port-patch-panel:
+    type: "object"
+    properties:
+      left:
+        $ref: "#/definitions/port"
+      right:
+        $ref: "#/definitions/port"
+  inline_response_200:
+    properties:
+      n_vnf:
+        type: "integer"
+        format: "uint64"
+        example: 2
+      n_port:
+        type: "integer"
+        format: "uint64"
+        example: 2
+      n_vcat:
+        type: "integer"
+        format: "uint64"
+        example: 2
+      n_pcat:
+        type: "integer"
+        format: "uint64"
+        example: 2
+  inline_response_200_1:
+    properties:
+      0:
+        $ref: "#/definitions/vnf"
+      1:
+        $ref: "#/definitions/vnf"
+      n_vnf:
+        type: "integer"
+        format: "uint64"
+        example: 2
+  inline_response_200_2:
+    properties:
+      result:
+        $ref: "#/definitions/success"
+      vnf:
+        $ref: "#/definitions/vnf"
+  inline_response_400:
+    properties:
+      result:
+        $ref: "#/definitions/unsuccess"
+  body:
+    type: "object"
+    properties:
+      cname:
+        type: "string"
+        example: "l2fwd1b"
+  body_1:
+    type: "object"
+    properties:
+      coremask:
+        type: "integer"
+        format: "uint64"
+        example: 4
+  body_2:
+    type: "object"
+    properties:
+      pname:
+        type: "string"
+        example: "pci0"
+  inline_response_200_3:
+    properties:
+      0:
+        $ref: "#/definitions/port"
+      1:
+        $ref: "#/definitions/port"
+      n_port:
+        type: "integer"
+        format: "uint64"
+        example: 2
+  portsportName_options:
+    properties:
+      pciaddr:
+        type: "string"
+        example: "01:00:0"
+      ifname:
+        type: "string"
+        example: "tap0"
+  body_3:
+    type: "object"
+    properties:
+      cname:
+        type: "string"
+        example: "pci"
+      options:
+        $ref: "#/definitions/portsportName_options"
+  inline_response_200_4_list:
+    properties:
+      0:
+        $ref: "#/definitions/vnf-catalog-ele"
+      1:
+        $ref: "#/definitions/vnf-catalog-ele"
+  inline_response_200_4:
+    properties:
+      n_ele:
+        type: "string"
+        example: "2"
+      list:
+        $ref: "#/definitions/inline_response_200_4_list"
+  inline_response_200_5_list:
+    properties:
+      0:
+        $ref: "#/definitions/port-catalog-ele"
+      1:
+        $ref: "#/definitions/port-catalog-ele"
+  inline_response_200_5:
+    properties:
+      n_ele:
+        type: "string"
+        example: "2"
+      list:
+        $ref: "#/definitions/inline_response_200_5_list"
+  inline_response_200_6:
+    properties:
+      0:
+        $ref: "#/definitions/port-patch-panel"
+      1:
+        $ref: "#/definitions/port-patch-panel"
+      n_ele:
+        type: "string"
+        example: "2"
+  inline_response_200_7:
+    properties:
+      result:
+        $ref: "#/definitions/success"
+      ppp:
+        $ref: "#/definitions/port-patch-panel"
+  body_4:
+    type: "object"
+    properties:
+      left:
+        type: "string"
+        example: "virt0"
+      right:
+        type: "string"
+        example: "virt1"
+  vnf_blocks:
+    properties:
+      0:
+        $ref: "#/definitions/block"
+  vnf_ports:
+    properties:
+      0:
+        $ref: "#/definitions/port"
+      1:
+        $ref: "#/definitions/port"
