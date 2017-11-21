@@ -59,7 +59,7 @@ class ssn_nfvi final {
   std::vector<ssn_vnf_port*> ports;
   std::vector<ssn_vnf_port_patch_panel*> ppps;
   bool running;
-  crow::SimpleApp app;
+  crow::App<Middleware> app;
 
  private:
 

@@ -10,13 +10,14 @@
 #include "json_macro.h"
 
 
+
 namespace {
 
 using std::string;
 using slankdev::format;
 
 
-void addroute__(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app,"/")
   .methods("GET"_method)
@@ -31,7 +32,7 @@ void addroute__(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-void addroute__vnfs(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__vnfs(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app,"/vnfs")
   .methods("GET"_method)
@@ -54,7 +55,7 @@ void addroute__vnfs(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-void addroute__vnfs_NAME(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__vnfs_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app,"/vnfs/<str>")
   .methods("GET"_method, "POST"_method, "DELETE"_method)
@@ -116,7 +117,7 @@ void addroute__vnfs_NAME(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-void addroute__vnfs_NAME_ports_PORTID(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__vnfs_NAME_ports_PORTID(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app, "/vnfs/<str>/ports/<int>")
   .methods("PUT"_method, "DELETE"_method)
@@ -192,7 +193,7 @@ void addroute__vnfs_NAME_ports_PORTID(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-void addroute__ports(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__ports(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app,"/ports")
   .methods("GET"_method)
@@ -216,7 +217,7 @@ void addroute__ports(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-void addroute__ports_NAME(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app,"/ports/<str>")
   .methods("GET"_method, "POST"_method, "DELETE"_method)
@@ -325,7 +326,7 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-void addroute__catalogs_vnf(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__catalogs_vnf(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app,"/catalogs/vnf")
   .methods("GET"_method)
@@ -352,7 +353,7 @@ void addroute__catalogs_vnf(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-void addroute__catalogs_port(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__catalogs_port(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app,"/catalogs/port")
   .methods("GET"_method)
@@ -380,7 +381,7 @@ void addroute__catalogs_port(ssn_nfvi& nfvi, crow::SimpleApp& app)
 }
 
 
-void addroute__vnfs_NAME_coremask_BLOCKID(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__vnfs_NAME_coremask_BLOCKID(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app, "/vnfs/<str>/coremask/<int>") .methods("PUT"_method)
   ([&nfvi](const crow::request& req, std::string str, int blockId) {
@@ -451,7 +452,7 @@ void addroute__vnfs_NAME_coremask_BLOCKID(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-void addroute__vnfs_NAME_reset(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__vnfs_NAME_reset(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app, "/vnfs/<str>/reset")
   .methods("PUT"_method)
@@ -496,7 +497,7 @@ void addroute__vnfs_NAME_reset(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-void addroute__vnfs_NAME_deploy(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__vnfs_NAME_deploy(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
 
   CROW_ROUTE(app, "/vnfs/<str>/deploy")
@@ -540,7 +541,7 @@ void addroute__vnfs_NAME_deploy(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-void addroute__vnfs_NAME_undeploy(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__vnfs_NAME_undeploy(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app, "/vnfs/<str>/undeploy")
   .methods("PUT"_method)
@@ -577,7 +578,7 @@ void addroute__vnfs_NAME_undeploy(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-void addroute__ppps(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__ppps(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app,"/ppps")
   .methods("GET"_method)
@@ -601,7 +602,7 @@ void addroute__ppps(ssn_nfvi& nfvi, crow::SimpleApp& app)
   });
 }
 
-void addroute__ppps_NAME(ssn_nfvi& nfvi, crow::SimpleApp& app)
+void addroute__ppps_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app,"/ppps/<str>")
   .methods("GET"_method, "POST"_method, "DELETE"_method)
@@ -676,7 +677,11 @@ void addroute__ppps_NAME(ssn_nfvi& nfvi, crow::SimpleApp& app)
 } /* namespace */
 
 
-void rest_api_thread(ssn_nfvi* nfviptr, crow::SimpleApp* app, uint16_t rest_server_port)
+
+void
+rest_api_thread(ssn_nfvi* nfviptr,
+    crow::App<Middleware>* app,
+    uint16_t rest_server_port)
 {
   using std::string;
   using slankdev::format;
