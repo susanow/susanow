@@ -591,6 +591,7 @@ class ssn_vnf {
     size_t sum = 0;
     const size_t n_port = ports.size();
     for (size_t i=0; i<n_port; i++) {
+      if (!ports.at(i)) return 0;
       sum += ports.at(i)->get_outer_rx_perf();
     }
     return sum;
