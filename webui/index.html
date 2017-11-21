@@ -1,13 +1,96 @@
 <!DOCTYPE html>
 <html >
 <head>
-  <meta charset="UTF-8">
-  <title>ssn NFV</title>
+	<meta charset="UTF-8">
+	<title>ssn NFV</title>
+	<meta http-equiv="Pragma" content="no-cache">
+	<meta http-equiv="Cache-Control" content="no-cache">
+	<meta http-equiv="Expires" content="0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
 </head>
 
 <body>
+
+	<nav class="nav-extended">
+    <div class="nav-wrapper">
+      <a href="#" class="brand-logo">Logo</a>
+      <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
+      <ul id="nav-mobile" class="right hide-on-med-and-down">
+        <li><a href="sass.html">Sass</a></li>
+        <li><a href="badges.html">Components</a></li>
+        <li><a href="collapsible.html">JavaScript</a></li>
+      </ul>
+      <ul class="side-nav" id="mobile-demo">
+        <li><a href="sass.html">Sass</a></li>
+        <li><a href="badges.html">Components</a></li>
+        <li><a href="collapsible.html">JavaScript</a></li>
+      </ul>
+    </div>
+    <div class="nav-content">
+      <ul class="tabs tabs-transparent">
+        <li class="tab"><a href="#test1">Test 1      </a></li>
+        <li class="tab"><a href="#test2">Test 2      </a></li>
+        <li class="tab"><a href="#test3">Disabled Tab</a></li>
+        <li class="tab"><a href="#test4">Test 4      </a></li>
+      </ul>
+    </div>
+  </nav>
+  <div id="test1" class="col s12">Test 1</div>
+  <div id="test2" class="col s12">Test 2</div>
+  <div id="test3" class="col s12">Test 3</div>
+  <div id="test4" class="col s12">Test 4</div>
+
+
 <div class="graph"></div>
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
 	<script src="main.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+
+<h1>susanow NFV</h1>
+<h3>System</h3>
+
+
+<ul class="collapsible" data-collapsible="accordion">
+	<li>
+		<div class="collapsible-header">
+			First
+		</div>
+		<div class="collapsible-body">
+			<p>Lorem ipsum dolor sit amet.</p>
+			n_vnf  : <label id='n_vnf' ></label><br>
+			n_port : <label id='n_port'></label><br>
+			n_vcat : <label id='n_vcat'></label><br>
+			n_pcat : <label id='n_pcat'></label><br>
+
+		</div>
+	</li>
+</ul>
+
+<h3>VNFs</h3>
+
+<ul class="collapsible" data-collapsible="accordion">
+	<li>
+		<div class="collapsible-header">
+			First
+		</div>
+		<div class="collapsible-body">
+			<p>Lorem ipsum dolor sit amet.</p>
+		</div>
+	</li>
+	<li>
+		<div class="collapsible-header">
+			Second
+		</div>
+		<div class="collapsible-body">
+			<p>Lorem ipsum dolor sit amet.</p>
+		</div>
+	</li>
+</ul>
+
 </body>
 </html>
+
+
