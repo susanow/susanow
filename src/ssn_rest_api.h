@@ -14,7 +14,7 @@ struct Middleware {
 };
 
 /*
- * @brief REST API to controll nfvi
+ * @brief REST API to control nfvi
  * @param sys ssn_nfvi pointer
  * @details
  *   User can extend this function to add new REST-API easily
