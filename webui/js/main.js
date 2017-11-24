@@ -54,6 +54,7 @@ var update_vnf = function(){
 					'       </div>' +
 					'     </div>' +
 					'   </div>' +
+					'   <div id=NAME>THIS-PLACE-SHOULD-BE-VIEWED-GRAPH</div>' +
 					'	</div>' +
 					'</li>';
 				str = str.replace(/NAME/g, name);
@@ -62,6 +63,9 @@ var update_vnf = function(){
 				str = str.replace(/PERFRED/g, perfred);
 				str = str.replace(/RXRATE/g, rxrate);
 				$(str).appendTo(list);
+
+				create_vnf_graph(name);
+
 			} else {
 				node = $(list_ele);
 				node.find('#running').html(running);
