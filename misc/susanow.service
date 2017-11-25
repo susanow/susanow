@@ -1,0 +1,11 @@
+
+[Unit]
+Description = susanow-NFVi daemon
+Documentation = http://susanow.dpdk.ninja
+
+[Service]
+ExecStart = /usr/local/bin/susanow
+
+[Install]
+WantedBy = multi-user.target
+
