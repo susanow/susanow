@@ -24,10 +24,9 @@ class vnf_perf_chart {
 };
 
 var create_vnf_graph = function(vnfname) {
-	console.log("bindto: #" + vnfname);
 
 	var opts = {
-		bindto: "#" + vnfname,
+		bindto: "#" + vnfname + '-graph',
 		size: {
 			height : 200,
 			width  : 400,

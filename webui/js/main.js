@@ -54,7 +54,10 @@ var update_vnf = function(){
 					'       </div>' +
 					'     </div>' +
 					'   </div>' +
-					'   <div id=NAME>THIS-PLACE-SHOULD-BE-VIEWED-GRAPH</div>' +
+					'   <div id=NAME-gauge>THIS-PLACE-SHOULD-BE-VIEWED-GRAPH</div>' +
+					'   <br>' +
+					'   <br>' +
+					'   <div id=NAME-graph>THIS-PLACE-SHOULD-BE-VIEWED-GRAPH</div>' +
 					'	</div>' +
 					'</li>';
 				str = str.replace(/NAME/g, name);
@@ -65,6 +68,7 @@ var update_vnf = function(){
 				$(str).appendTo(list);
 
 				create_vnf_graph(name);
+				create_vnf_gauge(name);
 
 			} else {
 				node = $(list_ele);
