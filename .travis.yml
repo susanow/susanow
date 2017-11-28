@@ -7,8 +7,6 @@ compiler:
 script:
 - export SSN_SDK=`pwd`
 - "./setup.sh"
-- "make build-lib"
-- "make test-lib"
 - "make"
 notifications:
   slack:
