@@ -41,7 +41,11 @@
 #include <ssn_port_catalog.h>
 #include <ssn_rest_api.h>
 #include <slankdev/exception.h>
+#include <slankdev/signal.h>
 
+static void signal_handler(int signum);
+class ssn_nfvi;
+extern ssn_nfvi* _nfvip;
 
 class ssn_nfvi final {
  private:
@@ -311,6 +315,8 @@ class ssn_nfvi final {
 
     uint64_t one_sec = ssn_timer_get_hz();
     add_timer(new ssn_timer(_timercallback, this, one_sec));
+
+    _nfvip = this;
   }
 
   virtual ~ssn_nfvi()
@@ -422,6 +428,8 @@ class ssn_nfvi final {
      */
     running = true;
     while (running) {
+      slankdev::signal(SIGINT, signal_handler);
+      slankdev::signal(SIGTERM, signal_handler);
       sleep(1);
     }
 
@@ -492,5 +500,14 @@ class ssn_nfvi final {
 
 }; /* class ssn_nfvi */
 
+static void signal_handler(int signum)
+{
+  if (signum == SIGINT || signum == SIGTERM) {
+    if (_nfvip) {
+      printf("recv signal(%d), then exit...\n", signum);
+      _nfvip->stop();
+    }
+  }
+}
 
 

@@ -39,7 +39,7 @@ clean:
 	make -C lib clean
 	make -C src clean
 
-install: build-nfvi
+install:
 	cp src/susanow $(INSTALLPATH_BIN)
 	cp misc/susanow.service $(INSTALLPATH_SERV)
 

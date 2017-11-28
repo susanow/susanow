@@ -23,24 +23,20 @@
 
 
 include $(SSN_SDK)/mk/ssn.vars.mk
-CXXFLAGS += $(SSN_CXXFLAGS)
-CXXFLAGS += -Wno-format-security -I. -std=c++11 -O0
-# CXXFLAGS += -fsanitize=address
+include $(SSN_SDK)/mk/ssn.rule.mk
 
+CXXFLAGS += $(SSN_CXXFLAGS)
+CXXFLAGS += -Wno-format-security -I. -std=c++11
 LDFLAGS  += $(SSN_LDFLAGS)
 LDFLAGS  += -lpthread -lboost_system -lboost_thread
 
-TARGET = susanow.out
-
 SRC = main.cc ssn_rest_api.cc
 OBJ = $(SRC:.cc=.o)
+TARGET = susanow
 
 TARGET: $(OBJ)
 	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET) $(LDFLAGS)
 	@echo LD $(TARGET)
-	@cp $(TARGET) ../tools
-
-rest_api.o: rest_api.h rest_api.cc
 
 clean:
 	rm -rf *.out *.o $(TARGET)

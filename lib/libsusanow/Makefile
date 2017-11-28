@@ -24,7 +24,7 @@
 
 
 include ../../mk/ssn.vars.mk
-include ../../mk/rules.mk
+include ../../mk/ssn.rule.mk
 
 CXXFLAGS = $(SSN_LIB_CXXFLAGS) -Wno-format-security -O3
 LDFLAGS  = $(SSN_LIB_LDFLAGS)

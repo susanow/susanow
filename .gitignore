@@ -2,7 +2,7 @@ __pycache__
 *.pyc
 
 # bin
-bin/susanow
+src/susanow
 
 # sphinx document
 _build
