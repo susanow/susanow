@@ -21,6 +21,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+INSTALLPATH_BIN  := /usr/local/bin
+INSTALLPATH_SERV := /etc/systemd/system
+
 def: build-nfvi
 
 build-nfvi: test-lib
@@ -35,3 +38,12 @@ build-lib:
 clean:
 	make -C lib clean
 	make -C src clean
+
+install: build-nfvi
+	cp src/susanow $(INSTALLPATH_BIN)
+	cp misc/susanow.service $(INSTALLPATH_SERV)
+
+uninstall:
+	rm -f $(INSTALLPATH_BIN)/susanow
+	rm -f $(INSTALLPATH_SERV)/susanow.service
+

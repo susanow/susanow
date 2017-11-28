@@ -8,7 +8,7 @@ CXXFLAGS += -Wno-format-security -I. -g -O0 -std=c++11
 CXXFLAGS += -fsanitize=address
 
 
-all:
+all: main.cc
 	@$(CXX) $(CXXFLAGS) main.cc $(LDFLAGS)
 	@echo LD a.out
 
