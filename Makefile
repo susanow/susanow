@@ -24,15 +24,17 @@
 INSTALLPATH_BIN  := /usr/local/bin
 INSTALLPATH_SERV := /etc/systemd/system
 
-def: build-nfvi
+.PHONY: test lib nfvi clean install uninstall
 
-build-nfvi: test-lib
+def: nfvi
+
+nfvi: lib test
 	make -C src
 
-test-lib: build-lib
+test: lib
 	make -C lib test
 
-build-lib:
+lib:
 	make -C lib
 
 clean:

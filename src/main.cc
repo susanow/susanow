@@ -34,7 +34,6 @@
 #include <ssn_vnf_l2fwd2b.h>
 #include <ssn_rest_api.h>
 
-ssn_nfvi* _nfvip = nullptr;
 int main(int argc, char** argv)
 {
   ssn_nfvi nfvi(argc, argv);
