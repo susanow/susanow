@@ -1,10 +1,10 @@
 
 export SSN_SDK = ../../../../
 include $(SSN_SDK)/mk/ssn.vars.mk
+include $(SSN_SDK)/mk/ssn.rule.mk
 
 CXXFLAGS += $(SSN_CXXFLAGS)
-CXXFLAGS += -Wno-format-security -I. -g -O0 -std=c++11
-CXXFLAGS += -fsanitize=address
+CXXFLAGS += -Wno-format-security -std=c++11
 LDFLAGS  += $(SSN_LDFLAGS)
 
 SRC = main.cc

@@ -19,10 +19,7 @@ struct Middleware {
  * @details
  *   User can extend this function to add new REST-API easily
  */
-void
-rest_api_thread(
-    ssn_nfvi* nfviptr,
+void rest_api_thread(ssn_nfvi* nfviptr,
     crow::App<Middleware>* app,
-    uint16_t rest_server_port
-  );
+    uint16_t rest_server_port);
 

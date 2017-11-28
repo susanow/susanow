@@ -7,7 +7,7 @@
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
 #include <ssn_nfvi.h>
-#include "json_macro.h"
+#include <ssn_nfvi_json.h>
 
 
 
@@ -678,8 +678,7 @@ void addroute__ppps_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 
 
 
-void
-rest_api_thread(ssn_nfvi* nfviptr,
+void rest_api_thread(ssn_nfvi* nfviptr,
     crow::App<Middleware>* app,
     uint16_t rest_server_port)
 {
