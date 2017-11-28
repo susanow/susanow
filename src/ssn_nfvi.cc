@@ -67,6 +67,11 @@ void ssn_nfvi::run(uint16_t rest_server_port)
   rest_api.join();
 }
 
+void ssn_nfvi::stop()
+{
+  app.stop();
+  running = false;
+}
 
 void ssn_nfvi::debug_dump(FILE* fp) const
 {
@@ -181,4 +186,122 @@ ssn_nfvi::~ssn_nfvi()
   ssn_fin();
 }
 
+ssn_vnf_port* ssn_nfvi::find_port(const char* name)
+{
+  const size_t n_port = ports.size();
+  for (size_t i=0; i<n_port; i++) {
+    if (ports[i]->name == name) {
+      return ports[i];
+    }
+  }
+  return nullptr;
+}
 
+ssn_vnf* ssn_nfvi::find_vnf(const char* name)
+{
+  const size_t n_vnf = vnfs.size();
+  for (size_t i=0; i<n_vnf; i++) {
+    if (vnfs[i]->name == name) {
+      return vnfs[i];
+    }
+  }
+  return nullptr;
+}
+
+ssn_vnf_port_patch_panel* ssn_nfvi::find_ppp(const char* name)
+{
+  const size_t n_ppp = ppps.size();
+  for (size_t i=0; i<n_ppp; i++) {
+    if (ppps[i]->name == name) {
+      return ppps[i];
+    }
+  }
+  return nullptr;
+}
+
+void ssn_nfvi::port_register_to_catalog(const char* cname, ssn_portallocfunc_t f)
+{
+  const size_t n_ele = vnf_catalog.size();
+  for (size_t i=0; i<n_ele; i++) {
+    if (vnf_catalog.at(i).name == cname) {
+      std::string err = "ssn_nfvi::port_register_to_catalog: ";
+      err += slankdev::format("cname already registerd (%s)", cname);
+      throw slankdev::exception(err.c_str());
+    }
+  }
+  port_catalog.register_port(cname , f);
+}
+
+void ssn_nfvi::vnf_register_to_catalog(const char* cname, ssn_vnfallocfunc_t f)
+{
+  const size_t n_ele = vnf_catalog.size();
+  for (size_t i=0; i<n_ele; i++) {
+    if (vnf_catalog.at(i).name == cname) {
+      std::string err = "ssn_nfvi::vnf_register_to_catalog: ";
+      err += slankdev::format("cname already registerd (%s)", cname);
+      throw slankdev::exception(err.c_str());
+    }
+  }
+  vnf_catalog.register_vnf(cname, f);
+}
+
+ssn_vnf_port_patch_panel*
+ssn_nfvi::ppp_alloc(const char* iname, ssn_vnf_port* r, ssn_vnf_port* l)
+{
+  if (find_ppp(iname)) return nullptr;
+
+  ssn_vnf_port_virt* r_ = dynamic_cast<ssn_vnf_port_virt*>(r);
+  ssn_vnf_port_virt* l_ = dynamic_cast<ssn_vnf_port_virt*>(l);
+  if (!r_ || !l_) return nullptr;
+
+  if (r_->patched() || l_->patched()) return nullptr;
+
+  ssn_vnf_port_patch_panel* ppp = new ssn_vnf_port_patch_panel(iname, r, l);
+  if (!ppp) return nullptr;
+
+  ppps.push_back(ppp);
+  return ppp;
+}
+
+ssn_vnf_port* ssn_nfvi::port_alloc_virt(const char* iname)
+{
+  ssn_portalloc_virt_arg virt0arg = {};
+  return port_alloc_from_catalog("virt", iname, &virt0arg);
+}
+
+ssn_vnf_port* ssn_nfvi::port_alloc_pci(const char* iname, const char* pciaddr)
+{
+  rte_mempool* mp = get_mp();
+  ssn_portalloc_pci_arg pci0arg = { mp, pciaddr };
+  return port_alloc_from_catalog("pci", iname, &pci0arg);
+}
+
+ssn_vnf_port* ssn_nfvi::port_alloc_tap(const char* iname, const char* ifname)
+{
+  rte_mempool* mp = get_mp();
+  ssn_portalloc_tap_arg tap0arg = { mp, ifname };
+  return port_alloc_from_catalog("tap", iname, &tap0arg);
+}
+
+ssn_vnf_port*
+ssn_nfvi::port_alloc_from_catalog(const char* cname, const char* iname, void* arg)
+{
+  if (find_port(iname)) return nullptr;
+
+  ssn_vnf_port* port = port_catalog.alloc_port(cname, iname, arg);
+  if (!port) return nullptr;
+
+  ports.push_back(port);
+  return port;
+}
+
+ssn_vnf* ssn_nfvi::vnf_alloc_from_catalog(const char* cname, const char* iname)
+{
+  if (find_vnf(iname)) return nullptr;
+
+  ssn_vnf* vnf = vnf_catalog.alloc_vnf(cname, iname);
+  if (!vnf) return nullptr;
+
+  vnfs.push_back(vnf);
+  return vnf;
+}
