@@ -23,6 +23,19 @@ void addroute__(ssn_nfvi& nfvi, crow::App<Middleware>& app)
   .methods("GET"_method)
   ([&nfvi]() {
       crow::json::wvalue x_root;
+      x_root["result"] = responce_info(true, "give me much time... X(");
+      x_root["running"] = true;
+      x_root["uptime_sec"] = nfvi.get_uptime();
+      return x_root;
+  });
+}
+
+void addroute__system(ssn_nfvi& nfvi, crow::App<Middleware>& app)
+{
+  CROW_ROUTE(app,"/system")
+  .methods("GET"_method)
+  ([&nfvi]() {
+      crow::json::wvalue x_root;
       x_root["result"] = responce_info(true, "");
       x_root["n_vnf"]  = nfvi.get_vnfs().size();
       x_root["n_port"] = nfvi.get_ports().size();
@@ -688,6 +701,7 @@ void rest_api_thread(ssn_nfvi* nfviptr,
   app->loglevel(crow::LogLevel::Critical);
 
   addroute__                             (nfvi, *app);
+  addroute__system                       (nfvi, *app);
   addroute__vnfs                         (nfvi, *app);
   addroute__vnfs_NAME                    (nfvi, *app);
   addroute__vnfs_NAME_ports_PORTID       (nfvi, *app);
