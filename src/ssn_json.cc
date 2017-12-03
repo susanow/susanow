@@ -29,7 +29,7 @@
 #include <crow.h>
 #include <string>
 #include <slankdev/string.h>
-#include <ssn_nfvi_json.h>
+#include <ssn_json.h>
 
 
 

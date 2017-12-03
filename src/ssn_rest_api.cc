@@ -7,7 +7,7 @@
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
 #include <ssn_nfvi.h>
-#include <ssn_nfvi_json.h>
+#include <ssn_json.h>
 
 
 
