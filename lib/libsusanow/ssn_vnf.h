@@ -325,6 +325,36 @@ class ssn_vnf {
   }
 
   /**
+   * @brief Check Deployable?
+   * @return true deployable
+   * @return false not deployable
+   */
+  bool deployable() const
+  {
+    /*
+     * Condition
+     *  - port is attached
+     *  - all coremask is set
+     */
+
+    /*
+     * check ports
+     */
+    size_t n_port = ports.size();
+    for (size_t i=0; i<n_port; i++) {
+      if (ports[i] == nullptr) return false;
+    }
+
+    /*
+     * check coremask
+     */
+    size_t n_block = n_blocks();
+    for (size_t i=0; i<n_port; i++) {
+      if (blocks[i]->get_coremask() == 0) return false;
+    }
+  }
+
+  /**
    * @brief reset vnf's running config.
    * @return 0 success
    * @return -1 unsuccess, maybe port is not attached

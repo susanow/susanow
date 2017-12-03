@@ -60,6 +60,7 @@ crow::json::wvalue vnf_info(const ssn_vnf* vnf)
   crow::json::wvalue x;
   x["name"   ] = vnf->name;
   x["running"] = vnf->is_running();
+  x["deployable"] = vnf->deployable();
   x["n_port" ] = vnf->n_ports();
   x["n_block"] = vnf->n_blocks();
   x["perfred"] = vnf->get_perf_reduction();
