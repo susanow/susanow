@@ -7,7 +7,7 @@
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
 #include <ssn_nfvi.h>
-#include <ssn_nfvi_json.h>
+#include <ssn_json.h>
 
 
 
@@ -20,6 +20,19 @@ using slankdev::format;
 void addroute__(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app,"/")
+  .methods("GET"_method)
+  ([&nfvi]() {
+      crow::json::wvalue x_root;
+      x_root["result"] = responce_info(true, "give me much time... X(");
+      x_root["running"] = true;
+      x_root["uptime_sec"] = nfvi.get_uptime();
+      return x_root;
+  });
+}
+
+void addroute__system(ssn_nfvi& nfvi, crow::App<Middleware>& app)
+{
+  CROW_ROUTE(app,"/system")
   .methods("GET"_method)
   ([&nfvi]() {
       crow::json::wvalue x_root;
@@ -686,8 +699,11 @@ void rest_api_thread(ssn_nfvi* nfviptr,
   using slankdev::format;
   ssn_nfvi& nfvi = *nfviptr;
   app->loglevel(crow::LogLevel::Critical);
+  app->loglevel(crow::LogLevel::Debug);
+  app->loglevel(crow::LogLevel::Error);
 
   addroute__                             (nfvi, *app);
+  addroute__system                       (nfvi, *app);
   addroute__vnfs                         (nfvi, *app);
   addroute__vnfs_NAME                    (nfvi, *app);
   addroute__vnfs_NAME_ports_PORTID       (nfvi, *app);

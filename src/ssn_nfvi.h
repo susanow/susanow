@@ -62,6 +62,8 @@ class ssn_nfvi final {
   bool running;
   crow::App<Middleware> app;
 
+  time_t startup_time;
+
  private:
 
   void add_timer(ssn_timer* tim)
@@ -256,6 +258,12 @@ class ssn_nfvi final {
    * @return nullptr not found ppp
    */
   ssn_vnf_port_patch_panel* find_ppp(const char* name);
+
+  /**
+   * @brief get system uptime [min]
+   * @return uptime minits
+   */
+  double get_uptime() const { return clock()/1000000.0; }
 
 }; /* class ssn_nfvi */
 

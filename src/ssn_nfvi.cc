@@ -128,6 +128,9 @@ void ssn_nfvi::debug_dump(FILE* fp) const
 ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
   : mp(nullptr), timer_sched(nullptr), running(false)
 {
+  startup_time = time(nullptr);
+  printf("TIME: %s", ctime(&startup_time));
+
   ssn_log_set_level(ll);
   ssn_init(argc, argv);
   const size_t n_ports = ssn_dev_count();
@@ -305,3 +308,6 @@ ssn_vnf* ssn_nfvi::vnf_alloc_from_catalog(const char* cname, const char* iname)
   vnfs.push_back(vnf);
   return vnf;
 }
+
+
+

@@ -30,7 +30,7 @@ CXXFLAGS += -Wno-format-security -I. -std=c++11
 LDFLAGS  += $(SSN_LDFLAGS)
 LDFLAGS  += -lpthread -lboost_system -lboost_thread
 
-SRC = main.cc ssn_rest_api.cc ssn_nfvi.cc
+SRC = main.cc ssn_rest_api.cc ssn_nfvi.cc ssn_json.cc
 OBJ = $(SRC:.cc=.o)
 TARGET = susanow
 

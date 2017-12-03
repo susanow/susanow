@@ -1,17 +1,38 @@
 
+/*
+ * MIT License
+ *
+ * Copyright (c) 2017 Susanow
+ * Copyright (c) 2017 Hiroki SHIROKURA
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
-#pragma once
+#include <ssn_nfvi.h>
 #include <stdio.h>
 #include <crow.h>
 #include <string>
 #include <slankdev/string.h>
+#include <ssn_json.h>
 
-/*
- * JSON Macros
- */
-namespace {
 
-static inline
+
 crow::json::wvalue responce_info(bool success, const char* msg)
 {
   crow::json::wvalue x;
@@ -20,25 +41,34 @@ crow::json::wvalue responce_info(bool success, const char* msg)
   return x;
 }
 
-static inline
+
 crow::json::wvalue vnf_port_info(const ssn_vnf_port* port)
 {
   using std::string;
   using slankdev::format;
-
   crow::json::wvalue x;
+
   x["name"    ] = port->name;
   x["n_rxq"   ] = port->get_n_rxq();
   x["n_txq"   ] = port->get_n_txq();
   x["n_rxa"   ] = port->get_n_rxacc();
   x["n_txa"   ] = port->get_n_txacc();
+
+#if 0 // TODO enable
+  x["outer_rxp"] = port->get_outer_rx_perf();
+  x["outer_txp"] = port->get_outer_tx_perf();
+  x["inner_rxp"] = port->get_inner_rx_perf();
+  x["inner_txp"] = port->get_inner_tx_perf();
+#endif
   x["perfred" ] = port->get_perf_reduction();
+
   const ssn_vnf* vnf = port->get_attached_vnf();
   x["attach"  ] = vnf ? vnf->name : "nill";
+
   return x;
 }
 
-static inline
+
 crow::json::wvalue vnf_block_info(const ssn_vnf_block* block)
 {
   using std::string;
@@ -51,7 +81,7 @@ crow::json::wvalue vnf_block_info(const ssn_vnf_block* block)
   return x;
 }
 
-static inline
+
 crow::json::wvalue vnf_info(const ssn_vnf* vnf)
 {
   using std::string;
@@ -60,6 +90,7 @@ crow::json::wvalue vnf_info(const ssn_vnf* vnf)
   crow::json::wvalue x;
   x["name"   ] = vnf->name;
   x["running"] = vnf->is_running();
+  x["deployable"] = vnf->deployable();
   x["n_port" ] = vnf->n_ports();
   x["n_block"] = vnf->n_blocks();
   x["perfred"] = vnf->get_perf_reduction();
@@ -84,7 +115,6 @@ crow::json::wvalue vnf_info(const ssn_vnf* vnf)
   return x;
 }
 
-static inline
 crow::json::wvalue ppp_info(const ssn_vnf_port_patch_panel* ppp)
 {
   using std::string;
@@ -98,6 +128,5 @@ crow::json::wvalue ppp_info(const ssn_vnf_port_patch_panel* ppp)
   return x;
 }
 
-} /* namespace */
 
 
