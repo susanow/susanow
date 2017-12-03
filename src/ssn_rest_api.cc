@@ -699,6 +699,8 @@ void rest_api_thread(ssn_nfvi* nfviptr,
   using slankdev::format;
   ssn_nfvi& nfvi = *nfviptr;
   app->loglevel(crow::LogLevel::Critical);
+  app->loglevel(crow::LogLevel::Debug);
+  app->loglevel(crow::LogLevel::Error);
 
   addroute__                             (nfvi, *app);
   addroute__system                       (nfvi, *app);

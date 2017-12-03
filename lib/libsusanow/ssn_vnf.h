@@ -349,9 +349,11 @@ class ssn_vnf {
      * check coremask
      */
     size_t n_block = n_blocks();
-    for (size_t i=0; i<n_port; i++) {
+    for (size_t i=0; i<n_block; i++) {
       if (blocks[i]->get_coremask() == 0) return false;
     }
+
+    return true;
   }
 
   /**
