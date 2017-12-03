@@ -14,6 +14,16 @@ schemes:
 paths:
   /:
     get:
+      summary: "Ping Pong"
+      #parameters: []
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/inline_response_200_pingpong"
+
+  /system:
+    get:
       summary: "Get system info"
       parameters: []
       responses:
@@ -356,6 +366,9 @@ definitions:
       running:
         type: "boolean"
         example: true
+      deployable:
+        type: "boolean"
+        example: false
       coremask:
         type: "integer"
         format: "uint64"
@@ -418,6 +431,24 @@ definitions:
         type: "integer"
         format: "uint64"
         example: 2
+
+      outer_rxp:
+        type: "integer"
+        format: "uint64"
+        example: 5000
+      outer_txp:
+        type: "integer"
+        format: "uint64"
+        example: 5000
+      inner_rxp:
+        type: "integer"
+        format: "uint64"
+        example: 5000
+      inner_txp:
+        type: "integer"
+        format: "uint64"
+        example: 5000
+
       perfred:
         type: "number"
         format: "double"
@@ -465,6 +496,19 @@ definitions:
         $ref: "#/definitions/port"
       right:
         $ref: "#/definitions/port"
+
+  inline_response_200_pingpong:
+    properties:
+      result:
+        $ref: "#/definitions/success"
+      running:
+        type: "boolean"
+        example: true
+      uptime_min:
+        type: "integer"
+        format: "uint64"
+        example: 23
+
   inline_response_200:
     properties:
       n_vnf:
@@ -608,3 +652,9 @@ definitions:
         $ref: "#/definitions/port"
       1:
         $ref: "#/definitions/port"
+
+
+
+
+
+
