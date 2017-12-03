@@ -176,7 +176,7 @@ def usage_ppp():
     print("  delete                    delete ppp              ")
 
 def show_system():
-    uri = "/"
+    uri = "/system"
     json_dict = get_json_dict_from_uri(uri)
 
     n_vnf  = json_dict["n_vnf"]
