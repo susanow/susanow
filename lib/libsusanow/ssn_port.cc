@@ -34,7 +34,9 @@
 #include <slankdev/exception.h>
 #include <slankdev/string.h>
 
+#if 0
 rte_mempool* mp[RTE_MAX_ETHPORTS];
+#endif
 
 size_t ssn_dev_count()
 {
@@ -169,18 +171,22 @@ void ssn_port_configure(size_t pid, ssn_port_conf* conf, struct rte_mempool* mp)
 
 void ssn_port_init()
 {
+#if 0
   size_t nb_ports = rte_eth_dev_count();
   for (size_t i=0; i<nb_ports; i++) {
     std::string name = slankdev::format("RXMP%zd", i);
-    mp[i] = dpdk::mp_alloc(name.c_str());
+    // mp[i] = dpdk::mp_alloc(name.c_str());
   }
+#endif
 }
 
 void ssn_port_fin()
 {
   size_t nb_ports = rte_eth_dev_count();
   for (size_t i=0; i<nb_ports; i++) {
+#if 0
     rte_mempool_free(mp[i]);
+#endif
     ssn_port_link_down(i);
     ssn_port_dev_down(i);
   }
