@@ -1,6 +1,7 @@
 
 // const URL = 'http://10.10.0.20:8888';
-const URL = 'http://10.0.0.3:8888';
+// const URL = 'http://10.0.0.3:8888';
+const URL = 'http://labnet5.dpdk.ninja:8888';
 
 var already_registered = function(name, list){
 	n_ele = list.length;
@@ -117,7 +118,7 @@ var update_port = function(){
 }
 
 var update_system = function(){
-	$.getJSON(URL , function(data){
+	$.getJSON(URL + '/system' , function(data){
 		n_vnf  = data.n_vnf;
 		n_port = data.n_port;
 		n_vcat = data.n_vcat;

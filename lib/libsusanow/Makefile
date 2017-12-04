@@ -50,7 +50,7 @@ SRC = \
 			ssn_ring.cc          \
 			ssn_common.cc        \
 			ssn_ma_port.cc       \
-			ssn_vnf_port.cc
+			ssn_vnf_port_virt.cc
 OBJ = $(SRC:.cc=.o)
 
 $(TARGET): $(OBJ)

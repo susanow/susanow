@@ -54,12 +54,10 @@ crow::json::wvalue vnf_port_info(const ssn_vnf_port* port)
   x["n_rxa"   ] = port->get_n_rxacc();
   x["n_txa"   ] = port->get_n_txacc();
 
-#if 0 // TODO enable
   x["outer_rxp"] = port->get_outer_rx_perf();
   x["outer_txp"] = port->get_outer_tx_perf();
   x["inner_rxp"] = port->get_inner_rx_perf();
   x["inner_txp"] = port->get_inner_tx_perf();
-#endif
   x["perfred" ] = port->get_perf_reduction();
 
   const ssn_vnf* vnf = port->get_attached_vnf();
