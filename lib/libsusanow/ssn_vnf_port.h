@@ -104,6 +104,12 @@ class ssn_vnf_port {
   void dettach_vnf() { attached_vnf = nullptr; }
 
   /**
+   * @brief get device's socket-id
+   * @return socket-id. 0,1,2...
+   */
+  virtual size_t get_socket_id() const = 0;
+
+  /**
    * @brief Receive a burst of output packets from an Ethernet device
    * @param [in] aid Access ID
    * @param [in] mbufs The address of an array of pointers to rte_mbuf

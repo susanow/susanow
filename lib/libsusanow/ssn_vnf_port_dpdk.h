@@ -136,7 +136,7 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    * @brief get device's socket-id
    * @return socket-id. 0,1,2...
    */
-  size_t get_socket_id() const { return rte_eth_dev_socket_id(port_id); }
+  virtual size_t get_socket_id() const override { return rte_eth_dev_socket_id(port_id); }
 
   /**
    * @brief constructor

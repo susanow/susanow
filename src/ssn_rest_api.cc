@@ -41,6 +41,8 @@ void addroute__system(ssn_nfvi& nfvi, crow::App<Middleware>& app)
       x_root["n_port"] = nfvi.get_ports().size();
       x_root["n_vcat"] = nfvi.get_vcat().size();
       x_root["n_pcat"] = nfvi.get_pcat().size();
+
+      x_root["nfvi"] = nfvi_info(&nfvi);
       return x_root;
   });
 }

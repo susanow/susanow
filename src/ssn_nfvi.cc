@@ -125,17 +125,6 @@ void ssn_nfvi::debug_dump(FILE* fp) const
   }
 }
 
-static inline size_t _get_nb_socket()
-{
-  size_t n_lcore = rte_lcore_count();
-  size_t max = 0;
-  for (size_t i=0; i<n_lcore; i++) {
-    size_t sid = rte_lcore_to_socket_id(i);
-    if (max < sid) max = sid;
-  }
-  return max + 1;
-}
-
 ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
   : timer_sched(nullptr), running(false)
 {
