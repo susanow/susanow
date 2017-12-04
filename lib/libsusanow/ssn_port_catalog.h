@@ -29,6 +29,8 @@
 #include <ssn_types.h>
 #include <ssn_vnf.h>
 #include <ssn_vnf_port.h>
+#include <ssn_vnf_port_dpdk.h>
+#include <ssn_vnf_port_virt.h>
 
 
 /**

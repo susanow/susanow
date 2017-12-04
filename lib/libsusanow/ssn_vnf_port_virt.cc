@@ -25,7 +25,7 @@
  */
 
 #include <ssn_vnf.h>
-#include <ssn_vnf_port.h>
+#include <ssn_vnf_port_virt.h>
 
 bool ssn_vnf_port_patch_panel::deletable() const
 {
