@@ -357,6 +357,48 @@ paths:
           schema:
             $ref: "#/definitions/unsuccess"
 definitions:
+
+  nfvi:
+    type: "object"
+    properties:
+
+      n_socket:
+        type: "integer"
+        format: "uint64"
+        example: 2
+
+      n_core:
+        type: "integer"
+        format: "uint64"
+        example: 4
+
+      cores:
+        type: "object"
+        properties:
+          0:
+            $ref: "#/definitions/core"
+          1:
+            $ref: "#/definitions/core"
+          2:
+            $ref: "#/definitions/core"
+          3:
+            $ref: "#/definitions/core"
+
+  core:
+    type: "object"
+    properties:
+      lcore_id:
+        type: "integer"
+        format: "uint64"
+        example: 0
+      socket_id:
+        type: "integer"
+        format: "uint64"
+        example: 0
+      state:
+        type: "string"
+        example: "WAIT"
+
   vnf:
     type: "object"
     properties:
@@ -409,6 +451,7 @@ definitions:
   port:
     type: "object"
     properties:
+
       name:
         type: "string"
         example: "pci0"
@@ -453,6 +496,12 @@ definitions:
         type: "number"
         format: "double"
         example: 0.6999999999999999555910790149937383830547332763671875
+
+      socket_id:
+        type: "integer"
+        format: "uint64"
+        example: 1
+
   success:
     type: "object"
     properties:
@@ -527,6 +576,10 @@ definitions:
         type: "integer"
         format: "uint64"
         example: 2
+      nfvi:
+        $ref: "#/definitions/nfvi"
+
+
   inline_response_200_1:
     properties:
       0:
@@ -652,9 +705,6 @@ definitions:
         $ref: "#/definitions/port"
       1:
         $ref: "#/definitions/port"
-
-
-
 
 
 
