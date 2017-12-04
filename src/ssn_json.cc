@@ -59,6 +59,7 @@ crow::json::wvalue vnf_port_info(const ssn_vnf_port* port)
   x["inner_rxp"] = port->get_inner_rx_perf();
   x["inner_txp"] = port->get_inner_tx_perf();
   x["perfred" ] = port->get_perf_reduction();
+  x["socket_id"] = port->get_socket_id();
 
   const ssn_vnf* vnf = port->get_attached_vnf();
   x["attach"  ] = vnf ? vnf->name : "nill";
