@@ -29,6 +29,8 @@
 #include <stddef.h>
 #include <ssn_vnf.h>
 #include <ssn_vnf_l2fwd1b.h>
+#include <ssn_vnf_port_virt.h>
+#include <ssn_vnf_port_dpdk.h>
 
 
 int main(int argc, char** argv)
