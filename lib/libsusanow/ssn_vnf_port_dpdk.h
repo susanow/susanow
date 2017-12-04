@@ -59,6 +59,19 @@ ppmd_pci(const char* pci_addr_str)
   return pid;
 }
 
+struct ssn_pci_address {
+  uint32_t dom;
+  uint8_t  bus;
+  uint8_t  dev;
+  uint8_t  fun;
+
+  std::string str() const
+  {
+    std::string str = "";
+    str = slankdev::format("%04x:%02x:%02x:%01X", dom, bus, dev, fun);
+    return str;
+  }
+};
 
 /**
  * @brief vnf port class specilized for DPDK-pmd
@@ -73,6 +86,35 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
   rte_mempool* mp;
 
  public:
+
+  /**
+   * @brief get dpdk's port-id
+   * @return dpdk_pid
+   */
+  size_t get_dpdk_pid() const { return port_id; }
+
+  /**
+   * @brief get pci device adress
+   * @return pci-address
+   */
+  ssn_pci_address get_pci_addr() const
+  {
+    struct rte_eth_dev_info dev_info;
+    const size_t pid = get_dpdk_pid();
+    rte_eth_dev_info_get(pid, &dev_info);
+    ssn_pci_address addr;
+    addr.dom = dev_info.pci_dev->addr.domain;
+    addr.bus = dev_info.pci_dev->addr.bus;
+    addr.dev = dev_info.pci_dev->addr.devid;
+    addr.fun = dev_info.pci_dev->addr.function;
+    return addr;
+  }
+
+  /**
+   * @brief get device's socket-id
+   * @return socket-id. 0,1,2...
+   */
+  size_t get_socket_id() const { return rte_eth_dev_socket_id(port_id); }
 
   /**
    * @brief constructor
