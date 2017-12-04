@@ -210,7 +210,7 @@ class ssn_vnf_port {
    *         4                2            +---------------+
    *
    *     1: inner rx perf        : can get rx_burst call-info
-   *     2: inner tx perf (==4)  : can get rx_burst call-info
+   *     2: inner tx perf (==4)  : can get tx_burst call-info
    *     3: outer rx perf        : can get from ethdev-api
    *     4: outer tx perf (==2)  : can get from ethdev-api
    */

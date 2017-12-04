@@ -170,7 +170,11 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    * @return return packet/seconds performance [Mpps]
    */
   virtual size_t get_inner_tx_perf() const override
-  { throw NI("get_inner_tx_perf"); }
+  {
+    size_t ret = 0;
+    ret += ssn_port_stat_get_cur_tx_pps(port_id);
+    return ret;
+  }
 
   /**
    * @brief get "outer rx perf"
