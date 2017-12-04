@@ -41,6 +41,27 @@ crow::json::wvalue responce_info(bool success, const char* msg)
   return x;
 }
 
+crow::json::wvalue nfvi_info(const ssn_nfvi* nfvi)
+{
+  using std::string;
+  using slankdev::format;
+  crow::json::wvalue x;
+
+  x["n_socket"] = nfvi->n_socket();
+  x["n_core"]   = nfvi->n_core();
+
+  crow::json::wvalue x_cores;
+  const size_t n_core = nfvi->n_core();
+  for (size_t i=0; i<n_core; i++) {
+    crow::json::wvalue x_core;
+    x_core["lcore_id"] = i;
+    x_core["socket_id"] = rte_lcore_to_socket_id(i);
+    x_core["state"] = ssn_lcore_state2str(ssn_get_lcore_state(i));
+    x_cores[std::to_string(i)] = std::move(x_core);
+  }
+  x["cores"] = std::move(x_cores);
+  return x;
+}
 
 crow::json::wvalue vnf_port_info(const ssn_vnf_port* port)
 {
