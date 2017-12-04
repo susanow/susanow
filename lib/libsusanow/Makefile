@@ -26,7 +26,7 @@
 include ../../mk/ssn.vars.mk
 include ../../mk/ssn.rule.mk
 
-CXXFLAGS = $(SSN_LIB_CXXFLAGS) -Wno-format-security -O3
+CXXFLAGS = $(SSN_LIB_CXXFLAGS) -Wno-format-security -O0 -g
 LDFLAGS  = $(SSN_LIB_LDFLAGS)
 
 TESTDIR     = test

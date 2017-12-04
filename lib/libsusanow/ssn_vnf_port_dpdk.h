@@ -65,10 +65,32 @@ struct ssn_pci_address {
   uint8_t  dev;
   uint8_t  fun;
 
+  void set(const char* str)
+  {
+    uint32_t dom_;
+    uint32_t bus_;
+    uint32_t dev_;
+    uint32_t fun_;
+    int ret = sscanf(str, "%04x:%02x:%02x.%01x", &dom_, &bus_, &dev_, &fun_);
+    if (ret != 4) {
+      printf("ret: %d \n", ret);
+      printf("  dom: %04x \n", dom_);
+      printf("  bus: %02x \n", bus_);
+      printf("  dev: %02x \n", dev_);
+      printf("  fun: %01x \n", fun_);
+      throw slankdev::exception("OKASHII 12dfd3");
+    }
+
+    dom = dom_;
+    bus = bus_;
+    dev = dev_;
+    fun = fun_;
+  }
+
   std::string str() const
   {
     std::string str = "";
-    str = slankdev::format("%04x:%02x:%02x:%01X", dom, bus, dev, fun);
+    str = slankdev::format("%04x:%02x:%02x.%01X", dom, bus, dev, fun);
     return str;
   }
 };
@@ -127,9 +149,11 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    *   - num of rx queues (hardware multiqueues)
    *   - num of tx queues (hardware multiqueues)
    */
-  ssn_vnf_port_dpdk(const char* n, size_t a_port_id, struct rte_mempool* mp_)
+  ssn_vnf_port_dpdk(const char* n, size_t a_port_id)
     : ssn_vnf_port(n), port_id(a_port_id),
-    irx_pps_sum(0), irx_pps_cur(0), mp(mp_) {}
+    irx_pps_sum(0), irx_pps_cur(0), mp(nullptr) {}
+
+  void set_mp(rte_mempool* m) { mp = m; }
 
   virtual bool deployable() const override { return true; }
 
@@ -272,7 +296,9 @@ ssn_portalloc_tap(const char* instance_name, void* arg)
   ssn_portalloc_tap_arg* s = reinterpret_cast<ssn_portalloc_tap_arg*>(arg);
   rte_mempool* mp = s->mp;
   std::string ifname = s->linux_ifname;
-  return new ssn_vnf_port_dpdk(instance_name, vpmd_tap(ifname.c_str()), mp);
+  auto port = new ssn_vnf_port_dpdk(instance_name, vpmd_tap(ifname.c_str()));
+  port->set_mp(mp);
+  return port;
 }
 
 
@@ -296,5 +322,7 @@ ssn_portalloc_pci(const char* instance_name, void* arg)
   ssn_portalloc_pci_arg* s = reinterpret_cast<ssn_portalloc_pci_arg*>(arg);
   rte_mempool* mp = s->mp;
   std::string pci_addr = s->pci_addr;
-  return new ssn_vnf_port_dpdk(instance_name, ppmd_pci(pci_addr.c_str()), mp);
+  auto port = new ssn_vnf_port_dpdk(instance_name, ppmd_pci(pci_addr.c_str()));
+  port->set_mp(mp);
+  return port;
 }

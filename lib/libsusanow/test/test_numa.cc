@@ -35,13 +35,17 @@
 int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
-  rte_mempool* mp = dpdk::mp_alloc("ssn");
+  rte_mempool* mp[2];
+  mp[0] = dpdk::mp_alloc("ssn0", 0);
+  mp[1] = dpdk::mp_alloc("ssn1", 1);
   ssn_vnf_port_dpdk* dpdk[100];
 
   const size_t n_port = ssn_dev_count();
   for (size_t i=0; i<n_port; i++) {
     auto name = slankdev::format("dpdk%zd", i);
-    dpdk[i] = new ssn_vnf_port_dpdk(name.c_str(), i, mp);
+    dpdk[i] = new ssn_vnf_port_dpdk(name.c_str(), i);
+    size_t sid = dpdk[i]->get_socket_id();
+    dpdk[i]->set_mp(mp[sid]);
     dpdk[i]->config_hw(4,4);
   }
   printf("\n\n");
@@ -59,7 +63,8 @@ int main(int argc, char** argv)
 
   printf("\n");
   for (size_t i=0; i<n_port; i++) delete dpdk[i];
-  rte_mempool_free(mp);
+  rte_mempool_free(mp[0]);
+  rte_mempool_free(mp[1]);
   ssn_fin();
 }
 

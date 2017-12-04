@@ -274,7 +274,7 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
              * - options.ifname
              */
             std::string ifname = req_json["options"]["ifname"].s();
-            rte_mempool* mp = nfvi.get_mp();
+            rte_mempool* mp = nfvi.get_mp(0);
             ssn_portalloc_tap_arg arg = { mp, ifname };
             nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
 
@@ -286,7 +286,8 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
              * - options.pciaddr
              */
             std::string pciaddr = req_json["options"]["pciaddr"].s();
-            rte_mempool* mp = nfvi.get_mp();
+            size_t socket_id = get_socket_id_from_pci_addr(pciaddr.c_str());
+            rte_mempool* mp = nfvi.get_mp(socket_id);
             ssn_portalloc_pci_arg arg = { mp, pciaddr };
             nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
 

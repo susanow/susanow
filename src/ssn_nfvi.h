@@ -32,6 +32,7 @@
 #include <unistd.h>
 #include <mutex>
 #include <crow.h>
+#include <glob.h>
 
 #include <ssn_log.h>
 #include <ssn_port.h>
@@ -42,12 +43,38 @@
 #include <ssn_rest_api.h>
 #include <slankdev/exception.h>
 #include <slankdev/signal.h>
+#include <slankdev/filefd.h>
+#include <slankdev/hexdump.h>
+
+/* XXX: Very Dirty Hack */
+static inline size_t get_socket_id_from_pci_addr(const char* pciaddr_)
+{
+  char c;
+  glob_t globbuf;
+  ssn_pci_address addr;
+  addr.set(pciaddr_);
+
+  const std::string _path = slankdev::format(
+        "/sys/devices/pci*/*/%04x\\:%02x\\:%02x.%01x/numa_node",
+          addr.dom, addr.bus, addr.dev, addr.fun);
+  int ret = glob(_path.c_str(), 0, NULL, &globbuf);
+  if (globbuf.gl_pathc != 1) throw slankdev::exception("Fuckin");
+  const std::string path = globbuf.gl_pathv[0];
+  globfree(&globbuf);
+
+  slankdev::filefd file;
+  file.fopen(path.c_str(), "r");
+  file.fread(&c, 1, 1);
+
+  size_t socket_id = c - '0';
+  return socket_id;
+}
 
 
 class ssn_nfvi final {
  private:
 
-  rte_mempool* mp;
+  rte_mempool* mp[100];
   ssn_vnf_catalog  vnf_catalog;
   ssn_port_catalog port_catalog;
 
@@ -106,7 +133,7 @@ class ssn_nfvi final {
   void run(uint16_t rest_server_port);
   void stop();
   void debug_dump(FILE* fp) const;
-  struct rte_mempool* get_mp() { return mp; }
+  struct rte_mempool* get_mp(size_t socket_id) { return mp[socket_id]; }
 
   const std::vector<ssn_vnf*>& get_vnfs() const { return vnfs; }
   const std::vector<ssn_vnf_port*>& get_ports() const { return ports; }

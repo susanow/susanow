@@ -88,7 +88,7 @@ void PRINT(void*)
 int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
-  rte_mempool* mp = dpdk::mp_alloc("ssn");
+  rte_mempool* mp = dpdk::mp_alloc("ssn", 0);
 
   ssn_timer_sched tm1(1);
   ssn_native_thread_launch(ssn_timer_sched_poll_thread, &tm1, 1);

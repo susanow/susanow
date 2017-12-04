@@ -25,6 +25,7 @@
  */
 
 #include <ssn_nfvi.h>
+#include <slankdev/string.h>
 
 ssn_nfvi* _nfvip = nullptr;
 
@@ -124,9 +125,19 @@ void ssn_nfvi::debug_dump(FILE* fp) const
   }
 }
 
+static inline size_t _get_nb_socket()
+{
+  size_t n_lcore = rte_lcore_count();
+  size_t max = 0;
+  for (size_t i=0; i<n_lcore; i++) {
+    size_t sid = rte_lcore_to_socket_id(i);
+    if (max < sid) max = sid;
+  }
+  return max + 1;
+}
 
 ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
-  : mp(nullptr), timer_sched(nullptr), running(false)
+  : timer_sched(nullptr), running(false)
 {
   startup_time = time(nullptr);
   printf("TIME: %s", ctime(&startup_time));
@@ -137,7 +148,13 @@ ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
   for (size_t i=0; i<n_ports; i++) {
     dpdk::eth_dev_detach(i);
   }
-  mp = dpdk::mp_alloc("NFVi");
+
+  const size_t n_socket = _get_nb_socket();
+  for (size_t i=0; i<n_socket; i++) {
+    std::string name = slankdev::format("NFVi%zd", i);
+    mp[i] = dpdk::mp_alloc(name.c_str(), i);
+    printf("ALLOCATE MEMORY POOL on socket%zd\n", i);
+  }
 
   timer_sched = new ssn_timer_sched(lcoreid_timer);
   timer_thread_tid = ssn_native_thread_launch(
@@ -185,7 +202,10 @@ ssn_nfvi::~ssn_nfvi()
     delete ppps[i];
   }
 
-  rte_mempool_free(mp);
+  const size_t n_socket = _get_nb_socket();
+  for (size_t i=0; i<n_socket; i++) {
+    rte_mempool_free(mp[i]);
+  }
   ssn_fin();
 }
 
@@ -274,14 +294,16 @@ ssn_vnf_port* ssn_nfvi::port_alloc_virt(const char* iname)
 
 ssn_vnf_port* ssn_nfvi::port_alloc_pci(const char* iname, const char* pciaddr)
 {
-  rte_mempool* mp = get_mp();
+  size_t socket_id = get_socket_id_from_pci_addr(pciaddr);
+  rte_mempool* mp = get_mp(socket_id);
+  printf("MP: %p \n", mp);
   ssn_portalloc_pci_arg pci0arg = { mp, pciaddr };
   return port_alloc_from_catalog("pci", iname, &pci0arg);
 }
 
 ssn_vnf_port* ssn_nfvi::port_alloc_tap(const char* iname, const char* ifname)
 {
-  rte_mempool* mp = get_mp();
+  rte_mempool* mp = get_mp(0);
   ssn_portalloc_tap_arg tap0arg = { mp, ifname };
   return port_alloc_from_catalog("tap", iname, &tap0arg);
 }

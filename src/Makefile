@@ -26,7 +26,7 @@ include $(SSN_SDK)/mk/ssn.vars.mk
 include $(SSN_SDK)/mk/ssn.rule.mk
 
 CXXFLAGS += $(SSN_CXXFLAGS)
-CXXFLAGS += -Wno-format-security -I. -std=c++11
+CXXFLAGS += -Wno-format-security -I. -std=c++11 -g -O0
 LDFLAGS  += $(SSN_LDFLAGS)
 LDFLAGS  += -lpthread -lboost_system -lboost_thread
 
