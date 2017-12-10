@@ -61,7 +61,7 @@ clean:
 
 install:
 	cp $(NFVI_DIR)/susanow $(INSTALLPATH_BIN)
-	cp misc/susanow.service $(INSTALLPATH_SERV)
+	cp systemd/susanow.service $(INSTALLPATH_SERV)
 
 uninstall:
 	rm -f $(INSTALLPATH_BIN)/susanow
