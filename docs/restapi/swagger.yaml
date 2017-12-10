@@ -448,6 +448,10 @@ definitions:
       running:
         type: "boolean"
         example: false
+      socket_affinity:
+        type: "integer"
+        format: "uint64"
+        example: 1
   port:
     type: "object"
     properties:
