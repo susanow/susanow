@@ -21,6 +21,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+RTE_SDK := $(SSN_SDK)/lib/dpdk
+RTE_TARGET := x86_64-native-linuxapp-gcc
 INSTALLPATH_BIN  := /usr/local/bin
 INSTALLPATH_SERV := /etc/systemd/system
 
@@ -50,8 +52,6 @@ setup:
 		libboost-thread-dev      \
 		python3-pip
 	sudo pip3 install requests
-	export RTE_SDK=`pwd`
-	export RTE_TARGET=x86_64-native-linuxapp-gcc
 	make -C lib/dpdk install T=$(RTE_TARGET)
 
 clean:
