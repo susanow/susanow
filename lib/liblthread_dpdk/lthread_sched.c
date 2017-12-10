@@ -597,3 +597,13 @@ int lthread_set_affinity(unsigned lcoreid)
 	}
 	return 0;
 }
+
+
+#include <stdbool.h>
+bool _lthread_force_quit[RTE_MAX_LCORE] = {false};
+void lthread_scheduler_force_shutdown(int lcore)
+{
+  _lthread_force_quit[lcore] = true;
+}
+
+

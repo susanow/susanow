@@ -833,6 +833,19 @@ int lthread_cond_signal(struct lthread_cond *c);
   */
 int lthread_cond_broadcast(struct lthread_cond *c);
 
+
+/**
+ * Force quit lthread scheduler
+ *
+ *  This function is added by Hiroki SHIROKURA to use
+ *  on Susanow Framework
+ *
+ *  @param lcore
+ *    specify lcore id
+ */
+void lthread_scheduler_force_shutdown(int lcore);
+
+
 #ifdef __cplusplus
 }
 #endif
