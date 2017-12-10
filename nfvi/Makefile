@@ -31,18 +31,20 @@ LDFLAGS  += $(SSN_LDFLAGS)
 LDFLAGS  += -lpthread -lboost_system -lboost_thread
 
 SRC = \
-	main.cc         \
-	ssn_rest_api.cc \
-	ssn_nfvi.cc     \
-	ssn_json.cc     \
-	ssn_vnf_port_virt.cc
+	ssn_vnf.cc           \
+	ssn_vnf_port.cc      \
+	ssn_vnf_port_virt.cc \
+	ssn_nfvi.cc          \
+	ssn_json.cc          \
+	ssn_rest_api.cc      \
+	main.cc
 
 OBJ = $(SRC:.cc=.o)
 TARGET = susanow
 
 TARGET: $(OBJ)
-	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET) $(LDFLAGS)
 	@echo LD $(TARGET)
+	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET) $(LDFLAGS)
 
 clean:
 	rm -rf *.out *.o $(TARGET)

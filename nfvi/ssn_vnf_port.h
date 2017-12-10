@@ -25,26 +25,13 @@
  */
 
 #pragma once
-#include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <slankdev/string.h>
-#include <slankdev/exception.h>
-#include <slankdev/util.h>
-#include <exception>
+#include <string>
 
-#include <ssn_port_stat.h>
-#include <ssn_ma_port.h>
-#include <ssn_ma_ring.h>
-#include <ssn_thread.h>
-#include <ssn_cpu.h>
-#include <ssn_port.h>
-#include <ssn_common.h>
-#include <ssn_log.h>
-#include <dpdk/dpdk.h>
-#include <slankdev/vector.h>
 
+struct rte_mbuf;
 class ssn_vnf;
 
 
@@ -153,12 +140,7 @@ class ssn_vnf_port {
    *   Accessor must call this function and this function return.
    *   access-id. Accessor can rx-access via this access-id.
    */
-  size_t request_rx_access()
-  {
-    auto tmp = n_rxacc;
-    n_rxacc += 1;
-    return tmp;
-  }
+  size_t request_rx_access();
 
   /*
    * @brief Tx acccess request
@@ -167,12 +149,7 @@ class ssn_vnf_port {
    *   Accessor must call this function and this function return.
    *   access-id. Accessor can tx-access via this access-id.
    */
-  size_t request_tx_access()
-  {
-    auto tmp = n_txacc;
-    n_txacc += 1;
-    return tmp;
-  }
+  size_t request_tx_access();
 
   /**
    * @brief Reset number of Rx/Tx Accessors (Both rx and tx).
@@ -274,15 +251,14 @@ class ssn_vnf_port {
    *    Working this function need to implement get_inner_rx_perf()
    *    and get_outer_rx_perf(). This value will be used for D2engine.
    */
-  double get_perf_reduction() const
-  {
-    size_t irx = get_inner_rx_perf();
-    size_t orx = get_outer_rx_perf();
-    if (orx == 0) return 1.0;
-    double ret = double(irx)/double(orx);
-    return ret;
-  }
+  double get_perf_reduction() const;
 
+  /**
+   * @brief update vnf_port's status info
+   * @details
+   *   this function must be call per 1 second
+   *   by Hypervisor.
+   */
   virtual void stats_update_per1sec() = 0;
 
 }; /* class ssn_vnf_port */
