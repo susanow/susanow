@@ -24,12 +24,12 @@
 INSTALLPATH_BIN  := /usr/local/bin
 INSTALLPATH_SERV := /etc/systemd/system
 
-.PHONY: test lib nfvi clean install uninstall
+.PHONY: test lib nfvi clean install uninstall setup
 
 def: nfvi
 
 nfvi: lib test
-	make -C src
+	make -C ssnnfvi
 
 test: lib
 	make -C lib test
@@ -37,12 +37,28 @@ test: lib
 lib:
 	make -C lib
 
+# cd lib/dpdk
+setup:
+	git submodule init
+	git submodule update
+	sudo apt install -y        \
+		libpcap-dev python       \
+		linux-headers-`uname -r` \
+		build-essential          \
+		libtcmalloc-minimal4     \
+		libboost-system-dev      \
+		libboost-thread-dev
+	sudo pip3 install requests
+	export RTE_SDK=`pwd`
+	export RTE_TARGET=x86_64-native-linuxapp-gcc
+	make -C lib/dpdk install T=$(RTE_TARGET)
+
 clean:
 	make -C lib clean
-	make -C src clean
+	make -C ssnnfvi clean
 
 install:
-	cp src/susanow $(INSTALLPATH_BIN)
+	cp ssnnfvi/susanow $(INSTALLPATH_BIN)
 	cp misc/susanow.service $(INSTALLPATH_SERV)
 
 uninstall:

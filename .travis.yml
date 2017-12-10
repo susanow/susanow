@@ -6,7 +6,7 @@ compiler:
 - clang
 script:
 - export SSN_SDK=`pwd`
-- "./setup.sh"
+- "make setup"
 - "make"
 notifications:
   slack:
