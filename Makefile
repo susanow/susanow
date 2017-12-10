@@ -47,7 +47,8 @@ setup:
 		build-essential          \
 		libtcmalloc-minimal4     \
 		libboost-system-dev      \
-		libboost-thread-dev
+		libboost-thread-dev      \
+		python3-pip
 	sudo pip3 install requests
 	export RTE_SDK=`pwd`
 	export RTE_TARGET=x86_64-native-linuxapp-gcc
