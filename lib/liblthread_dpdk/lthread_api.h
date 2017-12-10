@@ -257,17 +257,6 @@ void lthread_scheduler_shutdown_all(void);
 void lthread_run(void);
 
 /**
- * Force quit lthread scheduler
- *
- *  This function is added by Hiroki SHIROKURA to use
- *  on Susanow Framework
- *
- *  @param lcore
- *    specify lcore id
- */
-void lthread_scheduler_force_shutdown(int lcore);
-
-/**
   * Create an lthread
   *
   *  Creates an lthread and places it in the ready queue on a particular

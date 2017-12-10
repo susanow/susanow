@@ -369,8 +369,8 @@ void lthread_scheduler_shutdown_all(void)
 /*
  * Resume a suspended lthread
  */
-static inline void
-_lthread_resume(struct lthread *lt) __attribute__ ((always_inline));
+static __rte_always_inline void
+_lthread_resume(struct lthread *lt);
 static inline void _lthread_resume(struct lthread *lt)
 {
 	struct lthread_sched *sched = THIS_SCHED;
@@ -503,12 +503,6 @@ static inline void _lthread_schedulers_sync_stop(void)
 
 }
 
-#include <stdbool.h>
-bool _lthread_force_quit[RTE_MAX_LCORE] = {false};
-void lthread_scheduler_force_shutdown(int lcore)
-{
-  _lthread_force_quit[lcore] = true;
-}
 
 /*
  * Run the lthread scheduler
@@ -539,10 +533,7 @@ void lthread_run(void)
 	 *
 	 * and resume lthreads ad infinitum.
 	 */
-	size_t lcore_id = rte_lcore_id();
-	while (!_lthread_sched_isdone(sched) && !_lthread_force_quit[lcore_id]) {
-		/* static size_t cnt = 0; */
-		/* printf("%zd: loop [%zd]%s\n", cnt++, lcore_id, lthread_force_quit[lcore_id]?"True":"False"); */
+	while (!_lthread_sched_isdone(sched)) {
 
 		rte_timer_manage();
 
