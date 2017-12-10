@@ -25,21 +25,22 @@ RTE_SDK := $(SSN_SDK)/lib/dpdk
 RTE_TARGET := x86_64-native-linuxapp-gcc
 INSTALLPATH_BIN  := /usr/local/bin
 INSTALLPATH_SERV := /etc/systemd/system
+LIB_DIR  := lib
+NFVI_DIR := nfvi
 
 .PHONY: test lib nfvi clean install uninstall setup
 
 def: nfvi
 
 nfvi: lib test
-	make -C ssnnfvi
+	make -C $(NFVI_DIR)
 
 test: lib
-	make -C lib test
+	make -C $(LIB_DIR) test
 
 lib:
-	make -C lib
+	make -C $(LIB_DIR)
 
-# cd lib/dpdk
 setup:
 	git submodule init
 	git submodule update
@@ -52,14 +53,14 @@ setup:
 		libboost-thread-dev      \
 		python3-pip
 	sudo pip3 install requests
-	make -C lib/dpdk install T=$(RTE_TARGET)
+	make -C $(LIB_DIR)/dpdk install T=$(RTE_TARGET)
 
 clean:
-	make -C lib clean
-	make -C ssnnfvi clean
+	make -C $(LIB_DIR)  clean
+	make -C $(NFVI_DIR) clean
 
 install:
-	cp ssnnfvi/susanow $(INSTALLPATH_BIN)
+	cp $(NFVI_DIR)/susanow $(INSTALLPATH_BIN)
 	cp misc/susanow.service $(INSTALLPATH_SERV)
 
 uninstall:
