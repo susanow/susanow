@@ -116,6 +116,17 @@ void ssn_set_lcore_state(ssn_lcore_state s, size_t lcore_id)
 
 size_t ssn_lcore_id() { return rte_lcore_id(); }
 size_t ssn_lcore_count() { return rte_lcore_count(); }
+size_t ssn_socket_count()
+{
+  size_t n_lcore = rte_lcore_count();
+  size_t max = 0;
+  for (size_t i=0; i<n_lcore; i++) {
+    size_t sid = rte_lcore_to_socket_id(i);
+    if (max < sid) max = sid;
+  }
+  return max + 1;
+}
+size_t ssn_socket_id() { return rte_socket_id(); }
 
 bool ssn_lcoreid_is_green_thread(size_t lcore_id) { return ssn_get_lcore_state(lcore_id) == SSN_LS_RUNNING_GREEN; }
 bool ssn_lcoreid_is_tthread(size_t lcore_id) { return ssn_get_lcore_state(lcore_id) == SSN_LS_RUNNING_TIMER; }

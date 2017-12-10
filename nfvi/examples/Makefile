@@ -1,6 +1,6 @@
 
 # MIT License
-# Copyright (c) 2017 Susanow
+#
 # Copyright (c) 2017 Hiroki SHIROKURA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,32 +22,16 @@
 # SOFTWARE.
 
 
-include $(SSN_SDK)/mk/ssn.vars.mk
-include $(SSN_SDK)/mk/ssn.rule.mk
+all:
+	$(MAKE) -C l2fwd1b
+	$(MAKE) -C l2fwd2b
+	$(MAKE) -C perfcheck
+	$(MAKE) -C sfc
 
-CXXFLAGS += $(SSN_CXXFLAGS)
-CXXFLAGS += -Wno-format-security -I. -std=c++11 -g -O0
-LDFLAGS  += $(SSN_LDFLAGS)
-LDFLAGS  += -lpthread -lboost_system -lboost_thread
-
-SRC = \
-	ssn_vnf.cc           \
-	ssn_vnf_port.cc      \
-	ssn_vnf_port_virt.cc \
-	ssn_nfvi.cc          \
-	ssn_json.cc          \
-	ssn_rest_api.cc      \
-	main.cc
-
-OBJ = $(SRC:.cc=.o)
-TARGET = susanow
-
-TARGET: $(OBJ)
-	@echo LD $(TARGET)
-	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET) $(LDFLAGS)
 
 clean:
-	rm -rf *.out *.o $(TARGET)
-
-
+	$(MAKE) -C l2fwd1b   clean
+	$(MAKE) -C l2fwd2b   clean
+	$(MAKE) -C perfcheck clean
+	$(MAKE) -C sfc       clean
 

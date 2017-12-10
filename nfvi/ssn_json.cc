@@ -57,6 +57,7 @@ crow::json::wvalue nfvi_info(const ssn_nfvi* nfvi)
     x_core["lcore_id"] = i;
     x_core["socket_id"] = rte_lcore_to_socket_id(i);
     x_core["state"] = ssn_lcore_state2str(ssn_get_lcore_state(i));
+    if (i == rte_get_master_lcore()) x_core["state"] = "MASTER";
     x_cores[std::to_string(i)] = std::move(x_core);
   }
   x["cores"] = std::move(x_cores);
@@ -98,6 +99,7 @@ crow::json::wvalue vnf_block_info(const ssn_vnf_block* block)
   x["name"   ] = block->name;
   x["coremask"  ] = block->get_coremask();
   x["running"] = block->is_running();
+  x["socket_affinity"] = block->get_socket_affinity();
   return x;
 }
 

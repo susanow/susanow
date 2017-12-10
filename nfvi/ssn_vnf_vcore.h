@@ -1,8 +1,8 @@
 
-
 /*
  * MIT License
  *
+ * Copyright (c) 2017 Susanow
  * Copyright (c) 2017 Hiroki SHIROKURA
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,28 +25,39 @@
  */
 
 #pragma once
-#include <vector>
+#include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <ssn_types.h>
+#include <slankdev/string.h>
+#include <slankdev/exception.h>
+#include <slankdev/util.h>
+#include <exception>
+
+#include <ssn_port_stat.h>
+#include <ssn_ma_port.h>
+#include <ssn_ma_ring.h>
+#include <ssn_thread.h>
+#include <ssn_cpu.h>
+#include <ssn_port.h>
+#include <ssn_common.h>
+#include <ssn_log.h>
+#include <dpdk/dpdk.h>
+#include <slankdev/vector.h>
+#include <ssn_vnf_port.h>
 
 
 
-void ssn_cpu_init(int argc, char** argv);
-bool ssn_cpu_debug_dump(FILE* fp);
+/**
+ * @brief Virtual lcore for VNFs
+ */
+class ssn_vnf_vcore {
+ public:
+  size_t lcore_id;
+  slankdev::fixed_size_vector<size_t> port_rx_acc;
+  slankdev::fixed_size_vector<size_t> port_tx_acc;
+  ssn_vnf_vcore(size_t lcoreid, size_t n_rx_port, size_t n_tx_port)
+    : lcore_id(lcoreid), port_rx_acc(n_rx_port), port_tx_acc(n_tx_port) {}
+}; /* class ssn_vnf_vcore */
 
-ssn_lcore_state ssn_get_lcore_state(size_t lcore_id);
-void ssn_set_lcore_state(ssn_lcore_state s, size_t lcore_id);
 
-size_t ssn_lcore_id();
-size_t ssn_lcore_count();
-size_t ssn_socket_count();
-size_t ssn_socket_id();
-
-bool ssn_lcoreid_is_green_thread(size_t lcore_id);
-bool ssn_lcoreid_is_tthread(size_t lcore_id);
-
-void ssn_sleep(size_t msec);
-
-void ssn_yield();

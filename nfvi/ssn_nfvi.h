@@ -30,56 +30,18 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <unistd.h>
-#include <mutex>
-#include <crow.h>
-#include <glob.h>
 
-#include <ssn_log.h>
-#include <ssn_port.h>
-#include <ssn_common.h>
-#include <ssn_timer.h>
+#include <crow.h>
+
 #include <ssn_vnf_catalog.h>
 #include <ssn_port_catalog.h>
 #include <ssn_rest_api.h>
-#include <slankdev/exception.h>
-#include <slankdev/signal.h>
-#include <slankdev/filefd.h>
-#include <slankdev/hexdump.h>
+
+class ssn_timer;
+class ssn_timer_sched;
 
 /* XXX: Very Dirty Hack */
-static inline size_t get_socket_id_from_pci_addr(const char* pciaddr_)
-{
-  char c;
-  glob_t globbuf;
-  ssn_pci_address addr;
-  addr.set(pciaddr_);
-
-  const std::string _path = slankdev::format(
-        "/sys/devices/pci*/*/%04x\\:%02x\\:%02x.%01x/numa_node",
-          addr.dom, addr.bus, addr.dev, addr.fun);
-  int ret = glob(_path.c_str(), 0, NULL, &globbuf);
-  if (globbuf.gl_pathc != 1) throw slankdev::exception("Fuckin");
-  const std::string path = globbuf.gl_pathv[0];
-  globfree(&globbuf);
-
-  slankdev::filefd file;
-  file.fopen(path.c_str(), "r");
-  file.fread(&c, 1, 1);
-
-  size_t socket_id = c - '0';
-  return socket_id;
-}
-
-static inline size_t _get_nb_socket()
-{
-  size_t n_lcore = rte_lcore_count();
-  size_t max = 0;
-  for (size_t i=0; i<n_lcore; i++) {
-    size_t sid = rte_lcore_to_socket_id(i);
-    if (max < sid) max = sid;
-  }
-  return max + 1;
-}
+size_t get_socket_id_from_pci_addr(const char* pciaddr_);
 
 class ssn_nfvi final {
  private:
@@ -103,27 +65,8 @@ class ssn_nfvi final {
 
  private:
 
-  void add_timer(ssn_timer* tim)
-  {
-    tims.push_back(tim);
-    timer_sched->add(tim);
-  }
-
-  void del_timer(ssn_timer* tim)
-  {
-    size_t n_tims = tims.size();
-    for (size_t i=0; i<n_tims; i++) {
-      if (tims[i] == tim) {
-        tims.erase(tims.begin() + i);
-        timer_sched->del(tim);
-        delete tim;
-        return ;
-      }
-    }
-    std::string err;
-    err = slankdev::format("ssn_nfvi::del_timer: not found timer %p", tim);
-    throw slankdev::exception(err.c_str());
-  }
+  void add_timer(ssn_timer* tim);
+  void del_timer(ssn_timer* tim);
 
   static void _timercallback(void* arg)
   {
@@ -146,7 +89,7 @@ class ssn_nfvi final {
   struct rte_mempool* get_mp(size_t socket_id) { return mp[socket_id]; }
 
   size_t n_core() const { return ssn_lcore_count(); }
-  size_t n_socket() const { return _get_nb_socket(); }
+  size_t n_socket() const { return ssn_socket_count(); }
 
   const std::vector<ssn_vnf*>& get_vnfs() const { return vnfs; }
   const std::vector<ssn_vnf_port*>& get_ports() const { return ports; }
@@ -154,50 +97,9 @@ class ssn_nfvi final {
   const ssn_port_catalog& get_pcat() const { return port_catalog; }
   const std::vector<ssn_vnf_port_patch_panel*>& get_ppps() const { return ppps; }
 
-  void del_port(ssn_vnf_port* port)
-  {
-    size_t n_ele = ports.size();
-    for (size_t i=0; i<n_ele; i++) {
-      if (ports[i] == port) {
-        ports.erase(ports.begin() + i);
-        delete port;
-        return ;
-      }
-    }
-    std::string err = "ssn_nfvi::del_port: ";
-    err += slankdev::format("not found port (%s)", port->name.c_str());
-    throw slankdev::exception(err.c_str());
-  }
-
-  void del_vnf(ssn_vnf* vnf)
-  {
-    size_t n_ele = vnfs.size();
-    for (size_t i=0; i<n_ele; i++) {
-      if (vnfs[i] == vnf) {
-        vnfs.erase(vnfs.begin() + i);
-        delete vnf;
-        return ;
-      }
-    }
-    std::string err = "ssn_nfvi::del_vnf: ";
-    err += slankdev::format("not found vnf (%s)", vnf->name.c_str());
-    throw slankdev::exception(err.c_str());
-  }
-
-  void del_ppp(ssn_vnf_port_patch_panel* ppp)
-  {
-    size_t n_ele = vnfs.size();
-    for (size_t i=0; i<n_ele; i++) {
-      if (ppps[i] == ppp) {
-        ppps.erase(ppps.begin() + i);
-        delete ppp;
-        return ;
-      }
-    }
-    std::string err = "ssn_nfvi::del_ppp: ";
-    err += slankdev::format("not found ppp (%s)", ppp->name.c_str());
-    throw slankdev::exception(err.c_str());
-  }
+  void del_port(ssn_vnf_port* port);
+  void del_vnf(ssn_vnf* vnf);
+  void del_ppp(ssn_vnf_port_patch_panel* ppp);
 
   /**
    * @brief Allocate new VNF from catalog
