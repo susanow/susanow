@@ -45,6 +45,7 @@ setup:
 	git submodule init
 	git submodule update
 	sudo apt install -y        \
+		libnuma-dev              \
 		libpcap-dev python       \
 		linux-headers-`uname -r` \
 		build-essential          \
