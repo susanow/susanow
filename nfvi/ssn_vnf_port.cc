@@ -3,6 +3,7 @@
 /*
  * MIT License
  *
+ * Copyright (c) 2017 Susanow
  * Copyright (c) 2017 Hiroki SHIROKURA
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,29 +25,50 @@
  * SOFTWARE.
  */
 
-#pragma once
-#include <vector>
+#include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <ssn_types.h>
+#include <slankdev/string.h>
+#include <slankdev/exception.h>
+#include <slankdev/util.h>
+#include <exception>
+
+#include <ssn_port_stat.h>
+#include <ssn_ma_port.h>
+#include <ssn_ma_ring.h>
+#include <ssn_thread.h>
+#include <ssn_cpu.h>
+#include <ssn_port.h>
+#include <ssn_common.h>
+#include <ssn_log.h>
+#include <dpdk/dpdk.h>
+#include <slankdev/vector.h>
+#include <ssn_vnf_port.h>
 
 
 
-void ssn_cpu_init(int argc, char** argv);
-bool ssn_cpu_debug_dump(FILE* fp);
+size_t ssn_vnf_port::request_rx_access()
+{
+  auto tmp = n_rxacc;
+  n_rxacc += 1;
+  return tmp;
+}
 
-ssn_lcore_state ssn_get_lcore_state(size_t lcore_id);
-void ssn_set_lcore_state(ssn_lcore_state s, size_t lcore_id);
+size_t ssn_vnf_port::request_tx_access()
+{
+  auto tmp = n_txacc;
+  n_txacc += 1;
+  return tmp;
+}
 
-size_t ssn_lcore_id();
-size_t ssn_lcore_count();
-size_t ssn_socket_count();
-size_t ssn_socket_id();
+double ssn_vnf_port::get_perf_reduction() const
+{
+  size_t irx = get_inner_rx_perf();
+  size_t orx = get_outer_rx_perf();
+  if (orx == 0) return 1.0;
+  double ret = double(irx)/double(orx);
+  return ret;
+}
 
-bool ssn_lcoreid_is_green_thread(size_t lcore_id);
-bool ssn_lcoreid_is_tthread(size_t lcore_id);
 
-void ssn_sleep(size_t msec);
-
-void ssn_yield();

@@ -257,17 +257,6 @@ void lthread_scheduler_shutdown_all(void);
 void lthread_run(void);
 
 /**
- * Force quit lthread scheduler
- *
- *  This function is added by Hiroki SHIROKURA to use
- *  on Susanow Framework
- *
- *  @param lcore
- *    specify lcore id
- */
-void lthread_scheduler_force_shutdown(int lcore);
-
-/**
   * Create an lthread
   *
   *  Creates an lthread and places it in the ready queue on a particular
@@ -843,6 +832,19 @@ int lthread_cond_signal(struct lthread_cond *c);
   *  EINVAL was not a an initialised condition variable
   */
 int lthread_cond_broadcast(struct lthread_cond *c);
+
+
+/**
+ * Force quit lthread scheduler
+ *
+ *  This function is added by Hiroki SHIROKURA to use
+ *  on Susanow Framework
+ *
+ *  @param lcore
+ *    specify lcore id
+ */
+void lthread_scheduler_force_shutdown(int lcore);
+
 
 #ifdef __cplusplus
 }

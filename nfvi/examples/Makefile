@@ -1,6 +1,6 @@
 
 # MIT License
-# Copyright (c) 2017 Susanow
+#
 # Copyright (c) 2017 Hiroki SHIROKURA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,50 +21,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-RTE_SDK := $(SSN_SDK)/lib/dpdk
-RTE_TARGET := x86_64-native-linuxapp-gcc
-INSTALLPATH_BIN  := /usr/local/bin
-INSTALLPATH_SERV := /etc/systemd/system
-LIB_DIR  := lib
-NFVI_DIR := nfvi
 
-.PHONY: test lib nfvi clean install uninstall setup
+all:
+	$(MAKE) -C l2fwd1b
+	$(MAKE) -C l2fwd2b
+	$(MAKE) -C perfcheck
+	$(MAKE) -C sfc
 
-def: nfvi
-
-nfvi: lib test
-	make -C $(NFVI_DIR)
-
-test: lib
-	make -C $(LIB_DIR) test
-
-lib:
-	make -C $(LIB_DIR)
-
-setup:
-	git submodule init
-	git submodule update
-	sudo apt install -y        \
-		libnuma-dev              \
-		libpcap-dev python       \
-		linux-headers-`uname -r` \
-		build-essential          \
-		libtcmalloc-minimal4     \
-		libboost-system-dev      \
-		libboost-thread-dev      \
-		python3-pip
-	sudo pip3 install requests
-	make -C $(LIB_DIR)/dpdk install T=$(RTE_TARGET)
 
 clean:
-	make -C $(LIB_DIR)  clean
-	make -C $(NFVI_DIR) clean
-
-install:
-	cp $(NFVI_DIR)/susanow $(INSTALLPATH_BIN)
-	cp systemd/susanow.service $(INSTALLPATH_SERV)
-
-uninstall:
-	rm -f $(INSTALLPATH_BIN)/susanow
-	rm -f $(INSTALLPATH_SERV)/susanow.service
+	$(MAKE) -C l2fwd1b   clean
+	$(MAKE) -C l2fwd2b   clean
+	$(MAKE) -C perfcheck clean
+	$(MAKE) -C sfc       clean
 

@@ -21,50 +21,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-RTE_SDK := $(SSN_SDK)/lib/dpdk
-RTE_TARGET := x86_64-native-linuxapp-gcc
-INSTALLPATH_BIN  := /usr/local/bin
-INSTALLPATH_SERV := /etc/systemd/system
-LIB_DIR  := lib
-NFVI_DIR := nfvi
 
-.PHONY: test lib nfvi clean install uninstall setup
+include $(SSN_SDK)/mk/ssn.vars.mk
+include $(SSN_SDK)/mk/ssn.rule.mk
 
-def: nfvi
+CXXFLAGS += $(SSN_CXXFLAGS)
+CXXFLAGS += -Wno-format-security -I. -std=c++11 -g -O0
+LDFLAGS  += $(SSN_LDFLAGS)
+LDFLAGS  += -lpthread -lboost_system -lboost_thread
 
-nfvi: lib test
-	make -C $(NFVI_DIR)
+SRC = \
+	ssn_vnf.cc           \
+	ssn_vnf_port.cc      \
+	ssn_vnf_port_virt.cc \
+	ssn_nfvi.cc          \
+	ssn_json.cc          \
+	ssn_rest_api.cc      \
+	main.cc
 
-test: lib
-	make -C $(LIB_DIR) test
+OBJ = $(SRC:.cc=.o)
+TARGET = susanow
 
-lib:
-	make -C $(LIB_DIR)
-
-setup:
-	git submodule init
-	git submodule update
-	sudo apt install -y        \
-		libnuma-dev              \
-		libpcap-dev python       \
-		linux-headers-`uname -r` \
-		build-essential          \
-		libtcmalloc-minimal4     \
-		libboost-system-dev      \
-		libboost-thread-dev      \
-		python3-pip
-	sudo pip3 install requests
-	make -C $(LIB_DIR)/dpdk install T=$(RTE_TARGET)
+TARGET: $(OBJ)
+	@echo LD $(TARGET)
+	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET) $(LDFLAGS)
 
 clean:
-	make -C $(LIB_DIR)  clean
-	make -C $(NFVI_DIR) clean
+	rm -rf *.out *.o $(TARGET)
 
-install:
-	cp $(NFVI_DIR)/susanow $(INSTALLPATH_BIN)
-	cp systemd/susanow.service $(INSTALLPATH_SERV)
 
-uninstall:
-	rm -f $(INSTALLPATH_BIN)/susanow
-	rm -f $(INSTALLPATH_SERV)/susanow.service
 
