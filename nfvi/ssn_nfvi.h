@@ -70,17 +70,6 @@ static inline size_t get_socket_id_from_pci_addr(const char* pciaddr_)
   return socket_id;
 }
 
-static inline size_t _get_nb_socket()
-{
-  size_t n_lcore = rte_lcore_count();
-  size_t max = 0;
-  for (size_t i=0; i<n_lcore; i++) {
-    size_t sid = rte_lcore_to_socket_id(i);
-    if (max < sid) max = sid;
-  }
-  return max + 1;
-}
-
 class ssn_nfvi final {
  private:
 
@@ -146,7 +135,7 @@ class ssn_nfvi final {
   struct rte_mempool* get_mp(size_t socket_id) { return mp[socket_id]; }
 
   size_t n_core() const { return ssn_lcore_count(); }
-  size_t n_socket() const { return _get_nb_socket(); }
+  size_t n_socket() const { return ssn_socket_count(); }
 
   const std::vector<ssn_vnf*>& get_vnfs() const { return vnfs; }
   const std::vector<ssn_vnf_port*>& get_ports() const { return ports; }

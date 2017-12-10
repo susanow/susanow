@@ -429,7 +429,7 @@ void addroute__vnfs_NAME_coremask_BLOCKID(ssn_nfvi& nfvi, crow::App<Middleware>&
        * Check VNF access-infos were already reset.
        * If unreset that, return error-msg
        */
-      if (vnf->get_coremask() != 0) {
+      if (vnf->get_coremask(blockId) != 0) {
         crow::json::wvalue x;
         x["result"] = responce_info(false, "vnf is not reset yet");
         return x;

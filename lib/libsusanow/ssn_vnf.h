@@ -76,6 +76,7 @@ class ssn_vnf_block {
   std::vector<ssn_vnf_vcore> vcores;
   slankdev::fixed_size_vector<ssn_vnf_port*>& ports;
   uint32_t coremask;
+  std::vector<size_t> socket_affinity;
 
  protected:
 
@@ -133,7 +134,12 @@ class ssn_vnf_block {
    * @return rx-access-id for specilized-port
    */
   size_t port_request_rx_access(size_t pid)
-  { return ports.at(pid)->request_rx_access(); }
+  {
+    auto* port  = ports.at(pid);
+    size_t sock_id = port->get_socket_id();
+    this->socket_affinity[sock_id]++;
+    return port->request_rx_access();
+  }
 
   /**
    * @brief Request tx-access to port
@@ -220,7 +226,11 @@ class ssn_vnf_block {
   const std::string name;
 
   ssn_vnf_block(slankdev::fixed_size_vector<ssn_vnf_port*>& p, const char* n)
-    : ports(p), name(n) {}
+    : ports(p), name(n)
+  {
+    size_t n_socket = ssn_socket_count();
+    socket_affinity.resize(n_socket);
+  }
 
   virtual void debug_dump(FILE* fp) const = 0;
 
@@ -229,8 +239,39 @@ class ssn_vnf_block {
   void attach_port(size_t pid, ssn_vnf_port* p) { ports.at(pid) = p; }
   void dettach_port(size_t pid) { ports.at(pid) = nullptr; }
 
+  /**
+   * @brief get socket-id affinitied
+   * @return socket-id should be deploy to
+   * @details
+   *   none
+   */
+  size_t get_socket_affinity() const
+  {
+    size_t sid = 0;
+    size_t max = socket_affinity[sid];
+    const size_t n_sock = ssn_socket_count();
+    for (size_t i=0; i<n_sock; i++) {
+      if (socket_affinity[i] > max) {
+        sid = i;
+        max = socket_affinity[i];
+      }
+    }
+    return sid;
+  }
+
   void set_coremask(uint32_t lcore_mask)
   {
+    /*
+     * If this function was called for vnf::reset(),
+     * this->socket_affinity must be reset.
+     */
+    if (lcore_mask == 0) {
+      const size_t n_ele = socket_affinity.size();
+      for (size_t i=0; i<n_ele; i++) {
+        socket_affinity[i] = 0;
+      }
+    }
+
     this->coremask = lcore_mask;
     vcores.clear();
     for (size_t i=0; i<32; i++) {
@@ -427,6 +468,20 @@ class ssn_vnf {
       coremask |= blocks.at(i)->get_coremask();
     }
     return coremask;
+  }
+
+  /**
+   * @brief return VNF's all coremask
+   * @param [in] bid block id
+   * @return coremask
+   * @details
+   *    if n_blocks:2, block0:0x2, block1:0x1,
+   *    this function(0) ret 0x2
+   *    this function(1) ret 0x1
+   */
+  uint32_t get_coremask(size_t bid) const
+  {
+    return blocks.at(bid)->get_coremask();
   }
 
   /**

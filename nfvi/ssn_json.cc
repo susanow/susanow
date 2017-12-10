@@ -99,6 +99,7 @@ crow::json::wvalue vnf_block_info(const ssn_vnf_block* block)
   x["name"   ] = block->name;
   x["coremask"  ] = block->get_coremask();
   x["running"] = block->is_running();
+  x["socket_affinity"] = block->get_socket_affinity();
   return x;
 }
 

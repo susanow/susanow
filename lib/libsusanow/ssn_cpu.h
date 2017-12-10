@@ -41,6 +41,8 @@ void ssn_set_lcore_state(ssn_lcore_state s, size_t lcore_id);
 
 size_t ssn_lcore_id();
 size_t ssn_lcore_count();
+size_t ssn_socket_count();
+size_t ssn_socket_id();
 
 bool ssn_lcoreid_is_green_thread(size_t lcore_id);
 bool ssn_lcoreid_is_tthread(size_t lcore_id);

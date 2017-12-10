@@ -138,7 +138,7 @@ ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
     dpdk::eth_dev_detach(i);
   }
 
-  const size_t n_socket = _get_nb_socket();
+  const size_t n_socket = ssn_socket_count();
   for (size_t i=0; i<n_socket; i++) {
     std::string name = slankdev::format("NFVi%zd", i);
     mp[i] = dpdk::mp_alloc(name.c_str(), i);
@@ -191,7 +191,7 @@ ssn_nfvi::~ssn_nfvi()
     delete ppps[i];
   }
 
-  const size_t n_socket = _get_nb_socket();
+  const size_t n_socket = ssn_socket_count();
   for (size_t i=0; i<n_socket; i++) {
     rte_mempool_free(mp[i]);
   }
