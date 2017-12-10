@@ -1,12 +1,12 @@
-[submodule "lib/libvty"]
-	path = lib/libvty
-	url = https://github.com/slankdev/libvty
-[submodule "lib/libslankdev"]
-	path = lib/libslankdev
-	url = https://github.com/slankdev/libslankdev
-[submodule "lib/libdpdk_cpp"]
-	path = lib/libdpdk_cpp
-	url = https://github.com/slankdev/libdpdk_cpp
-[submodule "lib/dpdk"]
-	path = lib/dpdk
-	url = https://github.com/slankdev/dpdk
+# [submodule "lib/libvty"]
+# 	path = lib/libvty
+# 	url = https://github.com/slankdev/libvty
+# [submodule "lib/libslankdev"]
+# 	path = lib/libslankdev
+# 	url = https://github.com/slankdev/libslankdev
+# [submodule "lib/libdpdk_cpp"]
+# 	path = lib/libdpdk_cpp
+# 	url = https://github.com/slankdev/libdpdk_cpp
+# [submodule "lib/dpdk"]
+# 	path = lib/dpdk
+# 	url = https://github.com/slankdev/dpdk
