@@ -23,14 +23,9 @@
 
 
 all:
-	$(MAKE) -C l2fwd1b
-	$(MAKE) -C l2fwd2b
-	$(MAKE) -C perfcheck
-	$(MAKE) -C sfc
+	@echo
 
 
 clean:
-	$(MAKE) -C l2fwd1b   clean
-	$(MAKE) -C l2fwd2b   clean
-	$(MAKE) -C perfcheck clean
-	$(MAKE) -C sfc       clean
+	@echo
+
