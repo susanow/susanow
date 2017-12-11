@@ -7,7 +7,7 @@ CXXFLAGS += $(SSN_CXXFLAGS)
 CXXFLAGS += -Wno-format-security -std=c++11 -I../../
 LDFLAGS  += $(SSN_LDFLAGS)
 
-SRC = main.cc
+SRC = main.cc ../../ssn_vnf.cc ../../ssn_vnf_port.cc
 OBJ = $(SRC:.cc=.o)
 TARGET = a.out
 

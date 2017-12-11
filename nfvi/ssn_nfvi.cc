@@ -71,12 +71,14 @@ size_t get_socket_id_from_pci_addr(const char* pciaddr_)
 
 ssn_nfvi* _nfvip = nullptr;
 
+bool _ssn_system_running_flag = true;
 static void signal_handler(int signum)
 {
   if (signum == SIGINT || signum == SIGTERM) {
     if (_nfvip) {
       printf("recv signal(%d), then exit...\n", signum);
       _nfvip->stop();
+      _ssn_system_running_flag = false;
     }
   }
 }

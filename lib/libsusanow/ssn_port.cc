@@ -50,12 +50,12 @@ void ssn_port_link_up(size_t p)
     ssn_log(SSN_LOG_CRIT, "link up miss\n");
     throw slankdev::exception("ssn_port_link_up");
   }
-  ssn_log(SSN_LOG_INFO, "port%zd link up\n", p);
+  ssn_log(SSN_LOG_INFO, "port%zd dev link up\n", p);
 }
 
 void ssn_port_link_down(size_t p)
 {
-  ssn_log(SSN_LOG_INFO, "port%zd link down\n", p);
+  ssn_log(SSN_LOG_INFO, "port%zd dev link down\n", p);
   rte_eth_dev_set_link_down(p);
 }
 
@@ -75,13 +75,13 @@ void ssn_port_dev_up(size_t pid)
   if (ret < 0) {
     throw slankdev::exception("eth dev start");
   }
-  ssn_log(SSN_LOG_INFO, "port%zd dev up\n", pid);
+  ssn_log(SSN_LOG_INFO, "port%zd dev start\n", pid);
 }
 
 void ssn_port_dev_down(size_t pid)
 {
   rte_eth_dev_stop(pid);
-  ssn_log(SSN_LOG_INFO, "port%zd dev down\n", pid);
+  ssn_log(SSN_LOG_INFO, "port%zd dev stop\n", pid);
 }
 
 void ssn_port_conf::debug_dump(FILE* fp) const
