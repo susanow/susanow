@@ -46,18 +46,18 @@ void watch()
       rte_eth_stats stats;
       rte_eth_stats_get(i, &stats);
 
-      printf("port%zd \n", i);
-      printf("  stats\n");
-      printf("    ipackets : %lu \n", stats.ipackets );
-      printf("    opackets : %lu \n", stats.opackets );
-      printf("    ibytes   : %lu \n", stats.ibytes   );
-      printf("    obytes   : %lu \n", stats.obytes   );
-      printf("    imissed  : %lu \n", stats.imissed  );
-      printf("    ierrors  : %lu \n", stats.ierrors  );
-      printf("    oerrors  : %lu \n", stats.oerrors  );
-      printf("    rx_nombuf: %lu \n", stats.rx_nombuf);
+      // printf("port%zd \n", i);
+      // printf("  stats\n");
+      // printf("    ipackets : %lu \n", stats.ipackets );
+      // printf("    opackets : %lu \n", stats.opackets );
+      // printf("    ibytes   : %lu \n", stats.ibytes   );
+      // printf("    obytes   : %lu \n", stats.obytes   );
+      // printf("    imissed  : %lu \n", stats.imissed  );
+      // printf("    ierrors  : %lu \n", stats.ierrors  );
+      // printf("    oerrors  : %lu \n", stats.oerrors  );
+      // printf("    rx_nombuf: %lu \n", stats.rx_nombuf);
     }
-    printf("----%04lx-----------------------------------\n", cnt++);
+    // printf("----%04lx-----------------------------------\n", cnt++);
     sleep(1);
   }
 }
@@ -67,9 +67,6 @@ int main(int argc, char** argv)
   ssn_nfvi nfvi(argc, argv);
   nfvi.vnf_register_to_catalog("l2fwd1b", ssn_vnfalloc_l2fwd1b);
   nfvi.vnf_register_to_catalog("l2fwd2b", ssn_vnfalloc_l2fwd2b);
-  nfvi.port_register_to_catalog("pci" , ssn_portalloc_pci );
-  nfvi.port_register_to_catalog("tap" , ssn_portalloc_tap );
-  nfvi.port_register_to_catalog("virt", ssn_portalloc_virt);
 
   std::thread t(watch);
 

@@ -34,8 +34,9 @@
 #include <crow.h>
 
 #include <ssn_vnf_catalog.h>
-#include <ssn_port_catalog.h>
 #include <ssn_rest_api.h>
+#include <ssn_vnf_port_dpdk.h>
+#include <ssn_vnf_port_virt.h>
 
 class ssn_timer;
 class ssn_timer_sched;
@@ -46,9 +47,8 @@ size_t get_socket_id_from_pci_addr(const char* pciaddr_);
 class ssn_nfvi final {
  private:
 
-  rte_mempool* mp[100];
+  rte_mempool* mp[100]; // TODO
   ssn_vnf_catalog  vnf_catalog;
-  ssn_port_catalog port_catalog;
 
   ssn_timer_sched* timer_sched;
   uint64_t timer_thread_tid;
@@ -94,7 +94,6 @@ class ssn_nfvi final {
   const std::vector<ssn_vnf*>& get_vnfs() const { return vnfs; }
   const std::vector<ssn_vnf_port*>& get_ports() const { return ports; }
   const ssn_vnf_catalog& get_vcat() const { return vnf_catalog; }
-  const ssn_port_catalog& get_pcat() const { return port_catalog; }
   const std::vector<ssn_vnf_port_patch_panel*>& get_ppps() const { return ppps; }
 
   void del_port(ssn_vnf_port* port);
@@ -111,17 +110,6 @@ class ssn_nfvi final {
   ssn_vnf* vnf_alloc_from_catalog(const char* cname, const char* iname);
 
   /**
-   * @brief Allocate new Port from catalog
-   * @param [in] cname catalog-name
-   * @param [in] iname instance-name
-   * @return nullptr iname or cname is invalid
-   * @return port's pointer
-   */
-  ssn_vnf_port*
-  port_alloc_from_catalog(const char* cname, const char* iname, void* arg);
-
-  /**
-   * @brief wrapper function of ssn_nfvi::port_alloc_from_catalog()
    * @param [in] iname instance-name
    * @param [in] ifname linux-if-name
    * @return nullptr iname or cname is invalid
@@ -130,7 +118,6 @@ class ssn_nfvi final {
   ssn_vnf_port* port_alloc_tap(const char* iname, const char* ifname);
 
   /**
-   * @brief wrapper function of ssn_nfvi::port_alloc_from_catalog()
    * @param [in] iname instance-name
    * @param [in] pciaddr pci-address string
    * @return nullptr iname or cname is invalid
@@ -139,7 +126,6 @@ class ssn_nfvi final {
   ssn_vnf_port* port_alloc_pci(const char* iname, const char* pciaddr);
 
   /**
-   * @brief wrapper function of ssn_nfvi::port_alloc_from_catalog()
    * @param [in] iname instance-name
    * @return nullptr iname or cname is invalid
    * @return port's pointer

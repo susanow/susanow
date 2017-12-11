@@ -150,7 +150,11 @@ void ssn_port_configure(size_t pid, ssn_port_conf* conf, struct rte_mempool* mp)
 
   ret = rte_eth_dev_configure(pid, conf->nb_rxq, conf->nb_txq, &conf->raw);
   if (ret < 0) {
-    throw slankdev::exception("dev configure");
+    using std::string;
+    using slankdev::format;
+    string err = format("rte_eth_dev_configure(%zd,%zd,%zd,%p): ret=%d (-EBUSY:%d)",
+        pid, conf->nb_rxq, conf->nb_txq, &conf->raw, ret, -EBUSY);
+    throw slankdev::exception(err.c_str());
   }
   for (size_t q=0; q<conf->nb_rxq; q++) {
     ret = rte_eth_rx_queue_setup(pid, q, conf->nb_rxd, rte_eth_dev_socket_id(pid), nullptr, mp);
