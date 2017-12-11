@@ -63,6 +63,7 @@ class ssn_vnf_l2fwd1b_block : public ssn_vnf_block {
     while (running) {
       size_t n_port = this->n_ports();
       for (size_t pid=0; pid<n_port; pid++) {
+
         rte_mbuf* mbufs[32];
         size_t rxaid = get_lcore_port_rxaid(vcore_id, pid);
         size_t txaid = get_lcore_port_txaid(vcore_id, pid^1);
@@ -76,8 +77,11 @@ class ssn_vnf_l2fwd1b_block : public ssn_vnf_block {
           size_t n=10;
           for (size_t j=0; j<100; j++) n++;
 
-          tx_burst(pid^1, txaid, &mbufs[i], 1);
+          // tx_burst(pid^1, txaid, &mbufs[i], 1);
         }
+
+        tx_burst(pid^1, txaid, mbufs, n_recv);
+
       } /* for */
     } /* while (running) */
   }

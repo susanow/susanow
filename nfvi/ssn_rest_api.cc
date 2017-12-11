@@ -314,7 +314,7 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
         }
 
         ssn_vnf_port* port = nfvi.find_port(pname.c_str());
-        port->config_hw(4,4);
+        port->config_hw(8,8);
         crow::json::wvalue x_root;
         x_root["result"] = responce_info(true, "");
         return x_root;
