@@ -284,15 +284,6 @@ paths:
           description: "successful"
           schema:
             $ref: "#/definitions/inline_response_200_4"
-  /catalogs/port:
-    get:
-      summary: "Get Port Catalog"
-      parameters: []
-      responses:
-        200:
-          description: "successful"
-          schema:
-            $ref: "#/definitions/inline_response_200_5"
   /ppps:
     get:
       summary: "Get port patch panel infos"
@@ -573,10 +564,6 @@ definitions:
         format: "uint64"
         example: 2
       n_vcat:
-        type: "integer"
-        format: "uint64"
-        example: 2
-      n_pcat:
         type: "integer"
         format: "uint64"
         example: 2
