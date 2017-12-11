@@ -69,16 +69,15 @@ class ssn_vnf_l2fwd2b_block_port : public ssn_vnf_block {
       if (n_recv == 0) continue;
 
       for (size_t i=0; i<n_recv; i++) {
-        // printf("recv port%zd \n", port_id);
 
         /* Delay Block begin */
         size_t n=10;
         for (size_t j=0; j<100; j++) n++;
 
-        size_t oport_id = get_oportid_from_iportid(port_id);
-        size_t txaid = get_lcore_port_txaid(vlid, oport_id);
-        tx_burst(oport_id, txaid, &mbufs[i], 1);
       }
+      size_t oport_id = get_oportid_from_iportid(port_id);
+      size_t txaid = get_lcore_port_txaid(vlid, oport_id);
+      tx_burst(oport_id, txaid, mbufs, n_recv);
     }
   }
   virtual void debug_dump(FILE* fp) const override

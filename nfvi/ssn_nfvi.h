@@ -38,6 +38,7 @@
 #include <ssn_vnf_port_dpdk.h>
 #include <ssn_vnf_port_virt.h>
 
+extern bool _ssn_system_running_flag;
 class ssn_timer;
 class ssn_timer_sched;
 

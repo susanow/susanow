@@ -77,9 +77,7 @@ class ssn_vnf_l2fwd1b_block : public ssn_vnf_block {
           size_t n=10;
           for (size_t j=0; j<100; j++) n++;
 
-          // tx_burst(pid^1, txaid, &mbufs[i], 1);
         }
-
         tx_burst(pid^1, txaid, mbufs, n_recv);
 
       } /* for */

@@ -199,7 +199,7 @@ ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
   const size_t n_socket = ssn_socket_count();
   for (size_t i=0; i<n_socket; i++) {
     std::string name = slankdev::format("NFVi%zd", i);
-    mp[i] = dpdk::mp_alloc(name.c_str(), i);
+    mp[i] = dpdk::mp_alloc(name.c_str(), i, 8191 * 4);
     printf("ALLOCATE MEMORY POOL on socket%zd\n", i);
   }
 
@@ -333,7 +333,6 @@ ssn_vnf_port* ssn_nfvi::port_alloc_pci(const char* iname, const char* pciaddr)
 {
   size_t socket_id = get_socket_id_from_pci_addr(pciaddr);
   rte_mempool* mp = get_mp(socket_id);
-  printf("MP: %p \n", mp);
 
   ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk(iname, ppmd_pci(pciaddr));
   port->set_mp(mp);
@@ -347,7 +346,6 @@ ssn_vnf_port* ssn_nfvi::port_alloc_tap(const char* iname, const char* ifname)
 {
   size_t socket_id = 0; // TODO
   rte_mempool* mp = get_mp(socket_id);
-  printf("MP: %p \n", mp);
 
   ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk(iname, vpmd_tap(ifname));
   port->set_mp(mp);
