@@ -36,8 +36,8 @@ int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
   rte_mempool* mp[2];
-  mp[0] = dpdk::mp_alloc("ssn0", 0);
-  mp[1] = dpdk::mp_alloc("ssn1", 1);
+  mp[0] = dpdk::mp_alloc("ssn0", 0, 8192);
+  mp[1] = dpdk::mp_alloc("ssn1", 1, 8192);
   ssn_vnf_port_dpdk* dpdk[100];
 
   const size_t n_port = ssn_dev_count();
