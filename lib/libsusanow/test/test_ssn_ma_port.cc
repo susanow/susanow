@@ -84,7 +84,7 @@ void l2fwd(void* acc_id_)
 void INIT(int argc, char** argv, size_t n_que)
 {
   ssn_init(argc, argv);
-  rte_mempool* mp = dpdk::mp_alloc("ssn", 0);
+  rte_mempool* mp = dpdk::mp_alloc("ssn", 0, 8192);
 
   size_t n_ports = ssn_dev_count();
   if (n_ports != 2) throw slankdev::exception("num ports is not 2");
@@ -158,7 +158,7 @@ void main_neo(int argc, char** argv)
   constexpr size_t n_ports_want = 1;
 
   ssn_init(argc, argv);
-  rte_mempool* mp = dpdk::mp_alloc("ssn_neo", 0);
+  rte_mempool* mp = dpdk::mp_alloc("ssn_neo", 0, 8192);
   size_t n_ports = ssn_dev_count();
   if (n_ports != n_ports_want) {
     std::string err = slankdev::format("n_ports is not %zd (current %zd)",

@@ -49,7 +49,7 @@
 int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
-  rte_mempool* mp = dpdk::mp_alloc("ssn", 0);
+  rte_mempool* mp = dpdk::mp_alloc("ssn", 0, 8192);
 
   ssn_port_conf conf;
   size_t nb_ports = ssn_dev_count();

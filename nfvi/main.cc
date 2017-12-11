@@ -42,10 +42,7 @@ int main(int argc, char** argv)
   nfvi.vnf_register_to_catalog("l2fwd1b", ssn_vnfalloc_l2fwd1b);
   nfvi.vnf_register_to_catalog("l2fwd2b", ssn_vnfalloc_l2fwd2b);
 
-  std::thread t(watch);
-
   nfvi.run(8888);
-  t.join();
   printf("bye...\n");
 }
 
