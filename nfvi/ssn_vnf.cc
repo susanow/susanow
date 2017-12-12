@@ -97,6 +97,7 @@ int ssn_vnf::reset()
    */
   const size_t n_ele = blocks.size();
   for (size_t i=0; i<n_ele; i++) {
+    blocks.at(i)->reset();
     set_coremask(i, 0x00);
   }
 
