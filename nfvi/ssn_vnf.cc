@@ -277,7 +277,9 @@ double ssn_vnf::get_perf_reduction() const
     }
     pr += ports.at(i)->get_perf_reduction();
   }
-  return pr/n_port;
+  double ret = pr/n_port;
+  if (ret > 1) ret = 1;
+  return ret;
 }
 
 size_t ssn_vnf::get_rx_rate() const
