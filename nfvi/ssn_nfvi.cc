@@ -39,7 +39,6 @@
 #include <ssn_common.h>
 #include <ssn_timer.h>
 #include <ssn_vnf_catalog.h>
-#include <ssn_port_catalog.h>
 #include <ssn_rest_api.h>
 #include <slankdev/exception.h>
 #include <slankdev/signal.h>
@@ -182,13 +181,6 @@ void ssn_nfvi::debug_dump(FILE* fp) const
     printf("vcat[%zd] n=%s \n", i, vnf_catalog[i].name.c_str());
   }
 
-  printf("\n");
-
-  printf("[+] port catalog (n:name)\n");
-  const size_t n_pcat = port_catalog.size();
-  for (size_t i=0; i<n_pcat; i++) {
-    printf("pcat[%zd] n=%s \n", i, port_catalog[i].name.c_str());
-  }
 }
 
 ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
@@ -207,7 +199,7 @@ ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
   const size_t n_socket = ssn_socket_count();
   for (size_t i=0; i<n_socket; i++) {
     std::string name = slankdev::format("NFVi%zd", i);
-    mp[i] = dpdk::mp_alloc(name.c_str(), i);
+    mp[i] = dpdk::mp_alloc(name.c_str(), i, 8191 * 4);
     printf("ALLOCATE MEMORY POOL on socket%zd\n", i);
   }
 
@@ -297,19 +289,6 @@ ssn_vnf_port_patch_panel* ssn_nfvi::find_ppp(const char* name)
   return nullptr;
 }
 
-void ssn_nfvi::port_register_to_catalog(const char* cname, ssn_portallocfunc_t f)
-{
-  const size_t n_ele = vnf_catalog.size();
-  for (size_t i=0; i<n_ele; i++) {
-    if (vnf_catalog.at(i).name == cname) {
-      std::string err = "ssn_nfvi::port_register_to_catalog: ";
-      err += slankdev::format("cname already registerd (%s)", cname);
-      throw slankdev::exception(err.c_str());
-    }
-  }
-  port_catalog.register_port(cname , f);
-}
-
 void ssn_nfvi::vnf_register_to_catalog(const char* cname, ssn_vnfallocfunc_t f)
 {
   const size_t n_ele = vnf_catalog.size();
@@ -343,35 +322,36 @@ ssn_nfvi::ppp_alloc(const char* iname, ssn_vnf_port* r, ssn_vnf_port* l)
 
 ssn_vnf_port* ssn_nfvi::port_alloc_virt(const char* iname)
 {
-  ssn_portalloc_virt_arg virt0arg = {};
-  return port_alloc_from_catalog("virt", iname, &virt0arg);
+  ssn_vnf_port* port = new ssn_vnf_port_virt(iname);
+  port->config_hw(8,8);
+
+  this->ports.push_back(port);
+  return port;
 }
 
 ssn_vnf_port* ssn_nfvi::port_alloc_pci(const char* iname, const char* pciaddr)
 {
   size_t socket_id = get_socket_id_from_pci_addr(pciaddr);
   rte_mempool* mp = get_mp(socket_id);
-  printf("MP: %p \n", mp);
-  ssn_portalloc_pci_arg pci0arg = { mp, pciaddr };
-  return port_alloc_from_catalog("pci", iname, &pci0arg);
+
+  ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk(iname, ppmd_pci(pciaddr));
+  port->set_mp(mp);
+  port->config_hw(8,8);
+
+  this->ports.push_back(port);
+  return port;
 }
 
 ssn_vnf_port* ssn_nfvi::port_alloc_tap(const char* iname, const char* ifname)
 {
-  rte_mempool* mp = get_mp(0);
-  ssn_portalloc_tap_arg tap0arg = { mp, ifname };
-  return port_alloc_from_catalog("tap", iname, &tap0arg);
-}
+  size_t socket_id = 0; // TODO
+  rte_mempool* mp = get_mp(socket_id);
 
-ssn_vnf_port*
-ssn_nfvi::port_alloc_from_catalog(const char* cname, const char* iname, void* arg)
-{
-  if (find_port(iname)) return nullptr;
+  ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk(iname, vpmd_tap(ifname));
+  port->set_mp(mp);
+  port->config_hw(8,8);
 
-  ssn_vnf_port* port = port_catalog.alloc_port(cname, iname, arg);
-  if (!port) return nullptr;
-
-  ports.push_back(port);
+  this->ports.push_back(port);
   return port;
 }
 

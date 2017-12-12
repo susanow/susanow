@@ -40,7 +40,6 @@ void addroute__system(ssn_nfvi& nfvi, crow::App<Middleware>& app)
       x_root["n_vnf"]  = nfvi.get_vnfs().size();
       x_root["n_port"] = nfvi.get_ports().size();
       x_root["n_vcat"] = nfvi.get_vcat().size();
-      x_root["n_pcat"] = nfvi.get_pcat().size();
 
       x_root["nfvi"] = nfvi_info(&nfvi);
       return x_root;
@@ -276,9 +275,7 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
              * - options.ifname
              */
             std::string ifname = req_json["options"]["ifname"].s();
-            rte_mempool* mp = nfvi.get_mp(0);
-            ssn_portalloc_tap_arg arg = { mp, ifname };
-            nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
+            nfvi.port_alloc_tap(pname.c_str(), ifname.c_str());
 
           } else if (cname == "pci") {
 
@@ -288,10 +285,7 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
              * - options.pciaddr
              */
             std::string pciaddr = req_json["options"]["pciaddr"].s();
-            size_t socket_id = get_socket_id_from_pci_addr(pciaddr.c_str());
-            rte_mempool* mp = nfvi.get_mp(socket_id);
-            ssn_portalloc_pci_arg arg = { mp, pciaddr };
-            nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
+            nfvi.port_alloc_pci(pname.c_str(), pciaddr.c_str());
 
           } else if (cname == "virt") {
 
@@ -299,8 +293,7 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
             /*
              * - cname
              */
-            ssn_portalloc_virt_arg arg;
-            nfvi.port_alloc_from_catalog(cname.c_str(), pname.c_str(), &arg);
+            nfvi.port_alloc_virt(pname.c_str());
 
           } else {
 
@@ -314,7 +307,6 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
         }
 
         ssn_vnf_port* port = nfvi.find_port(pname.c_str());
-        port->config_hw(8,8);
         crow::json::wvalue x_root;
         x_root["result"] = responce_info(true, "");
         return x_root;
@@ -368,34 +360,6 @@ void addroute__catalogs_vnf(ssn_nfvi& nfvi, crow::App<Middleware>& app)
       }
   });
 }
-
-void addroute__catalogs_port(ssn_nfvi& nfvi, crow::App<Middleware>& app)
-{
-  CROW_ROUTE(app,"/catalogs/port")
-  .methods("GET"_method)
-  ([&nfvi](const crow::request& req) {
-
-      assert(  (req.method == crow::HTTPMethod::GET   ) );
-
-      if (req.method == crow::HTTPMethod::GET) {
-
-        crow::json::wvalue x_root;
-        const size_t n_ele = nfvi.get_pcat().size();
-        x_root["result"] = responce_info(true, "");
-        x_root["n_ele"]  = n_ele;
-
-        crow::json::wvalue x_element;
-        for (size_t i=0; i<n_ele; i++) {
-          x_element["name"] = nfvi.get_pcat()[i].name;
-          x_element["allocator"] = format("%p", nfvi.get_pcat()[i].allocator);
-          x_root[std::to_string(i)] = std::move(x_element);
-        }
-        return x_root;
-
-      }
-  });
-}
-
 
 void addroute__vnfs_NAME_coremask_BLOCKID(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
@@ -713,7 +677,6 @@ void rest_api_thread(ssn_nfvi* nfviptr,
   addroute__ports                        (nfvi, *app);
   addroute__ports_NAME                   (nfvi, *app);
   addroute__catalogs_vnf                 (nfvi, *app);
-  addroute__catalogs_port                (nfvi, *app);
   addroute__vnfs_NAME_coremask_BLOCKID   (nfvi, *app);
   addroute__vnfs_NAME_reset              (nfvi, *app);
   addroute__vnfs_NAME_deploy             (nfvi, *app);

@@ -170,30 +170,6 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
 
 
 
-
-/**
- * @brief for only ssn_portalloc_virt()
- */
-struct ssn_portalloc_virt_arg {
-}; /* struct ssn_portalloc_virt_arg */
-
-/**
- * @brief port-allocator for ssn_port_catalog
- * @details
- *    This function allocate ssn_vnf_port_dpdk class of ssn_virt_port
- *    from alias-name
- */
-inline ssn_vnf_port*
-ssn_portalloc_virt(const char* instance_name, void* nouse)
-{
-  auto ret = new ssn_vnf_port_virt(instance_name);
-  return ret;
-}
-
-
-
-
-
 /**
  * @brief Provide 1 patch panel between a pair of ssn_vnf_port_virts
  * @details
