@@ -63,7 +63,9 @@ class ssn_vnf_block {
   std::vector<ssn_vnf_vcore> vcores;
   slankdev::fixed_size_vector<ssn_vnf_port*>& ports;
   uint32_t coremask;
-  std::vector<size_t> socket_affinity;
+
+  std::vector<size_t> socket_affinity; // This value is tmp value for sock-affinity
+  size_t _socket_affinity;
 
  protected:
 
@@ -232,7 +234,9 @@ class ssn_vnf_block {
    * @details
    *   none
    */
-  size_t get_socket_affinity() const
+  size_t get_socket_affinity() const { return _socket_affinity; }
+
+  size_t get_socket_affinity_impl() const
   {
     size_t sid = 0;
     size_t max = socket_affinity[sid];
@@ -246,19 +250,24 @@ class ssn_vnf_block {
     return sid;
   }
 
+  /**
+   * @brief reset block's running config
+   * @details
+   *   this function sets value for get_socket_affinity()
+   */
+  void reset()
+  {
+    set_coremask(0x1);
+    _socket_affinity = get_socket_affinity_impl();
+
+    const size_t n_ele = socket_affinity.size();
+    for (size_t i=0; i<n_ele; i++) {
+      socket_affinity[i] = 0;
+    }
+  }
+
   void set_coremask(uint32_t lcore_mask)
   {
-    /*
-     * If this function was called for vnf::reset(),
-     * this->socket_affinity must be reset.
-     */
-    if (lcore_mask == 0) {
-      const size_t n_ele = socket_affinity.size();
-      for (size_t i=0; i<n_ele; i++) {
-        socket_affinity[i] = 0;
-      }
-    }
-
     this->coremask = lcore_mask;
     vcores.clear();
     for (size_t i=0; i<32; i++) {
