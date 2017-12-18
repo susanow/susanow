@@ -194,5 +194,7 @@ class ssn_nfvi final {
    */
   double get_uptime() const { return clock()/1000000.0; }
 
+  double get_processor_rate(size_t lcore_id) const { return 99.9; }
+
 }; /* class ssn_nfvi */
 

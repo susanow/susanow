@@ -41,6 +41,17 @@ crow::json::wvalue responce_info(bool success, const char* msg)
   return x;
 }
 
+crow::json::wvalue core_info(const ssn_nfvi* nfvi, size_t lcore_id)
+{
+  crow::json::wvalue x_core;
+  x_core["lcore_id"] = lcore_id;
+  x_core["socket_id"] = rte_lcore_to_socket_id(lcore_id);
+  x_core["state"] = ssn_lcore_state2str(ssn_get_lcore_state(lcore_id));
+  if (lcore_id == rte_get_master_lcore()) x_core["state"] = "MASTER";
+  x_core["usage_rate"] = nfvi->get_processor_rate(lcore_id);
+  return x_core;
+}
+
 crow::json::wvalue nfvi_info(const ssn_nfvi* nfvi)
 {
   using std::string;
@@ -53,11 +64,7 @@ crow::json::wvalue nfvi_info(const ssn_nfvi* nfvi)
   crow::json::wvalue x_cores;
   const size_t n_core = nfvi->n_core();
   for (size_t i=0; i<n_core; i++) {
-    crow::json::wvalue x_core;
-    x_core["lcore_id"] = i;
-    x_core["socket_id"] = rte_lcore_to_socket_id(i);
-    x_core["state"] = ssn_lcore_state2str(ssn_get_lcore_state(i));
-    if (i == rte_get_master_lcore()) x_core["state"] = "MASTER";
+    crow::json::wvalue x_core = core_info(nfvi, i);
     x_cores[std::to_string(i)] = std::move(x_core);
   }
   x["cores"] = std::move(x_cores);
