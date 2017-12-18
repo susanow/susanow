@@ -411,4 +411,9 @@ void ssn_nfvi::del_ppp(ssn_vnf_port_patch_panel* ppp)
   throw slankdev::exception(err.c_str());
 }
 
+double ssn_nfvi::get_processor_rate(size_t lcore_id) const
+{
+  return cpus.get_processor(lcore_id).cpu_rate();
+}
+
 
