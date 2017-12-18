@@ -37,6 +37,7 @@
 #include <ssn_rest_api.h>
 #include <ssn_vnf_port_dpdk.h>
 #include <ssn_vnf_port_virt.h>
+#include <slankdev/system.h>
 
 extern bool _ssn_system_running_flag;
 class ssn_timer;
@@ -63,6 +64,7 @@ class ssn_nfvi final {
   crow::App<Middleware> app;
 
   time_t startup_time;
+  slankdev::cpus_state cpus;
 
  private:
 
@@ -79,6 +81,8 @@ class ssn_nfvi final {
       auto* vnf = nfvi->vnfs[i];
       if (vnf->is_running()) vnf->update_stats();
     }
+
+    nfvi->cpus.update();
   }
  public:
 
@@ -193,6 +197,13 @@ class ssn_nfvi final {
    * @return uptime minits
    */
   double get_uptime() const { return clock()/1000000.0; }
+
+  /**
+   * @brief get processor rate by lcore_id
+   * @param [in] lcore_id lcore id.
+   * @retval processor rate ex. if 99.9% then return 99.9 as double
+   */
+  double get_processor_rate(size_t lcore_id) const;
 
 }; /* class ssn_nfvi */
 
