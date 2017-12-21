@@ -1,0 +1,56 @@
+diff --git a/lib/librte_mempool/rte_mempool.c b/lib/librte_mempool/rte_mempool.c
+index 4eb53f6..24df664 100644
+--- a/lib/librte_mempool/rte_mempool.c
++++ b/lib/librte_mempool/rte_mempool.c
+@@ -1251,6 +1251,28 @@ rte_mempool_list_dump(FILE *f)
+ 	rte_rwlock_read_unlock(RTE_EAL_MEMPOOL_RWLOCK);
+ }
+ 
++/* get the all mempools pointer */
++uint32_t
++rte_mempool_list_get(struct rte_mempool* mps[], uint32_t n_mps)
++{
++	struct rte_mempool_list *mempool_list =
++		RTE_TAILQ_CAST(rte_mempool_tailq.head, rte_mempool_list);
++	rte_rwlock_read_lock(RTE_EAL_MEMPOOL_RWLOCK);
++
++	uint32_t i=0;
++	struct rte_tailq_entry *te;
++	TAILQ_FOREACH(te, mempool_list, next) {
++		struct rte_mempool *mp = (struct rte_mempool *) te->data;
++		if (i>=n_mps) {
++			break;
++		}
++		mps[i] = mp;
++		i++;
++	}
++	rte_rwlock_read_unlock(RTE_EAL_MEMPOOL_RWLOCK);
++	return i;
++}
++
+ /* search a mempool from its name */
+ struct rte_mempool *
+ rte_mempool_lookup(const char *name)
+diff --git a/lib/librte_mempool/rte_mempool.h b/lib/librte_mempool/rte_mempool.h
+index 76b5b3b..eb1bd29 100644
+--- a/lib/librte_mempool/rte_mempool.h
++++ b/lib/librte_mempool/rte_mempool.h
+@@ -1438,6 +1438,18 @@ static inline void *rte_mempool_get_priv(struct rte_mempool *mp)
+ void rte_mempool_list_dump(FILE *f);
+ 
+ /**
++ * Get the all mempools pointer
++ *
++ * @param mps
++ *   A pointer to the mempool structures array.
++ * @param n_mps
++ *   buffer length
++ * @return
++ *   number of mempools
++ */
++uint32_t rte_mempool_list_get(struct rte_mempool* mps[], uint32_t n_mps);
++
++/**
+  * Search a mempool from its name
+  *
+  * @param name
