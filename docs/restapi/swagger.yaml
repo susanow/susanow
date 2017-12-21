@@ -1,3 +1,4 @@
+
 ---
 swagger: "2.0"
 info:
@@ -389,6 +390,9 @@ definitions:
       state:
         type: "string"
         example: "WAIT"
+      usage_rate:
+        type: "number"
+        format: "double"
 
   vnf:
     type: "object"
@@ -696,6 +700,5 @@ definitions:
         $ref: "#/definitions/port"
       1:
         $ref: "#/definitions/port"
-
 
 
