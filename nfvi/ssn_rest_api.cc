@@ -46,6 +46,39 @@ void addroute__system(ssn_nfvi& nfvi, crow::App<Middleware>& app)
   });
 }
 
+void addroute__system_cpu(ssn_nfvi& nfvi, crow::App<Middleware>& app)
+{
+  CROW_ROUTE(app,"/system/cpu")
+  .methods("GET"_method)
+  ([&nfvi]() {
+      crow::json::wvalue x_root;
+      x_root["result"] = responce_info(true, "");
+      size_t n_socket = nfvi.n_socket();
+      x_root["n_cpu"] = n_socket;
+      for (size_t i=0; i<n_socket; i++) {
+        x_root[std::to_string(i)] = cpu_info(&nfvi, i);
+      }
+      return x_root;
+  });
+}
+
+void addroute__system_mem(ssn_nfvi& nfvi, crow::App<Middleware>& app)
+{
+  CROW_ROUTE(app,"/system/mem")
+  .methods("GET"_method)
+  ([&nfvi]() {
+      crow::json::wvalue x_root;
+      x_root["result"] = responce_info(true, "");
+
+      size_t n_mempool = nfvi.n_socket();
+      x_root["n_mempool"] = n_mempool;
+      for (size_t i=0; i<n_mempool; i++) {
+        x_root[std::to_string(i)] = mempool_info(nfvi.get_mp(i));
+      }
+      return x_root;
+  });
+}
+
 void addroute__vnfs(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app,"/vnfs")
@@ -671,6 +704,8 @@ void rest_api_thread(ssn_nfvi* nfviptr,
 
   addroute__                             (nfvi, *app);
   addroute__system                       (nfvi, *app);
+  addroute__system_cpu                   (nfvi, *app);
+  addroute__system_mem                   (nfvi, *app);
   addroute__vnfs                         (nfvi, *app);
   addroute__vnfs_NAME                    (nfvi, *app);
   addroute__vnfs_NAME_ports_PORTID       (nfvi, *app);

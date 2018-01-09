@@ -32,9 +32,14 @@ class ssn_vnf_block;
 class ssn_vnf_port_patch_panel;
 
 crow::json::wvalue responce_info(bool success, const char* msg);
+
 crow::json::wvalue nfvi_info(const ssn_nfvi* nfvi);
 crow::json::wvalue vnf_port_info(const ssn_vnf_port* port);
 crow::json::wvalue vnf_block_info(const ssn_vnf_block* block);
 crow::json::wvalue vnf_info(const ssn_vnf* vnf);;
 crow::json::wvalue ppp_info(const ssn_vnf_port_patch_panel* ppp);
+
+crow::json::wvalue cpu_info(const ssn_nfvi* nfvi, size_t socket_id);
+crow::json::wvalue core_info(const ssn_nfvi* nfvi, size_t lcore_id);
+crow::json::wvalue mempool_info(const rte_mempool* mp);
 

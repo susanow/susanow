@@ -52,6 +52,35 @@ crow::json::wvalue core_info(const ssn_nfvi* nfvi, size_t lcore_id)
   return x_core;
 }
 
+crow::json::wvalue cpu_info(const ssn_nfvi* nfvi, size_t socket_id)
+{
+  crow::json::wvalue x_cpu;
+  x_cpu["socket_id"] = socket_id;
+  const size_t n_cores = rte_lcore_count();
+  x_cpu["n_core"] = n_cores / nfvi->n_socket();
+  std::vector<size_t> lcore_ids;
+  for (size_t i=0; i<n_cores; i++) {
+    if (rte_lcore_to_socket_id(i) == socket_id)
+      lcore_ids.push_back(i);
+  }
+
+  for (size_t i=0; i<lcore_ids.size(); i++) {
+    size_t lcore_id = lcore_ids[i];
+    x_cpu[std::to_string(i)] = core_info(nfvi, lcore_id);
+  }
+
+  return x_cpu;
+}
+
+crow::json::wvalue mempool_info(const rte_mempool* mp)
+{
+  crow::json::wvalue x_mempool;
+  x_mempool["name"] = mp->name;
+  x_mempool["size"] = mp->size;
+  x_mempool["avail"] = rte_mempool_avail_count(mp);
+  return x_mempool;
+}
+
 crow::json::wvalue nfvi_info(const ssn_nfvi* nfvi)
 {
   using std::string;
