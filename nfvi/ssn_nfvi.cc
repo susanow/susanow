@@ -207,6 +207,7 @@ ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
   timer_thread_tid = ssn_native_thread_launch(
       ssn_timer_sched_poll_thread, timer_sched, lcoreid_timer);
 
+  sleep(1);
   uint64_t one_sec = ssn_timer_get_hz();
   add_timer(new ssn_timer(_timercallback, this, one_sec));
 
