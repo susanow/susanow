@@ -125,6 +125,22 @@ crow::json::wvalue vnf_port_info(const ssn_vnf_port* port)
   return x;
 }
 
+crow::json::wvalue pnic_info(size_t dpdk_port_id)
+{
+  crow::json::wvalue x;
+  x["port_id"] = dpdk_port_id;
+  x["tot_ipackets"] = ssn_port_stat_get_tot_rx_packets(dpdk_port_id);
+  x["tot_opackets"] = ssn_port_stat_get_tot_tx_packets(dpdk_port_id);
+  x["tot_ibytes"]   = ssn_port_stat_get_tot_rx_bytes(dpdk_port_id);
+  x["tot_obytes"]   = ssn_port_stat_get_tot_tx_bytes(dpdk_port_id);
+
+  x["cur_rx_pps"] = ssn_port_stat_get_cur_rx_pps(dpdk_port_id);
+  x["cur_tx_pps"] = ssn_port_stat_get_cur_tx_pps(dpdk_port_id);
+  x["cur_rx_bps"] = ssn_port_stat_get_cur_rx_bps(dpdk_port_id);
+  x["cur_tx_bps"] = ssn_port_stat_get_cur_tx_bps(dpdk_port_id);
+  x["cur_rx_mis"] = ssn_port_stat_get_cur_rx_mis(dpdk_port_id);
+  return x;
+}
 
 crow::json::wvalue vnf_block_info(const ssn_vnf_block* block)
 {

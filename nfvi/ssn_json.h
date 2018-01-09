@@ -42,4 +42,5 @@ crow::json::wvalue ppp_info(const ssn_vnf_port_patch_panel* ppp);
 crow::json::wvalue cpu_info(const ssn_nfvi* nfvi, size_t socket_id);
 crow::json::wvalue core_info(const ssn_nfvi* nfvi, size_t lcore_id);
 crow::json::wvalue mempool_info(const rte_mempool* mp);
+crow::json::wvalue pnic_info(size_t dpdk_port_id);
 

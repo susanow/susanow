@@ -79,6 +79,23 @@ void addroute__system_mem(ssn_nfvi& nfvi, crow::App<Middleware>& app)
   });
 }
 
+void addroute__system_pnic(ssn_nfvi& nfvi, crow::App<Middleware>& app)
+{
+  CROW_ROUTE(app,"/system/pnic")
+  .methods("GET"_method)
+  ([&nfvi]() {
+      crow::json::wvalue x_root;
+      x_root["result"] = responce_info(true, "");
+
+      size_t n_pnic = rte_eth_dev_count();
+      x_root["n_pnic"] = n_pnic;
+      for (size_t i=0; i<n_pnic; i++) {
+        x_root[std::to_string(i)] = pnic_info(i);
+      }
+      return x_root;
+  });
+}
+
 void addroute__vnfs(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 {
   CROW_ROUTE(app,"/vnfs")
@@ -706,6 +723,7 @@ void rest_api_thread(ssn_nfvi* nfviptr,
   addroute__system                       (nfvi, *app);
   addroute__system_cpu                   (nfvi, *app);
   addroute__system_mem                   (nfvi, *app);
+  addroute__system_pnic                  (nfvi, *app);
   addroute__vnfs                         (nfvi, *app);
   addroute__vnfs_NAME                    (nfvi, *app);
   addroute__vnfs_NAME_ports_PORTID       (nfvi, *app);
