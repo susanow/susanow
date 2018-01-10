@@ -48,6 +48,16 @@ paths:
           description: "successful"
           schema:
             $ref: "#/definitions/res__system_mem"
+
+  /system/pnic:
+    get:
+      summary: "Get Physical NIC info"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/res__system_pnic"
+
   /vnfs:
     get:
       summary: "Get list of VNFs"
@@ -592,6 +602,60 @@ definitions:
         $ref: "#/definitions/mempool"
       1:
         $ref: "#/definitions/mempool"
+
+  res__system_pnic:
+    properties:
+      n_pnic:
+        type: "integer"
+        format: "uint64"
+        example: 2
+      0:
+        $ref: "#/definitions/pnic"
+      1:
+        $ref: "#/definitions/pnic"
+
+  pnic:
+    properties:
+      port_id:
+        type: "integer"
+        format: "uint64"
+        example: "1"
+      tot_ipackets:
+        type: "integer"
+        format: "uint64"
+        example: 4
+      tot_opackets:
+        type: "integer"
+        format: "uint64"
+        example: 40
+      tot_ibytes:
+        type: "integer"
+        format: "uint64"
+        example: 400
+      tot_obytes:
+        type: "integer"
+        format: "uint64"
+        example: 4000
+      cur_rx_pps:
+        type: "integer"
+        format: "uint64"
+        example: 400
+      cur_tx_pps:
+        type: "integer"
+        format: "uint64"
+        example: 400
+      cur_rx_bps:
+        type: "integer"
+        format: "uint64"
+        example: 400
+      cur_tx_bps:
+        type: "integer"
+        format: "uint64"
+        example: 400
+      cur_rx_mis:
+        type: "integer"
+        format: "uint64"
+        example: 400
 
   mempool:
     properties:
