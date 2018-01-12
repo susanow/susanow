@@ -30,17 +30,19 @@
 #include <thread>
 
 #include <ssn_nfvi.h>
-#include <ssn_vnf_l2fwd1b.h>
-#include <ssn_vnf_l2fwd2b.h>
 #include <ssn_rest_api.h>
+#include <ssn_vnfs/l2fwd1b.h>
+#include <ssn_vnfs/l2fwd1b_delay.h>
+#include <ssn_vnfs/l2fwd2b.h>
 
 
 
 int main(int argc, char** argv)
 {
   ssn_nfvi nfvi(argc, argv);
-  nfvi.vnf_register_to_catalog("l2fwd1b", ssn_vnfalloc_l2fwd1b);
-  nfvi.vnf_register_to_catalog("l2fwd2b", ssn_vnfalloc_l2fwd2b);
+  nfvi.vnf_register_to_catalog("l2fwd1b"      , ssn_vnfalloc_l2fwd1b);
+  nfvi.vnf_register_to_catalog("l2fwd1b_delay", ssn_vnfalloc_l2fwd1b_delay);
+  nfvi.vnf_register_to_catalog("l2fwd2b"      , ssn_vnfalloc_l2fwd2b);
 
   nfvi.run(8888);
   printf("bye...\n");

@@ -77,7 +77,10 @@ class ssn_vnf_l2fwd2b_block_port : public ssn_vnf_block {
       }
       size_t oport_id = get_oportid_from_iportid(port_id);
       size_t txaid = get_lcore_port_txaid(vlid, oport_id);
-      tx_burst(oport_id, txaid, mbufs, n_recv);
+      size_t n_send = tx_burst(oport_id, txaid, mbufs, n_recv);
+      if (n_send < n_recv) {
+        dpdk::rte_pktmbuf_free_bulk(&mbufs[n_send], n_recv-n_send);
+      }
     }
   }
   virtual void debug_dump(FILE* fp) const override

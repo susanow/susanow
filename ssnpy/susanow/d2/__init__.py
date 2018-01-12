@@ -91,8 +91,13 @@ def _mask2array32(mask):
     array = []
     pivot = 0x1
     for i in range(32):
-        array.append(mask & pivot)
-        mask = mask >> 1
+        try:
+            array.append(mask & pivot)
+            mask = mask >> 1
+        except:
+            print('mask : ', mask)
+            print('pivot: ', pivot)
+            print('okashii!')
     return array
 
 

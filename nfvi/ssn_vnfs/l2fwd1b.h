@@ -74,11 +74,14 @@ class ssn_vnf_l2fwd1b_block : public ssn_vnf_block {
         for (size_t i=0; i<n_recv; i++) {
 
           /* Delay Block begin */
-          size_t n=10;
-          for (size_t j=0; j<100; j++) n++;
+          // size_t n=10;
+          // for (size_t j=0; j<100; j++) n++;
 
         }
-        tx_burst(pid^1, txaid, mbufs, n_recv);
+        size_t n_send = tx_burst(pid^1, txaid, mbufs, n_recv);
+        if (n_send < n_recv) {
+          dpdk::rte_pktmbuf_free_bulk(&mbufs[n_send], n_recv-n_send);
+        }
 
       } /* for */
     } /* while (running) */
