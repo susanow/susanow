@@ -49,7 +49,7 @@ size_t get_socket_id_from_pci_addr(const char* pciaddr_);
 class ssn_nfvi final {
  private:
 
-  rte_mempool* mp[100]; // TODO
+  std::vector<rte_mempool*> mp;
   ssn_vnf_catalog  vnf_catalog;
 
   ssn_timer_sched* timer_sched;
@@ -91,7 +91,7 @@ class ssn_nfvi final {
   void run(uint16_t rest_server_port);
   void stop();
   void debug_dump(FILE* fp) const;
-  struct rte_mempool* get_mp(size_t socket_id) { return mp[socket_id]; }
+  struct rte_mempool* get_mp(size_t socket_id) { return mp.at(socket_id); }
 
   size_t n_core() const { return ssn_lcore_count(); }
   size_t n_socket() const { return ssn_socket_count(); }

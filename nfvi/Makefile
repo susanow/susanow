@@ -31,12 +31,15 @@ LDFLAGS  += $(SSN_LDFLAGS)
 LDFLAGS  += -lpthread -lboost_system -lboost_thread
 
 SRC = \
-	ssn_vnf.cc           \
-	ssn_vnf_port.cc      \
-	ssn_vnf_port_virt.cc \
-	ssn_nfvi.cc          \
-	ssn_json.cc          \
-	ssn_rest_api.cc      \
+	ssn_vnf.cc                 \
+	ssn_vnf_port.cc            \
+	ssn_vnf_port_virt.cc       \
+	ssn_nfvi.cc                \
+	ssn_json.cc                \
+	ssn_rest_api.cc            \
+	ssn_vnfs/l2fwd1b.cc        \
+	ssn_vnfs/l2fwd1b_delay.cc  \
+	ssn_vnfs/l2fwd2b.cc        \
 	main.cc
 
 OBJ = $(SRC:.cc=.o)
@@ -47,7 +50,7 @@ TARGET: $(OBJ)
 	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET) $(LDFLAGS)
 
 clean:
-	rm -rf *.out *.o $(TARGET)
+	rm -rf *.out *.o ssn_vnfs/*.o $(TARGET)
 
 pre:
 	$(CXX) $(CXXFLAGS) pch.h

@@ -189,7 +189,9 @@ ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
   const size_t n_socket = ssn_socket_count();
   for (size_t i=0; i<n_socket; i++) {
     std::string name = slankdev::format("NFVi%zd", i);
-    mp[i] = dpdk::mp_alloc(name.c_str(), i, 8191 * 4);
+    rte_mempool* m = dpdk::mp_alloc(name.c_str(), i, 8191 * 4);
+    assert(mp.size() == i);
+    mp.push_back(m);
     printf("ALLOCATE MEMORY POOL on socket%zd\n", i);
   }
 

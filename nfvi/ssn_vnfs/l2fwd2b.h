@@ -38,7 +38,8 @@ class ssn_vnf_l2fwd2b_block_port : public ssn_vnf_block {
   bool running = false;
   const size_t port_id;
 
-  ssn_vnf_l2fwd2b_block_port(size_t poll_pid, slankdev::fixed_size_vector<ssn_vnf_port*>& ports, const char* n)
+  ssn_vnf_l2fwd2b_block_port(size_t poll_pid,
+      slankdev::fixed_size_vector<ssn_vnf_port*>& ports, const char* n)
     : ssn_vnf_block(ports, n)
     , port_id(poll_pid) {}
 
@@ -58,40 +59,10 @@ class ssn_vnf_l2fwd2b_block_port : public ssn_vnf_block {
       }
     }
   }
-  virtual void deploy_impl(void*) override
-  {
-    size_t vlid = get_vlcore_id();
-    running = true;
-    while (running) {
-      rte_mbuf* mbufs[32];
-      size_t rxaid = get_lcore_port_rxaid(vlid, port_id);
-      size_t n_recv = rx_burst(port_id, rxaid, mbufs, 32);
-      if (n_recv == 0) continue;
+  virtual void deploy_impl(void*) override;
+  virtual void debug_dump(FILE* fp) const override;
+}; /* class ssn_vnf_l2fwd2b_block_port */
 
-      for (size_t i=0; i<n_recv; i++) {
-
-        /* Delay Block begin */
-        size_t n=10;
-        for (size_t j=0; j<100; j++) n++;
-
-      }
-      size_t oport_id = get_oportid_from_iportid(port_id);
-      size_t txaid = get_lcore_port_txaid(vlid, oport_id);
-      size_t n_send = tx_burst(oport_id, txaid, mbufs, n_recv);
-      if (n_send < n_recv) {
-        dpdk::rte_pktmbuf_free_bulk(&mbufs[n_send], n_recv-n_send);
-      }
-    }
-  }
-  virtual void debug_dump(FILE* fp) const override
-  {
-    fprintf(fp, " %s \r\n", name.c_str());
-    size_t n_lcores = n_vcores();
-    for (size_t i=0; i<n_lcores; i++) {
-      fprintf(fp, "  vlcore[%zd]: plcore%zd \r\n", i, vcore_id_2_lcore_id(i));
-    }
-  }
-};
 class ssn_vnf_l2fwd2b : public ssn_vnf {
  public:
   ssn_vnf_l2fwd2b(const char* n) : ssn_vnf(2, n)
