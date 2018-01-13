@@ -32,6 +32,32 @@ paths:
           description: "successful"
           schema:
             $ref: "#/definitions/inline_response_200"
+  /system/cpu:
+    get:
+      summary: "Get CPU info"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/res__system_cpu"
+  /system/mem:
+    get:
+      summary: "Get MEM info"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/res__system_mem"
+
+  /system/pnic:
+    get:
+      summary: "Get Physical NIC info"
+      responses:
+        200:
+          description: "successful"
+          schema:
+            $ref: "#/definitions/res__system_pnic"
+
   /vnfs:
     get:
       summary: "Get list of VNFs"
@@ -348,6 +374,8 @@ paths:
           description: "some error occured"
           schema:
             $ref: "#/definitions/unsuccess"
+
+
 definitions:
 
   nfvi:
@@ -375,24 +403,6 @@ definitions:
             $ref: "#/definitions/core"
           3:
             $ref: "#/definitions/core"
-
-  core:
-    type: "object"
-    properties:
-      lcore_id:
-        type: "integer"
-        format: "uint64"
-        example: 0
-      socket_id:
-        type: "integer"
-        format: "uint64"
-        example: 0
-      state:
-        type: "string"
-        example: "WAIT"
-      usage_rate:
-        type: "number"
-        format: "double"
 
   vnf:
     type: "object"
@@ -430,6 +440,8 @@ definitions:
         $ref: "#/definitions/vnf_blocks"
       ports:
         $ref: "#/definitions/vnf_ports"
+
+
   block:
     type: "object"
     properties:
@@ -447,6 +459,8 @@ definitions:
         type: "integer"
         format: "uint64"
         example: 1
+
+
   port:
     type: "object"
     properties:
@@ -473,7 +487,6 @@ definitions:
         type: "integer"
         format: "uint64"
         example: 2
-
       outer_rxp:
         type: "integer"
         format: "uint64"
@@ -490,16 +503,15 @@ definitions:
         type: "integer"
         format: "uint64"
         example: 5000
-
       perfred:
         type: "number"
         format: "double"
         example: 0.6999999999999999555910790149937383830547332763671875
-
       socket_id:
         type: "integer"
         format: "uint64"
         example: 1
+
 
   success:
     type: "object"
@@ -510,6 +522,8 @@ definitions:
       msg:
         type: "string"
         example: "successed"
+
+
   unsuccess:
     type: "object"
     properties:
@@ -519,6 +533,8 @@ definitions:
       msg:
         type: "string"
         example: "error message"
+
+
   port-catalog-ele:
     type: "object"
     properties:
@@ -528,6 +544,8 @@ definitions:
       allocator:
         type: "string"
         example: "0xfffffff"
+
+
   vnf-catalog-ele:
     type: "object"
     properties:
@@ -574,6 +592,132 @@ definitions:
       nfvi:
         $ref: "#/definitions/nfvi"
 
+  res__system_mem:
+    properties:
+      n_mempool:
+        type: "integer"
+        format: "uint64"
+        example: 2
+      0:
+        $ref: "#/definitions/mempool"
+      1:
+        $ref: "#/definitions/mempool"
+
+  res__system_pnic:
+    properties:
+      n_pnic:
+        type: "integer"
+        format: "uint64"
+        example: 2
+      0:
+        $ref: "#/definitions/pnic"
+      1:
+        $ref: "#/definitions/pnic"
+
+  pnic:
+    properties:
+      port_id:
+        type: "integer"
+        format: "uint64"
+        example: "1"
+      tot_ipackets:
+        type: "integer"
+        format: "uint64"
+        example: 4
+      tot_opackets:
+        type: "integer"
+        format: "uint64"
+        example: 40
+      tot_ibytes:
+        type: "integer"
+        format: "uint64"
+        example: 400
+      tot_obytes:
+        type: "integer"
+        format: "uint64"
+        example: 4000
+      cur_rx_pps:
+        type: "integer"
+        format: "uint64"
+        example: 400
+      cur_tx_pps:
+        type: "integer"
+        format: "uint64"
+        example: 400
+      cur_rx_bps:
+        type: "integer"
+        format: "uint64"
+        example: 400
+      cur_tx_bps:
+        type: "integer"
+        format: "uint64"
+        example: 400
+      cur_rx_mis:
+        type: "integer"
+        format: "uint64"
+        example: 400
+
+  mempool:
+    properties:
+      name:
+        type: "string"
+        example: "NFVi0"
+      size:
+        type: "integer"
+        format: "uint64"
+        example: 8192
+      avail:
+        type: "integer"
+        format: "uint64"
+        example: 4000
+
+  res__system_cpu:
+    properties:
+      n_cpu:
+        type: "integer"
+        format: "uint64"
+        example: 2
+      0:
+        $ref: "#/definitions/cpu"
+      1:
+        $ref: "#/definitions/cpu"
+
+  cpu:
+    properties:
+      n_core:
+        type: "integer"
+        format: "uint64"
+        example: 4
+      socket_id:
+        type: "integer"
+        format: "uint64"
+        example: 0
+      0:
+        $ref: "#/definitions/core"
+      1:
+        $ref: "#/definitions/core"
+      2:
+        $ref: "#/definitions/core"
+      3:
+        $ref: "#/definitions/core"
+
+  core:
+    properties:
+      usage_rate:
+        type: "integer"
+        format: "uint64"
+        example: 50
+      state:
+        type: "string"
+        example: "WAIT"
+      socket_id:
+        type: "integer"
+        format: "uint64"
+        example: 0
+      lcore_id:
+        type: "integer"
+        format: "uint64"
+        example: 12
 
   inline_response_200_1:
     properties:
