@@ -26,6 +26,7 @@
 from . import nfvi
 from . import port
 from . import ppp
+import math
 
 
 class Vnf:
@@ -47,11 +48,11 @@ class Vnf:
 
     def name    (self): return self._name
     def running (self): return self._this['running' ]
-    def coremask(self): return self._this['coremask']
-    def n_port  (self): return self._this['n_port'  ]
-    def n_block (self): return self._this['n_block' ]
+    def coremask(self): return math.floor(self._this['coremask'])
+    def n_port  (self): return math.floor(self._this['n_port'  ])
+    def n_block (self): return math.floor(self._this['n_block' ])
     def perfred (self): return self._this['perfred' ]
-    def rxrate  (self): return self._this['rxrate'  ]
+    def rxrate  (self): return math.floor(self._this['rxrate'  ])
 
     def block(self, bid):
         blk = Block(self.name(), bid, self._nfvi)
