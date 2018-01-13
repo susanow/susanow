@@ -49,5 +49,8 @@ TARGET: $(OBJ)
 clean:
 	rm -rf *.out *.o $(TARGET)
 
+pre:
+	$(CXX) $(CXXFLAGS) pch.h
 
-
+cleanall: clean
+	rm -rf *.pch

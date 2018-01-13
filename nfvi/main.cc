@@ -24,10 +24,7 @@
  * SOFTWARE.
  */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <thread>
+#include <pch.h>
 
 #include <ssn_nfvi.h>
 #include <ssn_rest_api.h>

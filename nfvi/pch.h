@@ -24,24 +24,24 @@
  * SOFTWARE.
  */
 
-#pragma once
-#include <pch.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <unistd.h>
 
-class ssn_vnf;
-class ssn_vnf_port;
-class ssn_vnf_block;
-class ssn_vnf_port_patch_panel;
+#include <glob.h>
+#include <crow.h>
 
-crow::json::wvalue responce_info(bool success, const char* msg);
+#include <vector>
+#include <string>
+#include <mutex>
 
-crow::json::wvalue nfvi_info(const ssn_nfvi* nfvi);
-crow::json::wvalue vnf_port_info(const ssn_vnf_port* port);
-crow::json::wvalue vnf_block_info(const ssn_vnf_block* block);
-crow::json::wvalue vnf_info(const ssn_vnf* vnf);;
-crow::json::wvalue ppp_info(const ssn_vnf_port_patch_panel* ppp);
+#include <slankdev/string.h>
+#include <slankdev/exception.h>
+#include <slankdev/signal.h>
+#include <slankdev/filefd.h>
+#include <slankdev/hexdump.h>
 
-crow::json::wvalue cpu_info(const ssn_nfvi* nfvi, size_t socket_id);
-crow::json::wvalue core_info(const ssn_nfvi* nfvi, size_t lcore_id);
-crow::json::wvalue mempool_info(const rte_mempool* mp);
-crow::json::wvalue pnic_info(size_t dpdk_port_id);
 

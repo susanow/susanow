@@ -24,26 +24,16 @@
  * SOFTWARE.
  */
 
-#include <ssn_nfvi.h>
-#include <slankdev/string.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <unistd.h>
-#include <mutex>
-#include <crow.h>
-#include <glob.h>
+#include <pch.h>
 
+#include <ssn_nfvi.h>
 #include <ssn_log.h>
 #include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_timer.h>
 #include <ssn_vnf_catalog.h>
 #include <ssn_rest_api.h>
-#include <slankdev/exception.h>
-#include <slankdev/signal.h>
-#include <slankdev/filefd.h>
-#include <slankdev/hexdump.h>
+
 
 size_t get_socket_id_from_pci_addr(const char* pciaddr_)
 {
