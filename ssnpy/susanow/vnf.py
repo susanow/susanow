@@ -28,6 +28,10 @@ from . import port
 from . import ppp
 import math
 
+import sys,ctypes
+libc=ctypes.cdll.LoadLibrary('libc.so.6')
+popcount=lambda n:libc.__sched_cpucount(
+    ctypes.sizeof(ctypes.c_long),(ctypes.c_long*1)(n))
 
 class Vnf:
     _nfvi = ''
@@ -53,6 +57,10 @@ class Vnf:
     def n_block (self): return math.floor(self._this['n_block' ])
     def perfred (self): return self._this['perfred' ]
     def rxrate  (self): return math.floor(self._this['rxrate'  ])
+
+    def n_core  (self):
+        coremask = self.coremask()
+        return popcount(coremask)
 
     def block(self, bid):
         blk = Block(self.name(), bid, self._nfvi)
