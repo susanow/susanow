@@ -34,6 +34,16 @@
 #include <ssn_vnf_catalog.h>
 #include <ssn_rest_api.h>
 
+static void banner(FILE* fp)
+{
+  fprintf(fp, "  _____                                     \n");
+  fprintf(fp, " / ____|                                    \n");
+  fprintf(fp, "| (___  _   _ ___  __ _ _ __   _____      __\n");
+  fprintf(fp, " \\___ \\| | | / __|/ _` | '_ \\ / _ \\ \\ /\\ / /\n");
+  fprintf(fp, " ____) | |_| \\__ \\ (_| | | | | (_) \\ V  V / \n");
+  fprintf(fp, "|_____/ \\__,_|___/\\__,_|_| |_|\\___/ \\_/\\_/  \n");
+}
+
 
 size_t get_socket_id_from_pci_addr(const char* pciaddr_)
 {
@@ -94,12 +104,34 @@ void ssn_nfvi::del_timer(ssn_timer* tim)
   throw slankdev::exception(err.c_str());
 }
 
+void simple_console_thread(ssn_nfvi* nfvi)
+{
+  while (nfvi->is_running()) {
+    printf("ssn>");
+    char c = getchar();
+    if (c == 'q') {
+      nfvi->stop();
+    }
+  }
+}
+
 void ssn_nfvi::run(uint16_t rest_server_port)
 {
   /*
    * Launch REST API server
    */
   std::thread rest_api(rest_api_thread, this, &app, rest_server_port);
+
+  printf("\n");
+  banner(stdout);
+  printf("\nNFVi Starting");
+  for (size_t i=0; i<5; i++) {
+    printf(".");
+    fflush(stdout);
+    usleep(500000);
+  }
+  printf("done!\n");
+  std::thread console_thread(simple_console_thread, this);
 
   /*
    * Running loop
@@ -119,8 +151,8 @@ void ssn_nfvi::run(uint16_t rest_server_port)
     if (vnfs[i]->is_running())
       vnfs[i]->undeploy();
   }
-
   rest_api.join();
+  console_thread.join();
 }
 
 void ssn_nfvi::stop()
@@ -148,7 +180,6 @@ void ssn_nfvi::debug_dump(FILE* fp) const
   }
 
   printf("\n");
-
   printf("[+] ports (n:name)\n");
   const size_t n_ports = ports.size();
   for (size_t i=0; i<n_ports; i++) {
@@ -156,7 +187,6 @@ void ssn_nfvi::debug_dump(FILE* fp) const
   }
 
   printf("\n");
-
   printf("[+] port-pathc-panels (n:name)\n");
   const size_t n_ppps = ppps.size();
   for (size_t i=0; i<n_ppps; i++) {
@@ -164,7 +194,6 @@ void ssn_nfvi::debug_dump(FILE* fp) const
   }
 
   printf("\n");
-
   printf("[+] vnf catalog (n:name)\n");
   const size_t n_vcat = vnf_catalog.size();
   for (size_t i=0; i<n_vcat; i++) {
@@ -404,9 +433,11 @@ void ssn_nfvi::del_ppp(ssn_vnf_port_patch_panel* ppp)
   throw slankdev::exception(err.c_str());
 }
 
-double ssn_nfvi::get_processor_rate(size_t lcore_id) const
+uint8_t ssn_nfvi::get_processor_rate(size_t lcore_id) const
 {
-  return cpus.get_processor(lcore_id).cpu_rate();
+  uint8_t ret = cpus.get_processor(lcore_id).cpu_rate();
+  assert( 0<=ret && ret <=100 );
+  return ret;
 }
 
 

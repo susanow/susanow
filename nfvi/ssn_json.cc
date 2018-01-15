@@ -48,7 +48,7 @@ crow::json::wvalue core_info(const ssn_nfvi* nfvi, size_t lcore_id)
   x_core["socket_id"] = rte_lcore_to_socket_id(lcore_id);
   x_core["state"] = ssn_lcore_state2str(ssn_get_lcore_state(lcore_id));
   if (lcore_id == rte_get_master_lcore()) x_core["state"] = "MASTER";
-  x_core["usage_rate"] = nfvi->get_processor_rate(lcore_id);
+  x_core["usage_rate"] = uint8_t(nfvi->get_processor_rate(lcore_id));
   return x_core;
 }
 

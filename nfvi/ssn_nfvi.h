@@ -86,6 +86,7 @@ class ssn_nfvi final {
   }
  public:
 
+  bool is_running() const { return this->running; }
   ssn_nfvi(int argc, char** argv, ssn_log_level ll=SSN_LOG_INFO);
   virtual ~ssn_nfvi();
   void run(uint16_t rest_server_port);
@@ -201,9 +202,11 @@ class ssn_nfvi final {
   /**
    * @brief get processor rate by lcore_id
    * @param [in] lcore_id lcore id.
-   * @retval processor rate ex. if 99.9% then return 99.9 as double
+   * @retval processor rate ex. if 99% then return 99 as uint.
+   * @details
+   *  retval range always 0 to 100
    */
-  double get_processor_rate(size_t lcore_id) const;
+  uint8_t get_processor_rate(size_t lcore_id) const;
 
 }; /* class ssn_nfvi */
 
