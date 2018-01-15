@@ -108,56 +108,80 @@ def vnf_list(nfvi):
         idx = idx + 1
 
 def vnf_NAME_stat(vnfname, nfvi):
-    vnf0 = nfvi.get_vnf(vnfname)
-    if (vnf0 == None):
-        print('not found')
-        exit(-1)
-    vnf0.show()
+    try:
+        vnf0 = nfvi.get_vnf(vnfname)
+        if (vnf0 == None):
+            print('not found')
+            exit(-1)
+        vnf0.show()
+    except Exception as e:
+        print(e)
 
 def vnf_NAME_deploy(vnfname, nfvi):
-    vnf0 = nfvi.get_vnf(vnfname)
-    if (vnf0 == None):
-        print('not found')
-        exit(-1)
-    vnf0.deploy()
+    try:
+        vnf0 = nfvi.get_vnf(vnfname)
+        if (vnf0 == None):
+            print('not found')
+            exit(-1)
+        vnf0.deploy()
+    except Exception as e:
+        print(e)
 
 def vnf_NAME_undeploy(vname, nfvi):
-    vnf0 = nfvi.get_vnf(vname)
-    if (vnf0 == None):
-        print('not found')
-        exit(-1)
-    vnf0.undeploy()
+    try:
+        vnf0 = nfvi.get_vnf(vname)
+        if (vnf0 == None):
+            print('not found')
+            exit(-1)
+        vnf0.undeploy()
+    except Exception as e:
+        print(e)
 
 def vnf_NAME_alloc_CNAME(iname, cname, nfvi):
-    nfvi.alloc_vnf(iname, cname)
+    try:
+        nfvi.alloc_vnf(iname, cname)
+    except Exception as e:
+        print(e)
 
 def vnf_NAME_delete(vnfname, nfvi):
-    nfvi.delete_vnf(vnfname)
+    try:
+        nfvi.delete_vnf(vnfname)
+    except Exception as e:
+        print(e)
 
 def vnf_NAME_attachport_PID_PNAME(vname, pid, pname, nfvi):
-    vnf0 = nfvi.get_vnf(vname)
-    if (vnf0 == None):
-        print('Not found {}'.format(vname))
-        exit(-1)
-    port = nfvi.get_port(pname)
-    if (port == None):
-        print('Not found {}'.format(pname))
-        exit(-1)
-    vnf0.attach_port(pid, port)
+    try:
+        vnf0 = nfvi.get_vnf(vname)
+        if (vnf0 == None):
+            print('Not found {}'.format(vname))
+            exit(-1)
+        port = nfvi.get_port(pname)
+        if (port == None):
+            print('Not found {}'.format(pname))
+            exit(-1)
+        vnf0.attach_port(pid, port)
+    except Exception as e:
+        print(e)
 
 def vnf_NAME_detachport_PID(vname, pid, nfvi):
-    vnf0 = nfvi.get_vnf(vname)
-    if (vnf0 == None):
-        print('Not found {}'.format(vname))
-        exit(-1)
-    vnf0.detach_port(pid)
+    try:
+        vnf0 = nfvi.get_vnf(vname)
+        if (vnf0 == None):
+            print('Not found {}'.format(vname))
+            exit(-1)
+        vnf0.detach_port(pid)
+    except Exception as e:
+        print(e)
 
 def vnf_NAME_reset(vname, nfvi):
-    vnf0 = nfvi.get_vnf(vname)
-    if (vnf0 == None):
-        print('not found')
-        exit(-1)
-    vnf0.reset()
+    try:
+        vnf0 = nfvi.get_vnf(vname)
+        if (vnf0 == None):
+            print('not found')
+            exit(-1)
+        vnf0.reset()
+    except Exception as e:
+        print(e)
 
 def vnf_NAME_setcoremask_BID_COREMASK(vname, bid, coremask, nfvi):
     vnf0 = nfvi.get_vnf(vname)

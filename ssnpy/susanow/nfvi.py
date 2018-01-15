@@ -111,20 +111,17 @@ class nfvi:
             cpus.append(cpu)
         return cpus
 
-
     def show(self):
-        self.sync()
-        # print(self._this)
-        print("n_socket   : {}".format(self.n_socket()))
-        print("n_core     : {}".format(self.n_core()))
-        cores = self.cores()
-        n_core = self.n_core()
-        for i in range(n_core):
-            lid = cores[str(i)]['lcore_id']
-            sid = cores[str(i)]['socket_id']
-            s = cores[str(i)]['state']
-            r = cores[str(i)]['usage_rate']
-            print("  core[{:>2}] : lid={} sid={} s={} r={:.1f}".format(i, lid, sid, s, r))
+        import requests
+        url =  'http://' + self._host + ':8888' + '/system'
+        json = requests.get(url).json()
+        print("host       : {}".format(self._host))
+        print("apiport    : {} (#hardcode)".format(8888))
+        print("n_vnf      : {}".format(json['n_vnf']))
+        print("n_ports    : {}".format(json['n_port']))
+        print("n_socket   : {}".format(json['nfvi']['n_socket']))
+        print("n_core     : {}".format(json['nfvi']['n_core']))
+        print("message    : DON'T STAY UP ALL NIGHT")
 
     def _get(self,uri):
         path =  'http://' + self._host + ':' + str(self._port) + uri
@@ -172,9 +169,9 @@ class nfvi:
             print("content: {}".format(response.content))
             exit(-1)
 
-    def __init__(self, h='localhost', p=8888):
-        self._host = h
-        self._port = p
+    def __init__(self, host='localhost', port=8888):
+        self._host = host
+        self._port = port
         res = self._get('/')
         self.sync()
 

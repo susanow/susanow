@@ -102,12 +102,21 @@ def port_NAME_delete(pname, nfvi):
     nfvi.delete_port(pname)
 
 def port_NAME_alloc_pci(pname, pciaddr, nfvi):
-    port = nfvi.alloc_port_pci(pname, pciaddr)
+    try:
+        port = nfvi.alloc_port_pci(pname, pciaddr)
+    except Exception as e:
+        print(e)
 
 def port_NAME_alloc_tap(pname, ifname, nfvi):
-    port = nfvi.alloc_port_tap(pname, ifname)
+    try:
+        port = nfvi.alloc_port_tap(pname, ifname)
+    except Exception as e:
+        print(e)
 
 def port_NAME_alloc_virt(pname, nfvi):
-    port = nfvi.alloc_port_virt(pname)
+    try:
+        port = nfvi.alloc_port_virt(pname)
+    except Exception as e:
+        print(e)
 
 
