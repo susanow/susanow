@@ -27,7 +27,6 @@ INSTALLPATH_BIN  := /usr/local/bin
 INSTALLPATH_SERV := /etc/systemd/system
 LIB_DIR  := lib
 NFVI_DIR := nfvi
-SSNPY_DIR := ssnpy
 
 .PHONY: test lib nfvi clean install uninstall setup
 
@@ -64,10 +63,8 @@ clean:
 install:
 	cp $(NFVI_DIR)/susanow $(INSTALLPATH_BIN)
 	cp systemd/susanow.service $(INSTALLPATH_SERV)
-	make -C $(SSNPY_DIR) install
 
 uninstall:
 	rm -f $(INSTALLPATH_BIN)/susanow
 	rm -f $(INSTALLPATH_SERV)/susanow.service
-	make -C $(SSNPY_DIR) uninstall
 

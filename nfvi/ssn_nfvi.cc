@@ -131,7 +131,7 @@ void ssn_nfvi::run(uint16_t rest_server_port)
     usleep(500000);
   }
   printf("done!\n");
-  std::thread console_thread(simple_console_thread, this);
+  // std::thread console_thread(simple_console_thread, this);
 
   /*
    * Running loop
@@ -152,7 +152,7 @@ void ssn_nfvi::run(uint16_t rest_server_port)
       vnfs[i]->undeploy();
   }
   rest_api.join();
-  console_thread.join();
+  // console_thread.join();
 }
 
 void ssn_nfvi::stop()
