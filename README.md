@@ -43,4 +43,4 @@ Hiroki SHIROKURA
  - Github  slankdev
  - Facebook hiroki.shirokura
 
-
+This project is powered by IPA-Mitou.
