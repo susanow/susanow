@@ -26,6 +26,7 @@
 
 #include <ssn_vnfs/l2fwd1b_delay.h>
 
+size_t ssn_vnf_l2fwd1b_delay_block::n_delay = 100;
 
 void ssn_vnf_l2fwd1b_delay_block::deploy_impl(void*)
 {
@@ -48,7 +49,7 @@ void ssn_vnf_l2fwd1b_delay_block::deploy_impl(void*)
 
         /* Delay Block begin */
         size_t n=10;
-        for (size_t j=0; j<50; j++) n++;
+        for (size_t j=0; j<ssn_vnf_l2fwd1b_delay_block::n_delay; j++) n++;
 
       }
       size_t n_send = tx_burst(pid^1, txaid, mbufs, n_recv);

@@ -38,7 +38,8 @@ class ssn_vnf_l2fwd1b_delay_block : public ssn_vnf_block {
  public:
   ssn_vnf_l2fwd1b_delay_block(
       slankdev::fixed_size_vector<ssn_vnf_port*>& ports, const char* n)
-    : ssn_vnf_block(ports, n) {}
+    : ssn_vnf_block(ports, n)
+  { printf("create l2fwd1b_delay n_delay=%zd \n", n_delay); }
   virtual bool is_running() const override { return running; }
   virtual void undeploy_impl() override { running = false; }
   virtual void debug_dump(FILE* fp) const override { fprintf(fp, "non\r\n"); }
@@ -56,6 +57,7 @@ class ssn_vnf_l2fwd1b_delay_block : public ssn_vnf_block {
     }
   }
   virtual void deploy_impl(void*) override;
+  static size_t n_delay;
 };
 
 class ssn_vnf_l2fwd1b_delay : public ssn_vnf {
