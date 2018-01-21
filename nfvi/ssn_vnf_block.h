@@ -291,9 +291,17 @@ class ssn_vnf_block {
   void undeploy()
   {
     assert(tids.size() == vcores.size());
-    undeploy_impl();
-    for (size_t i=0; i<vcores.size(); i++) {
-      ssn_thread_join(tids.at(i));
+    if (is_running()) {
+      undeploy_impl();
+      for (size_t i=0; i<vcores.size(); i++) {
+        if (tids.at(i) == 0) {
+          printf("okashii kedo return suru\n");
+          return;
+        }
+        ssn_thread_join(tids.at(i));
+      }
+    } else {
+      return;
     }
   }
 

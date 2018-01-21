@@ -181,6 +181,7 @@ void ssn_vnf::debug_dump(FILE* fp) const
   fprintf(fp, "\r\n");
 }
 
+// TODO need refactoring
 int ssn_vnf::deploy()
 {
   const size_t n_port = ports.size();
@@ -194,13 +195,19 @@ int ssn_vnf::deploy()
   }
   configre_acc();
   auto n_impl = blocks.size();
-  for (size_t i=0; i<n_impl; i++) {
-    int ret = this->blocks.at(i)->deploy();
-    if (ret < 0) {
-      // TODO: return with Error Code
-      // printf("block deploy miss bid=%zd\n", i);
-      return -1;
+  try {
+    for (size_t i=0; i<n_impl; i++) {
+      int ret = this->blocks.at(i)->deploy();
+      if (ret < 0) {
+        // TODO: return with Error Code
+        printf("block deploy miss bid=%zd\n", i);
+        return -1;
+      }
     }
+  } catch (std::exception& e) {
+    printf("slankdev??\n");
+    undeploy();
+    return -1;
   }
   return 0;
 }
@@ -209,7 +216,9 @@ void ssn_vnf::undeploy()
 {
   auto n_impl = blocks.size();
   for (size_t i=0; i<n_impl; i++) {
-    this->blocks.at(i)->undeploy();
+    if (this->blocks.at(i)->is_running()) {
+      this->blocks.at(i)->undeploy();
+    }
   }
 }
 

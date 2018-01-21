@@ -37,6 +37,7 @@
 int main(int argc, char** argv)
 {
   ssn_nfvi nfvi(argc, argv);
+  ssn_vnf_l2fwd1b_delay_block::n_delay = 100;
   nfvi.vnf_register_to_catalog("l2fwd1b"      , ssn_vnfalloc_l2fwd1b);
   nfvi.vnf_register_to_catalog("l2fwd1b_delay", ssn_vnfalloc_l2fwd1b_delay);
   nfvi.vnf_register_to_catalog("l2fwd2b"      , ssn_vnfalloc_l2fwd2b);

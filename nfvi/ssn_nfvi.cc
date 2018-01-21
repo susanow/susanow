@@ -345,7 +345,7 @@ ssn_nfvi::ppp_alloc(const char* iname, ssn_vnf_port* r, ssn_vnf_port* l)
 ssn_vnf_port* ssn_nfvi::port_alloc_virt(const char* iname)
 {
   ssn_vnf_port* port = new ssn_vnf_port_virt(iname);
-  port->config_hw(8,8);
+  port->config_hw(8,8); // TODO Hardcoding
 
   this->ports.push_back(port);
   return port;
@@ -358,7 +358,7 @@ ssn_vnf_port* ssn_nfvi::port_alloc_pci(const char* iname, const char* pciaddr)
 
   ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk(iname, ppmd_pci(pciaddr));
   port->set_mp(mp);
-  port->config_hw(8,8);
+  port->config_hw(8,8); // TODO Hardcoding
 
   this->ports.push_back(port);
   return port;
@@ -371,7 +371,7 @@ ssn_vnf_port* ssn_nfvi::port_alloc_tap(const char* iname, const char* ifname)
 
   ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk(iname, vpmd_tap(ifname));
   port->set_mp(mp);
-  port->config_hw(8,8);
+  port->config_hw(8,8); // TODO Hardcoding
 
   this->ports.push_back(port);
   return port;

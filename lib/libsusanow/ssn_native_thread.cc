@@ -92,11 +92,23 @@ uint32_t ssn_native_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
   snt[lcore_id]->f   = f;
   snt[lcore_id]->arg = arg;
   dpdk::rte_eal_remote_launch(_fthread_launcher, snt[lcore_id], lcore_id);
+
+  // TODO
+  if (lcore_id==0){
+    printf("okashii thread launch ?\n");
+  }
   return lcore_id;
 }
 
 void ssn_native_thread_join(uint32_t tid)
 {
+  // TODO
+  if (lcore_id==0){
+  if (tid == 0) {
+    printf("okashii thread join ?\n");
+    return;
+  }
+
   auto_lock lg(mutex_thread_join);
   int ret = rte_eal_wait_lcore(tid);
   UNUSED(ret);
@@ -111,7 +123,7 @@ void ssn_native_thread_join(uint32_t tid)
     }
   }
   std::string err = "ssn_native_thread_join: ";
-  err += slankdev::format("invalid  thread-id");
+  err += slankdev::format("invalid  thread-id tid=%u", tid);
   throw slankdev::exception(err.c_str());
 }
 
