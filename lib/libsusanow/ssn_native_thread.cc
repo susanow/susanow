@@ -103,7 +103,6 @@ uint32_t ssn_native_thread_launch(ssn_function_t f, void* arg, size_t lcore_id)
 void ssn_native_thread_join(uint32_t tid)
 {
   // TODO
-  if (lcore_id==0){
   if (tid == 0) {
     printf("okashii thread join ?\n");
     return;
