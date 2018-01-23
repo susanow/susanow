@@ -67,10 +67,14 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
    */
   virtual size_t get_socket_id() const override
   {
-    size_t tx_sockid = tx->get_socket_id();
-    size_t rx_sockid = rx->get_socket_id();
-    assert(tx_sockid == rx_sockid);
-    return tx_sockid;
+    if (tx && rx) {
+      size_t tx_sockid = tx->get_socket_id();
+      size_t rx_sockid = rx->get_socket_id();
+      assert(tx_sockid == rx_sockid);
+      return tx_sockid;
+    } else {
+      return 0;
+    }
   }
 
   bool patched() const
