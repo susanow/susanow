@@ -219,14 +219,19 @@ ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
   : nrxq(8), ntxq(8), timer_sched(nullptr), running(false)
 {
   startup_time = time(nullptr);
-  printf("TIME: %s", ctime(&startup_time));
-
+  printf("StartTIME: %s", ctime(&startup_time));
   ssn_log_set_level(ll);
-  ssn_init(argc, argv);
-  const size_t n_ports = ssn_dev_count();
-  for (size_t i=0; i<n_ports; i++) {
-    dpdk::eth_dev_detach(i);
+
+  char opt[] = "-w 0000:00:00.0";
+  argc += 1;
+  char* wrapped_argv[argc];
+  wrapped_argv[0] = argv[0];
+  wrapped_argv[1] = opt;
+  for (size_t i=2,j=1; i<argc; i++,j++) {
+    wrapped_argv[i] = argv[j];
   }
+  ssn_init(argc, wrapped_argv);
+  assert(ssn_dev_count() == 0);
 
   const size_t n_socket = ssn_socket_count();
   for (size_t i=0; i<n_socket; i++) {
@@ -234,7 +239,7 @@ ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
     rte_mempool* m = dpdk::mp_alloc(name.c_str(), i, 8191 * 4);
     assert(mp.size() == i);
     mp.push_back(m);
-    printf("ALLOCATE MEMORY POOL on socket%zd\n", i);
+    ssn_log(SSN_LOG_INFO, "alloc mempool \"%s\" on socket%zd\n", m->name, i);
   }
 
   timer_sched = new ssn_timer_sched(lcoreid_timer);
