@@ -62,7 +62,7 @@ size_t get_socket_id_from_pci_addr(const char* pciaddr_)
 
   slankdev::filefd file;
   const std::string path = slankdev::format(
-      "/sys/bus/pci/devices/%04x\\:%02x\\:%02x\\.%01x/numa_node"
+      "/sys/bus/pci/devices/%04x:%02x:%02x.%01x/numa_node",
       addr.dom, addr.bus, addr.dev, addr.fun);
   try {
     file.fopen(path.c_str(), "r");
@@ -75,6 +75,7 @@ size_t get_socket_id_from_pci_addr(const char* pciaddr_)
       return socket_id;
     }
   } catch (std::exception& e) {
+    printf("%s\n", e.what());
     throw slankdev::exception("invalid pci-address (not exist?)");
   }
 
