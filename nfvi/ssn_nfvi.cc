@@ -47,26 +47,37 @@ static void banner(FILE* fp)
 
 size_t get_socket_id_from_pci_addr(const char* pciaddr_)
 {
-  char c;
-  glob_t globbuf;
+  // glob_t globbuf;
   ssn_pci_address addr;
   addr.set(pciaddr_);
 
-  const std::string _path = slankdev::format(
-        "/sys/devices/pci*/*/%04x\\:%02x\\:%02x.%01x/numa_node",
-          addr.dom, addr.bus, addr.dev, addr.fun);
-  int ret = glob(_path.c_str(), 0, NULL, &globbuf);
-  if (globbuf.gl_pathc != 1)
-    throw slankdev::exception("invalid pci-address (not exist?)");
-  const std::string path = globbuf.gl_pathv[0];
-  globfree(&globbuf);
+  // TODO
+  // const std::string _path = slankdev::format(
+  //       "/sys/devices/pci|)}>#|)}>#%04x\\:%02x\\:%02x.%01x/numa_node",
+  //         addr.dom, addr.bus, addr.dev, addr.fun);
+  // int ret = glob(_path.c_str(), 0, NULL, &globbuf);
+  // if (globbuf.gl_pathc != 1)
+  // const std::string path = globbuf.gl_pathv[0];
+  // globfree(&globbuf);
 
   slankdev::filefd file;
-  file.fopen(path.c_str(), "r");
-  file.fread(&c, 1, 1);
+  const std::string path = slankdev::format(
+      "/sys/bus/pci/devices/%04x\\:%02x\\:%02x\\.%01x/numa_node"
+      addr.dom, addr.bus, addr.dev, addr.fun);
+  try {
+    file.fopen(path.c_str(), "r");
+    char c;
+    file.fread(&c, 1, 1);
+    if (c == '-') {
+      return 0;
+    } else {
+      size_t socket_id = c - '0';
+      return socket_id;
+    }
+  } catch (std::exception& e) {
+    throw slankdev::exception("invalid pci-address (not exist?)");
+  }
 
-  size_t socket_id = c - '0';
-  return socket_id;
 }
 
 ssn_nfvi* _nfvip = nullptr;
