@@ -65,7 +65,13 @@ class ssn_vnf_port_virt : public ssn_vnf_port {
    * @brief get device's socket-id
    * @return socket-id. 0,1,2...
    */
-  virtual size_t get_socket_id() const override { return 0; } // TODO
+  virtual size_t get_socket_id() const override
+  {
+    size_t tx_sockid = tx->get_socket_id();
+    size_t rx_sockid = rx->get_socket_id();
+    assert(tx_sockid == rx_sockid);
+    return tx_sockid;
+  }
 
   bool patched() const
   {

@@ -63,8 +63,12 @@ class ssn_ma_ring {
   size_t cons_pps_sum;
   size_t cons_pps_cur;
 
+  // TODO: hardcoding. support NUMA-Aware
+  const size_t socket_id = 0;
+
  public:
 
+  size_t get_socket_id() const { return socket_id; }
   ssn_ma_ring(const char* np)
     : name_prefix(np), prod_pps_sum(0), cons_pps_cur(0) {}
   ~ssn_ma_ring() { reset_que(); }
@@ -162,7 +166,7 @@ class ssn_ma_ring {
     const size_t n_rings = n_que;
     for (size_t i=0; i<n_rings; i++) {
       auto name = slankdev::format("%s-ring%zd", name_prefix.c_str(), i);
-      rings.at(i) = dpdk::ring_alloc(name.c_str(), 1024);
+      rings.at(i) = dpdk::ring_alloc(name.c_str(), 1024, this->socket_id);
     }
   }
 

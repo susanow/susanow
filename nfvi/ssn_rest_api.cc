@@ -10,6 +10,20 @@
 #include <ssn_json.h>
 
 
+static bool coremask_is_valid(size_t coremask)
+{
+  size_t n_core = rte_lcore_count();
+  for (size_t i=0; i<n_core; i++) {
+    if ((0x1<<i) & coremask != 0) {
+      auto state = rte_eal_get_lcore_state(i);
+      if (state != WAIT) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 
 namespace {
 
@@ -319,7 +333,6 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
         try {
           if (cname == "tap") {
 
-            // TODO: hardning
             /*
              * - cname
              * - options.ifname
@@ -329,7 +342,6 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 
           } else if (cname == "pci") {
 
-            // TODO: hardning
             /*
              * - cname
              * - options.pciaddr
@@ -339,7 +351,6 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
 
           } else if (cname == "virt") {
 
-            // TODO: hardning
             /*
              * - cname
              */
@@ -352,8 +363,14 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
             return x_root;
 
           }
+
         } catch (std::exception& e) {
-          printf("THROWED: %s \n", e.what());
+
+          crow::json::wvalue x_root;
+          std::string err = slankdev::format("%s", e.what());
+          x_root["result"] = responce_info(false, err.c_str());
+          return x_root;
+
         }
 
         ssn_vnf_port* port = nfvi.find_port(pname.c_str());
@@ -454,13 +471,12 @@ void addroute__vnfs_NAME_coremask_BLOCKID(ssn_nfvi& nfvi, crow::App<Middleware>&
 
       /*
        * Check coremask is valid
-       * TODO!!!! implement this part
        */
-      // if (!coremask_is_valid(coremask)) {
-      //   crow::json::wvalue x;
-      //   x["result"] = responce_info(false, "coremask is invalid");
-      //   return x;
-      // }
+      if (!coremask_is_valid(coremask)) {
+        crow::json::wvalue x;
+        x["result"] = responce_info(false, "coremask is invalid");
+        return x;
+      }
 
       /*
        * Set coremask

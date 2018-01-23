@@ -283,7 +283,14 @@ class ssn_vnf_block {
     if (vcores.size() == 0) return -1;
 
     for (size_t i=0; i<vcores.size(); i++) {
-      tids.at(i) = ssn_thread_launch(_vnf_piece_spawner, this, vcores.at(i).lcore_id);
+      try {
+        tids.at(i) = ssn_thread_launch(_vnf_piece_spawner,
+                  this, vcores.at(i).lcore_id);
+      } catch (std::exception& e) {
+        ssn_log(SSN_LOG_INFO,
+            "ERROR: ssn_vnf_block::deploy was missed msg=%s\n", e.what());
+        return -1;
+      }
     }
     return 0;
   }

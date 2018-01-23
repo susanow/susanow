@@ -56,7 +56,8 @@ size_t get_socket_id_from_pci_addr(const char* pciaddr_)
         "/sys/devices/pci*/*/%04x\\:%02x\\:%02x.%01x/numa_node",
           addr.dom, addr.bus, addr.dev, addr.fun);
   int ret = glob(_path.c_str(), 0, NULL, &globbuf);
-  if (globbuf.gl_pathc != 1) throw slankdev::exception("Fuckin");
+  if (globbuf.gl_pathc != 1)
+    throw slankdev::exception("invalid pci-address (not exist?)");
   const std::string path = globbuf.gl_pathv[0];
   globfree(&globbuf);
 
@@ -203,7 +204,7 @@ void ssn_nfvi::debug_dump(FILE* fp) const
 }
 
 ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
-  : timer_sched(nullptr), running(false)
+  : nrxq(8), ntxq(8), timer_sched(nullptr), running(false)
 {
   startup_time = time(nullptr);
   printf("TIME: %s", ctime(&startup_time));
@@ -345,7 +346,7 @@ ssn_nfvi::ppp_alloc(const char* iname, ssn_vnf_port* r, ssn_vnf_port* l)
 ssn_vnf_port* ssn_nfvi::port_alloc_virt(const char* iname)
 {
   ssn_vnf_port* port = new ssn_vnf_port_virt(iname);
-  port->config_hw(8,8); // TODO Hardcoding
+  port->config_hw(this->nrxq,this->ntxq);
 
   this->ports.push_back(port);
   return port;
@@ -358,7 +359,7 @@ ssn_vnf_port* ssn_nfvi::port_alloc_pci(const char* iname, const char* pciaddr)
 
   ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk(iname, ppmd_pci(pciaddr));
   port->set_mp(mp);
-  port->config_hw(8,8); // TODO Hardcoding
+  port->config_hw(this->nrxq,this->ntxq);
 
   this->ports.push_back(port);
   return port;
@@ -366,12 +367,12 @@ ssn_vnf_port* ssn_nfvi::port_alloc_pci(const char* iname, const char* pciaddr)
 
 ssn_vnf_port* ssn_nfvi::port_alloc_tap(const char* iname, const char* ifname)
 {
-  size_t socket_id = 0; // TODO
+  size_t socket_id = 0; // TODO to support NUMA-Aware
   rte_mempool* mp = get_mp(socket_id);
 
   ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk(iname, vpmd_tap(ifname));
   port->set_mp(mp);
-  port->config_hw(8,8); // TODO Hardcoding
+  port->config_hw(this->nrxq,this->ntxq);
 
   this->ports.push_back(port);
   return port;

@@ -48,6 +48,8 @@ size_t get_socket_id_from_pci_addr(const char* pciaddr_);
 
 class ssn_nfvi final {
  private:
+  size_t nrxq;
+  size_t ntxq;
 
   std::vector<rte_mempool*> mp;
   ssn_vnf_catalog  vnf_catalog;

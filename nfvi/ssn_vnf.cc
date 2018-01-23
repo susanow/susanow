@@ -181,33 +181,27 @@ void ssn_vnf::debug_dump(FILE* fp) const
   fprintf(fp, "\r\n");
 }
 
-// TODO need refactoring
+
 int ssn_vnf::deploy()
 {
   const size_t n_port = ports.size();
   for (size_t i=0; i<n_port; i++) {
     if (!ports.at(i)) {
-      // TODO: return with Error Code
-      // printf("port not attached pid=%zd\n", i);
+      ssn_log(SSN_LOG_INFO, "ERROR: port%zd is not attached\n", i);
       return -1;
     }
     if (!ports.at(i)->deployable()) return -1;
   }
   configre_acc();
   auto n_impl = blocks.size();
-  try {
-    for (size_t i=0; i<n_impl; i++) {
-      int ret = this->blocks.at(i)->deploy();
-      if (ret < 0) {
-        // TODO: return with Error Code
-        printf("block deploy miss bid=%zd\n", i);
-        return -1;
-      }
+  for (size_t i=0; i<n_impl; i++) {
+    int ret = this->blocks.at(i)->deploy();
+    if (ret < 0) {
+      printf("block deploy miss bid=%zd\n", i);
+      ssn_log(SSN_LOG_INFO, "ERROR: deploying block%zd was missed\n", i);
+      undeploy();
+      return -1;
     }
-  } catch (std::exception& e) {
-    printf("slankdev??\n");
-    undeploy();
-    return -1;
   }
   return 0;
 }

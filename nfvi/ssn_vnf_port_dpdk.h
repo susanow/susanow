@@ -73,12 +73,12 @@ struct ssn_pci_address {
     uint32_t fun_;
     int ret = sscanf(str, "%04x:%02x:%02x.%01x", &dom_, &bus_, &dev_, &fun_);
     if (ret != 4) {
-      printf("ret: %d \n", ret);
-      printf("  dom: %04x \n", dom_);
-      printf("  bus: %02x \n", bus_);
-      printf("  dev: %02x \n", dev_);
-      printf("  fun: %01x \n", fun_);
-      throw slankdev::exception("OKASHII 12dfd3");
+      // printf("ret: %d \n", ret);
+      // printf("  dom: %04x \n", dom_);
+      // printf("  bus: %02x \n", bus_);
+      // printf("  dev: %02x \n", dev_);
+      // printf("  fun: %01x \n", fun_);
+      throw slankdev::exception("invalid pci-address format");
     }
 
     dom = dom_;
