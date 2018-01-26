@@ -31,13 +31,13 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <unistd.h>
-
+#include <slankdev/system.h>
 
 #include <ssn_vnf_catalog.h>
 #include <ssn_rest_api.h>
-#include <ssn_vnf_port_dpdk.h>
-#include <ssn_vnf_port_virt.h>
-#include <slankdev/system.h>
+#include <ports/dpdk.h>
+#include <ports/virt.h>
+
 
 extern bool _ssn_system_running_flag;
 class ssn_timer;

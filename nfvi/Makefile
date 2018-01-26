@@ -31,14 +31,14 @@ LDFLAGS  += $(SSN_LDFLAGS)
 LDFLAGS  += -lpthread -lboost_system -lboost_thread
 
 SRC = \
-	ssn_vnf.cc                 \
-	ssn_vnf_port.cc            \
-	ssn_vnf_port_virt.cc       \
-	ssn_nfvi.cc                \
-	ssn_json.cc                \
-	ssn_rest_api.cc            \
-	vnfs/l2fwd_delay.cc    \
-	vnfs/acl.cc            \
+	ssn_nfvi.cc         \
+	ssn_json.cc         \
+	ssn_rest_api.cc     \
+	ssn_vnf.cc          \
+	ssn_vnf_port.cc     \
+	ports/virt.cc       \
+	vnfs/l2fwd_delay.cc \
+	vnfs/acl.cc         \
 	main.cc
 
 OBJ = $(SRC:.cc=.o)
