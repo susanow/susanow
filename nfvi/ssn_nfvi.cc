@@ -34,6 +34,8 @@
 #include <ssn_vnf_catalog.h>
 #include <ssn_rest_api.h>
 
+#include <slankdev/signal.h>
+
 static void banner(FILE* fp)
 {
   fprintf(fp, "  _____                                     \n");
