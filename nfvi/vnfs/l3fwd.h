@@ -25,7 +25,6 @@
  */
 
 #pragma once
-#include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
 #include <dpdk/dpdk.h>
@@ -117,7 +116,7 @@ class ssn_vnf_l3fwd_block : public ssn_vnf_block {
   }
   virtual void deploy_impl(void*) override
   {
-    const size_t lcore_id = ssn_lcore_id();
+    const size_t lcore_id = dpdk::lcore_id();
     const size_t vcore_id  = get_vlcore_id();
     const size_t sockid = rte_socket_id();
 

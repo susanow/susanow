@@ -28,13 +28,13 @@
 
 #include <ssn_nfvi.h>
 #include <ssn_log.h>
-#include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_timer.h>
 #include <ssn_vnf_catalog.h>
 #include <ssn_rest_api.h>
 
 #include <slankdev/signal.h>
+#include <slankdev/pci.h>
 
 static void banner(FILE* fp)
 {
@@ -46,42 +46,6 @@ static void banner(FILE* fp)
   fprintf(fp, "|_____/ \\__,_|___/\\__,_|_| |_|\\___/ \\_/\\_/  \n");
 }
 
-
-size_t get_socket_id_from_pci_addr(const char* pciaddr_)
-{
-  // glob_t globbuf;
-  ssn_pci_address addr;
-  addr.set(pciaddr_);
-
-  // TODO
-  // const std::string _path = slankdev::format(
-  //       "/sys/devices/pci|)}>#|)}>#%04x\\:%02x\\:%02x.%01x/numa_node",
-  //         addr.dom, addr.bus, addr.dev, addr.fun);
-  // int ret = glob(_path.c_str(), 0, NULL, &globbuf);
-  // if (globbuf.gl_pathc != 1)
-  // const std::string path = globbuf.gl_pathv[0];
-  // globfree(&globbuf);
-
-  slankdev::filefd file;
-  const std::string path = slankdev::format(
-      "/sys/bus/pci/devices/%04x:%02x:%02x.%01x/numa_node",
-      addr.dom, addr.bus, addr.dev, addr.fun);
-  try {
-    file.fopen(path.c_str(), "r");
-    char c;
-    file.fread(&c, 1, 1);
-    if (c == '-') {
-      return 0;
-    } else {
-      size_t socket_id = c - '0';
-      return socket_id;
-    }
-  } catch (std::exception& e) {
-    printf("%s\n", e.what());
-    throw slankdev::exception("invalid pci-address (not exist?)");
-  }
-
-}
 
 ssn_nfvi* _nfvip = nullptr;
 
@@ -233,9 +197,9 @@ ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
     wrapped_argv[i] = argv[j];
   }
   ssn_init(argc, wrapped_argv);
-  assert(ssn_dev_count() == 0);
+  assert(dpdk::eth_dev_count() == 0);
 
-  const size_t n_socket = ssn_socket_count();
+  const size_t n_socket = dpdk::socket_count();
   for (size_t i=0; i<n_socket; i++) {
     std::string name = slankdev::format("NFVi%zd", i);
     rte_mempool* m = dpdk::mp_alloc(name.c_str(), i, 8191 * 4);
@@ -291,7 +255,7 @@ ssn_nfvi::~ssn_nfvi()
     delete ppps[i];
   }
 
-  const size_t n_socket = ssn_socket_count();
+  const size_t n_socket = dpdk::socket_count();
   for (size_t i=0; i<n_socket; i++) {
     rte_mempool_free(mp[i]);
   }
@@ -373,7 +337,7 @@ ssn_vnf_port* ssn_nfvi::port_alloc_virt(const char* iname)
 
 ssn_vnf_port* ssn_nfvi::port_alloc_pci(const char* iname, const char* pciaddr)
 {
-  size_t socket_id = get_socket_id_from_pci_addr(pciaddr);
+  size_t socket_id = slankdev::get_numa_node(pciaddr);
   rte_mempool* mp = get_mp(socket_id);
 
   ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk(iname, ppmd_pci(pciaddr));

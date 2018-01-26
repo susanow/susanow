@@ -96,8 +96,8 @@ class ssn_nfvi final {
   void debug_dump(FILE* fp) const;
   struct rte_mempool* get_mp(size_t socket_id) { return mp.at(socket_id); }
 
-  size_t n_core() const { return ssn_lcore_count(); }
-  size_t n_socket() const { return ssn_socket_count(); }
+  size_t n_core() const { return dpdk::lcore_count(); }
+  size_t n_socket() const { return dpdk::socket_count(); }
 
   const std::vector<ssn_vnf*>& get_vnfs() const { return vnfs; }
   const std::vector<ssn_vnf_port*>& get_ports() const { return ports; }

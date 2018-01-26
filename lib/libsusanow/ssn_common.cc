@@ -34,7 +34,6 @@
 #include <ssn_green_thread.h>
 #include <ssn_native_thread.h>
 #include <ssn_log.h>
-#include <ssn_port.h>
 #include <ssn_port_stat.h>
 
 void ssn_init(int argc, char** argv)
@@ -43,7 +42,6 @@ void ssn_init(int argc, char** argv)
   ssn_native_thread_init();
   ssn_green_thread_init();
   ssn_timer_init();
-  ssn_port_init();
   ssn_port_stat_init();
 }
 
@@ -52,7 +50,6 @@ void ssn_fin()
   ssn_native_thread_fin();
   ssn_green_thread_fin();
   ssn_timer_fin();
-  ssn_port_fin();
   ssn_port_stat_fin();
 }
 

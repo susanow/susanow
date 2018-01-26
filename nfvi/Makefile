@@ -49,7 +49,7 @@ TARGET: $(OBJ)
 	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET) $(LDFLAGS)
 
 clean:
-	rm -rf *.out *.o ssn_vnfs/*.o $(TARGET)
+	rm -rf *.out *.o vnfs/*.o ports/*.o $(TARGET)
 
 pre:
 	$(CXX) $(CXXFLAGS) pch.h

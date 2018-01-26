@@ -39,10 +39,8 @@ SRC = \
 			ssn_cpu.cc     \
 			ssn_vty.cc     \
 			ssn_config.cc  \
-			ssn_port.cc    \
 			ssn_timer.cc   \
 			ssn_log.cc     \
-			ssn_port.cc    \
 			ssn_port_stat.cc     \
 			ssn_green_thread.cc  \
 			ssn_native_thread.cc \
