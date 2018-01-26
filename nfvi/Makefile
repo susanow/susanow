@@ -37,10 +37,8 @@ SRC = \
 	ssn_nfvi.cc                \
 	ssn_json.cc                \
 	ssn_rest_api.cc            \
-	ssn_vnfs/l2fwd1b.cc        \
-	ssn_vnfs/l2fwd1b_delay.cc  \
-	ssn_vnfs/l2fwd2b.cc        \
-	ssn_vnfs/acl.cc            \
+	vnfs/l2fwd_delay.cc    \
+	vnfs/acl.cc            \
 	main.cc
 
 OBJ = $(SRC:.cc=.o)

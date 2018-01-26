@@ -1,5 +1,4 @@
 
-
 /*
  * MIT License
  *
@@ -25,10 +24,64 @@
  * SOFTWARE.
  */
 
-#include <ssn_vnfs/l2fwd2b.h>
+#pragma once
+#include <ssn_port.h>
+#include <ssn_common.h>
+#include <ssn_log.h>
+#include <dpdk/dpdk.h>
+#include <ssn_vnf.h>
 
 
-void ssn_vnf_l2fwd2b_block_port::deploy_impl(void*)
+class ssn_vnf_l2fwd_block_port : public ssn_vnf_block {
+  size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }
+ public:
+  bool running = false;
+  const size_t port_id;
+
+  ssn_vnf_l2fwd_block_port(size_t poll_pid,
+      slankdev::fixed_size_vector<ssn_vnf_port*>& ports, const char* n)
+    : ssn_vnf_block(ports, n)
+    , port_id(poll_pid) {}
+
+  virtual bool is_running() const override { return running; }
+  virtual void undeploy_impl() override { running = false; }
+  virtual void set_coremask_impl(uint32_t coremask) override
+  {
+    size_t n_lcores = slankdev::popcnt32(coremask);
+    for (size_t i=0; i<n_lcores; i++) {
+      size_t rxaid = port_request_rx_access(port_id);
+      set_lcore_port_rxaid(i, port_id, rxaid);
+
+      size_t n_port = n_ports();
+      for (size_t pid=0; pid<n_port; pid++) {
+        size_t txaid = port_request_tx_access(pid);
+        set_lcore_port_txaid(i, pid, txaid);
+      }
+    }
+  }
+  virtual void deploy_impl(void*) override;
+  virtual void debug_dump(FILE* fp) const override;
+}; /* class ssn_vnf_l2fwd_block_port */
+
+class ssn_vnf_l2fwd_numa : public ssn_vnf {
+ public:
+  ssn_vnf_l2fwd_numa(const char* n) : ssn_vnf(2, n)
+  {
+    std::string name0 = slankdev::format("%sblockport0", n);
+    std::string name1 = slankdev::format("%sblockport1", n);
+    ssn_vnf_block* vnf_block0 = new ssn_vnf_l2fwd_block_port(0, ports, name0.c_str());
+    ssn_vnf_block* vnf_block1 = new ssn_vnf_l2fwd_block_port(1, ports, name1.c_str());
+    this->blocks.push_back(vnf_block0);
+    this->blocks.push_back(vnf_block1);
+  }
+}; /* class ssn_vnf_l2fwd_numa */
+
+inline ssn_vnf*
+ssn_vnfalloc_l2fwd_numa(const char* instance_name)
+{ return new ssn_vnf_l2fwd_numa(instance_name); }
+
+
+inline void ssn_vnf_l2fwd_block_port::deploy_impl(void*)
 {
   size_t vlid = get_vlcore_id();
   running = true;
@@ -54,7 +107,7 @@ void ssn_vnf_l2fwd2b_block_port::deploy_impl(void*)
   }
 }
 
-void ssn_vnf_l2fwd2b_block_port::debug_dump(FILE* fp) const
+inline void ssn_vnf_l2fwd_block_port::debug_dump(FILE* fp) const
 {
   fprintf(fp, " %s \r\n", name.c_str());
   size_t n_lcores = n_vcores();

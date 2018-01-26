@@ -28,21 +28,21 @@
 
 #include <ssn_nfvi.h>
 #include <ssn_rest_api.h>
-#include <ssn_vnfs/l2fwd1b.h>
-#include <ssn_vnfs/l2fwd1b_delay.h>
-#include <ssn_vnfs/l2fwd2b.h>
-#include <ssn_vnfs/l3fwd.h>
-#include <ssn_vnfs/acl.h>
+#include <vnfs/l2fwd.h>
+#include <vnfs/l2fwd_delay.h>
+#include <vnfs/l2fwd_numa.h>
+#include <vnfs/l3fwd.h>
+#include <vnfs/acl.h>
 
 
 
 int main(int argc, char** argv)
 {
   ssn_nfvi nfvi(argc, argv);
-  ssn_vnf_l2fwd1b_delay_block::n_delay = 100;
-  nfvi.vnf_register_to_catalog("l2fwd1b"      , ssn_vnfalloc_l2fwd1b);
-  nfvi.vnf_register_to_catalog("l2fwd1b_delay", ssn_vnfalloc_l2fwd1b_delay);
-  nfvi.vnf_register_to_catalog("l2fwd2b"      , ssn_vnfalloc_l2fwd2b);
+  ssn_vnf_l2fwd_delay_block::n_delay = 100;
+  nfvi.vnf_register_to_catalog("l2fwd1b"      , ssn_vnfalloc_l2fwd);
+  nfvi.vnf_register_to_catalog("l2fwd1b_delay", ssn_vnfalloc_l2fwd_delay);
+  nfvi.vnf_register_to_catalog("l2fwd2b"      , ssn_vnfalloc_l2fwd_numa);
   nfvi.vnf_register_to_catalog("l3fwd"        , ssn_vnfalloc_l3fwd);
   nfvi.vnf_register_to_catalog("acl"          , ssn_vnfalloc_acl);
 

@@ -24,10 +24,64 @@
  * SOFTWARE.
  */
 
-#include <ssn_vnfs/l2fwd1b.h>
+#pragma once
+#include <ssn_port.h>
+#include <ssn_common.h>
+#include <ssn_log.h>
+#include <dpdk/dpdk.h>
+#include <ssn_vnf.h>
 
 
-void ssn_vnf_l2fwd1b_block::deploy_impl(void*)
+class ssn_vnf_l2fwd_block : public ssn_vnf_block {
+  size_t get_oportid_from_iportid(size_t in_port_id) { return in_port_id^1; }
+  bool running = false;
+ public:
+  ssn_vnf_l2fwd_block(
+      slankdev::fixed_size_vector<ssn_vnf_port*>& ports, const char* n)
+    : ssn_vnf_block(ports, n) {}
+  virtual bool is_running() const override { return running; }
+  virtual void undeploy_impl() override { running = false; }
+  virtual void debug_dump(FILE* fp) const override { fprintf(fp, "non\r\n"); }
+  virtual void set_coremask_impl(uint32_t coremask) override
+  {
+    size_t n_vcores = slankdev::popcnt32(coremask);
+    for (size_t i=0; i<n_vcores; i++) {
+      size_t n_port = n_ports();
+      for (size_t pid=0; pid<n_port; pid++) {
+        size_t rxaid = port_request_rx_access(pid);
+        set_lcore_port_rxaid(i, pid, rxaid);
+        size_t txaid = port_request_tx_access(pid);
+        set_lcore_port_txaid(i, pid, txaid);
+      }
+    }
+  }
+  virtual void deploy_impl(void*) override;
+};
+
+class ssn_vnf_l2fwd : public ssn_vnf {
+ public:
+
+  ssn_vnf_l2fwd(const char* name) : ssn_vnf(2, name)
+  {
+    std::string bname = name;
+    bname += "block0";
+    ssn_vnf_block* block = new ssn_vnf_l2fwd_block(ports, bname.c_str());
+    blocks.push_back(block);
+  }
+  ~ssn_vnf_l2fwd()
+  {
+    auto* p = blocks.at(blocks.size()-1);
+    delete p;
+    blocks.pop_back();
+  }
+}; /* class ssn_vnf_l2fwd */
+
+inline ssn_vnf*
+ssn_vnfalloc_l2fwd(const char* instance_name)
+{ return new ssn_vnf_l2fwd(instance_name); }
+
+
+inline void ssn_vnf_l2fwd_block::deploy_impl(void*)
 {
   size_t lcore_id = ssn_lcore_id();
   size_t vcore_id  = get_vlcore_id();
@@ -59,5 +113,4 @@ void ssn_vnf_l2fwd1b_block::deploy_impl(void*)
     } /* for */
   } /* while (running) */
 }
-
 
