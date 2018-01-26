@@ -340,7 +340,7 @@ ssn_vnf_port* ssn_nfvi::port_alloc_pci(const char* iname, const char* pciaddr)
   size_t socket_id = slankdev::get_numa_node(pciaddr);
   rte_mempool* mp = get_mp(socket_id);
 
-  ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk(iname, ppmd_pci(pciaddr));
+  ssn_vnf_port_dpdk_pci* port = new ssn_vnf_port_dpdk_pci(iname, pciaddr);
   port->set_mp(mp);
   port->config_hw(this->nrxq,this->ntxq);
 
@@ -353,7 +353,7 @@ ssn_vnf_port* ssn_nfvi::port_alloc_tap(const char* iname, const char* ifname)
   size_t socket_id = 0; // TODO to support NUMA-Aware
   rte_mempool* mp = get_mp(socket_id);
 
-  ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk(iname, vpmd_tap(ifname));
+  ssn_vnf_port_dpdk_tap* port = new ssn_vnf_port_dpdk_tap(iname, ifname);
   port->set_mp(mp);
   port->config_hw(this->nrxq,this->ntxq);
 
