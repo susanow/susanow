@@ -147,8 +147,8 @@ class ssn_vnf_l3fwd_block : public ssn_vnf_block {
           if (dstport > 1) dstport = pid;
 
           for (size_t k=0; k<6; k++) {
-            eth_hdr->s_addr[k] = k;
-            eth_hdr->d_addr[k] = 0xff;
+            eth_hdr->s_addr.addr_bytes[k] = k;
+            eth_hdr->d_addr.addr_bytes[k] = 0xff;
           }
 
           size_t n_send = tx_burst(dstport, txaid, &mbufs[i], 1);
