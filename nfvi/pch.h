@@ -38,10 +38,4 @@
 #include <string>
 #include <mutex>
 
-#include <slankdev/string.h>
-#include <slankdev/exception.h>
-#include <slankdev/signal.h>
-#include <slankdev/filefd.h>
-#include <slankdev/hexdump.h>
-
 
