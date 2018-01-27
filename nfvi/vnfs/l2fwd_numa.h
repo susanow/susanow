@@ -25,7 +25,6 @@
  */
 
 #pragma once
-#include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
 #include <dpdk/dpdk.h>

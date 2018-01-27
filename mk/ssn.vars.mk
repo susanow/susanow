@@ -28,6 +28,7 @@ DPDK_LDFLAGS += \
 	-lrte_eventdev -lrte_metrics -lrte_pmd_skeleton_event -lrte_timer \
 	-lrte_hash -lrte_net -lrte_pmd_sw_event -lrte_vhost \
 	-lrte_ip_frag -lrte_pdump -lrte_pmd_i40e -lrte_pmd_tap \
+	-lrte_pmd_af_packet \
 	-Wl,--end-group -Wl,--no-whole-archive -lnuma
 
 SSN_LIB_CXXFLAGS += \

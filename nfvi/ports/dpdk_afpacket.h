@@ -1,5 +1,4 @@
 
-
 /*
  * MIT License
  *
@@ -25,49 +24,34 @@
  * SOFTWARE.
  */
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <slankdev/string.h>
-#include <slankdev/exception.h>
-#include <slankdev/util.h>
-#include <exception>
-
-#include <ssn_port_stat.h>
-#include <ssn_ma_port.h>
-#include <ssn_ma_ring.h>
-#include <ssn_thread.h>
-#include <ssn_cpu.h>
-#include <ssn_common.h>
-#include <ssn_log.h>
+#pragma once
 #include <dpdk/dpdk.h>
-#include <slankdev/vector.h>
-#include <ssn_vnf_port.h>
+#include <slankdev/string.h>
 
 
+class ssn_vnf_port_dpdk_afpacket : public ssn_vnf_port_dpdk {
 
-size_t ssn_vnf_port::request_rx_access()
-{
-  auto tmp = n_rxacc;
-  n_rxacc += 1;
-  return tmp;
-}
+  /**
+   * @brief get dpdk_port_id of pnic_pmd by pci-address
+   * @details
+   *   This function probe PMD dynamicaly using DPDK-API.
+   */
+  static size_t
+  vpmd_afpacket(const char* name, const char* ifname, size_t n_que)
+  {
+    static size_t index = 0; index++;
+    std::string devargs = slankdev::format(
+        "net_af_packet%zd,iface=%s,qpairs=%zd", index, ifname, n_que);
+    size_t pid = dpdk::eth_dev_attach(devargs.c_str());
+    ssn_port_stat_init_pid(pid);
+    return pid;
+  }
 
-size_t ssn_vnf_port::request_tx_access()
-{
-  auto tmp = n_txacc;
-  n_txacc += 1;
-  return tmp;
-}
+ public:
 
-double ssn_vnf_port::get_perf_reduction() const
-{
-  size_t irx = get_inner_rx_perf();
-  size_t orx = get_outer_rx_perf();
-  if (orx == 0) return 1.0;
-  double ret = double(irx)/double(orx);
-  return ret;
-}
+  ssn_vnf_port_dpdk_afpacket(const char* n, const char* ifname, size_t n_que)
+    : ssn_vnf_port_dpdk(n, vpmd_afpacket(n, ifname, n_que)) {}
+
+}; /* ssn_vnf_port_dpdk_afpacket */
 
 

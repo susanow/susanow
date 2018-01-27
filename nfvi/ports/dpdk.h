@@ -29,36 +29,6 @@
 
 class ssn_vnf;
 
-/**
- * @brief get dpdk_port_id of tap_pmd by defice-name
- * @details
- *   This function probe vPMD dynamicaly using DPDK-API.
- */
-inline size_t
-vpmd_tap(const char* devname)
-{
-  static size_t index = 0; index++;
-  std::string devargs = slankdev::format("net_tap%zd,iface=%s", index, devname);
-  size_t pid = dpdk::eth_dev_attach(devargs.c_str());
-  ssn_port_stat_init_pid(pid);
-  return pid;
-}
-
-/**
- * @brief get dpdk_port_id of pnic_pmd by pci-address
- * @details
- *   This function probe PMD dynamicaly using DPDK-API.
- */
-inline size_t
-ppmd_pci(const char* pci_addr_str)
-{
-  static size_t index = 0; index++;
-  std::string devargs = slankdev::format("%s", pci_addr_str);
-  size_t pid = dpdk::eth_dev_attach(devargs.c_str());
-  ssn_port_stat_init_pid(pid);
-  return pid;
-}
-
 struct ssn_pci_address {
   uint32_t dom;
   uint8_t  bus;
@@ -114,23 +84,6 @@ class ssn_vnf_port_dpdk : public ssn_vnf_port {
    * @return dpdk_pid
    */
   size_t get_dpdk_pid() const { return port_id; }
-
-  /**
-   * @brief get pci device adress
-   * @return pci-address
-   */
-  ssn_pci_address get_pci_addr() const
-  {
-    struct rte_eth_dev_info dev_info;
-    const size_t pid = get_dpdk_pid();
-    rte_eth_dev_info_get(pid, &dev_info);
-    ssn_pci_address addr;
-    addr.dom = dev_info.pci_dev->addr.domain;
-    addr.bus = dev_info.pci_dev->addr.bus;
-    addr.dev = dev_info.pci_dev->addr.devid;
-    addr.fun = dev_info.pci_dev->addr.function;
-    return addr;
-  }
 
   /**
    * @brief get device's socket-id

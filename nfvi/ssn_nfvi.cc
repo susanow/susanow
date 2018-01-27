@@ -28,13 +28,13 @@
 
 #include <ssn_nfvi.h>
 #include <ssn_log.h>
-#include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_timer.h>
 #include <ssn_vnf_catalog.h>
 #include <ssn_rest_api.h>
 
 #include <slankdev/signal.h>
+#include <slankdev/pci.h>
 
 static void banner(FILE* fp)
 {
@@ -46,42 +46,6 @@ static void banner(FILE* fp)
   fprintf(fp, "|_____/ \\__,_|___/\\__,_|_| |_|\\___/ \\_/\\_/  \n");
 }
 
-
-size_t get_socket_id_from_pci_addr(const char* pciaddr_)
-{
-  // glob_t globbuf;
-  ssn_pci_address addr;
-  addr.set(pciaddr_);
-
-  // TODO
-  // const std::string _path = slankdev::format(
-  //       "/sys/devices/pci|)}>#|)}>#%04x\\:%02x\\:%02x.%01x/numa_node",
-  //         addr.dom, addr.bus, addr.dev, addr.fun);
-  // int ret = glob(_path.c_str(), 0, NULL, &globbuf);
-  // if (globbuf.gl_pathc != 1)
-  // const std::string path = globbuf.gl_pathv[0];
-  // globfree(&globbuf);
-
-  slankdev::filefd file;
-  const std::string path = slankdev::format(
-      "/sys/bus/pci/devices/%04x:%02x:%02x.%01x/numa_node",
-      addr.dom, addr.bus, addr.dev, addr.fun);
-  try {
-    file.fopen(path.c_str(), "r");
-    char c;
-    file.fread(&c, 1, 1);
-    if (c == '-') {
-      return 0;
-    } else {
-      size_t socket_id = c - '0';
-      return socket_id;
-    }
-  } catch (std::exception& e) {
-    printf("%s\n", e.what());
-    throw slankdev::exception("invalid pci-address (not exist?)");
-  }
-
-}
 
 ssn_nfvi* _nfvip = nullptr;
 
@@ -224,18 +188,20 @@ ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
   printf("StartTIME: %s", ctime(&startup_time));
   ssn_log_set_level(ll);
 
-  char opt[] = "-w 0000:00:00.0";
-  argc += 1;
+  char opt0[] = "-w 0000:00:00.0";
+  char opt1[] = "--socket-mem=1024,1024";
+  argc += 2;
   char* wrapped_argv[argc];
   wrapped_argv[0] = argv[0];
-  wrapped_argv[1] = opt;
-  for (size_t i=2,j=1; i<argc; i++,j++) {
+  wrapped_argv[1] = opt0;
+  wrapped_argv[2] = opt1;
+  for (size_t i=3,j=1; i<argc; i++,j++) {
     wrapped_argv[i] = argv[j];
   }
   ssn_init(argc, wrapped_argv);
-  assert(ssn_dev_count() == 0);
+  assert(dpdk::eth_dev_count() == 0);
 
-  const size_t n_socket = ssn_socket_count();
+  const size_t n_socket = dpdk::socket_count();
   for (size_t i=0; i<n_socket; i++) {
     std::string name = slankdev::format("NFVi%zd", i);
     rte_mempool* m = dpdk::mp_alloc(name.c_str(), i, 8191 * 4);
@@ -291,7 +257,7 @@ ssn_nfvi::~ssn_nfvi()
     delete ppps[i];
   }
 
-  const size_t n_socket = ssn_socket_count();
+  const size_t n_socket = dpdk::socket_count();
   for (size_t i=0; i<n_socket; i++) {
     rte_mempool_free(mp[i]);
   }
@@ -373,10 +339,23 @@ ssn_vnf_port* ssn_nfvi::port_alloc_virt(const char* iname)
 
 ssn_vnf_port* ssn_nfvi::port_alloc_pci(const char* iname, const char* pciaddr)
 {
-  size_t socket_id = get_socket_id_from_pci_addr(pciaddr);
+  size_t socket_id = slankdev::get_numa_node(pciaddr);
   rte_mempool* mp = get_mp(socket_id);
 
-  ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk(iname, ppmd_pci(pciaddr));
+  ssn_vnf_port_dpdk_pci* port = new ssn_vnf_port_dpdk_pci(iname, pciaddr);
+  port->set_mp(mp);
+  port->config_hw(this->nrxq,this->ntxq);
+
+  this->ports.push_back(port);
+  return port;
+}
+
+ssn_vnf_port* ssn_nfvi::port_alloc_vhost(const char* iname, size_t n_ques)
+{
+  size_t socket_id = 0; // TODO to support NUMA-Aware
+  rte_mempool* mp = get_mp(socket_id);
+
+  ssn_vnf_port_dpdk_vhost* port = new ssn_vnf_port_dpdk_vhost(iname, n_ques);
   port->set_mp(mp);
   port->config_hw(this->nrxq,this->ntxq);
 
@@ -386,10 +365,25 @@ ssn_vnf_port* ssn_nfvi::port_alloc_pci(const char* iname, const char* pciaddr)
 
 ssn_vnf_port* ssn_nfvi::port_alloc_tap(const char* iname, const char* ifname)
 {
-  size_t socket_id = 0; // TODO to support NUMA-Aware
+  size_t socket_id = 0; // todo to support numa-aware
   rte_mempool* mp = get_mp(socket_id);
 
-  ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk(iname, vpmd_tap(ifname));
+  ssn_vnf_port_dpdk_tap* port = new ssn_vnf_port_dpdk_tap(iname, ifname);
+  port->set_mp(mp);
+  port->config_hw(this->nrxq,this->ntxq);
+
+  this->ports.push_back(port);
+  return port;
+}
+
+ssn_vnf_port*
+ssn_nfvi::port_alloc_afpacket(const char* iname,
+    const char* ifname, size_t n_ques)
+{
+  size_t socket_id = 0; // todo to support numa-aware
+  rte_mempool* mp = get_mp(socket_id);
+
+  ssn_vnf_port_dpdk_afpacket* port = new ssn_vnf_port_dpdk_afpacket(iname, ifname, n_ques);
   port->set_mp(mp);
   port->config_hw(this->nrxq,this->ntxq);
 

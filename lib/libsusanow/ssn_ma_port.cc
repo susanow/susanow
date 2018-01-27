@@ -36,13 +36,13 @@
 #include <utility>
 
 #include <ssn_ma_port.h>
-#include <ssn_port.h>
 #include <ssn_log.h>
 #include <ssn_cpu.h>
 #include <ssn_common.h>
 #include <ssn_thread.h>
 #include <ssn_port_stat.h>
 
+#include <dpdk/dpdk.h>
 #include <slankdev/exception.h>
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
@@ -133,12 +133,12 @@ class ssn_ma_port {
   void configure_accessor(size_t n_rxacc, size_t n_txacc);
   size_t rx_burst(size_t aid, rte_mbuf** mbufs, size_t nb_mbufs);
   size_t tx_burst(size_t aid, rte_mbuf** mbufs, size_t nb_mbufs);
-  void link_up()       { ssn_port_link_up    (dpdk_pid); }
-  void link_down()     { ssn_port_link_down  (dpdk_pid); }
-  void promisc_on()  { ssn_port_promisc_on (dpdk_pid); }
-  void promisc_off() { ssn_port_promisc_off(dpdk_pid); }
-  void dev_up()      { ssn_port_dev_up     (dpdk_pid); }
-  void dev_down()    { ssn_port_dev_down   (dpdk_pid); }
+  void link_up()       { dpdk::eth_dev_link_up(dpdk_pid); }
+  void link_down()     { dpdk::eth_dev_link_down(dpdk_pid); }
+  void promisc_on()  { dpdk::eth_promisc_enable(dpdk_pid); }
+  void promisc_off() { dpdk::eth_promisc_disable(dpdk_pid); }
+  void dev_up()      { dpdk::eth_dev_start(dpdk_pid); }
+  void dev_down()    { dpdk::eth_dev_stop(dpdk_pid); }
 
  public:
   size_t n_rx_queue() const { return n_rxq; }
@@ -168,7 +168,8 @@ size_t ssn_ma_port::ssn_ma_port_oneside::accessor::get()
   return ques[ret];
 }
 
-std::vector<size_t> ssn_ma_port::ssn_ma_port_oneside::get_qids_from_aid(size_t aid) const
+std::vector<size_t>
+ssn_ma_port::ssn_ma_port_oneside::get_qids_from_aid(size_t aid) const
 {
   std::vector<size_t> vec;
   size_t n_que = queues.size();
@@ -232,7 +233,8 @@ void ssn_ma_port::ssn_ma_port_oneside::show() const
   printf("\n");
 }
 
-void ssn_ma_port::ssn_ma_port_oneside::configure_queue_accessor(size_t dpdk_pid, size_t n_que, size_t n_acc)
+void ssn_ma_port::ssn_ma_port_oneside::
+  configure_queue_accessor(size_t dpdk_pid, size_t n_que, size_t n_acc)
 {
   dpdk_port_id = dpdk_pid;
   n_queues_   = n_que;
@@ -255,21 +257,19 @@ void ssn_ma_port::ssn_ma_port_oneside::configure_queue_accessor(size_t dpdk_pid,
   }
 }
 
-void ssn_ma_port::configure_hwqueue(size_t dpdk_pid_, size_t n_rxq_i, size_t n_txq_i, struct rte_mempool* mp)
+void ssn_ma_port::configure_hwqueue(size_t dpdk_pid,
+    size_t n_rxq, size_t n_txq, struct rte_mempool* mp)
 {
-  dpdk_pid = dpdk_pid_;
-  n_rxq = n_rxq_i;
-  n_txq = n_txq_i;
+  struct rte_eth_conf port_conf;
+  dpdk::init_portconf(&port_conf);
+  port_conf.rxmode.mq_mode = ETH_MQ_RX_RSS;
+  port_conf.rx_adv_conf.rss_conf.rss_key = NULL;
+  port_conf.rx_adv_conf.rss_conf.rss_hf = ETH_RSS_IP|ETH_RSS_TCP|ETH_RSS_UDP;
+  dpdk::port_configure(dpdk_pid, n_rxq, n_txq, &port_conf, mp);
 
-  ssn_port_conf conf;
-  conf.nb_rxq = n_rxq;
-  conf.nb_txq = n_txq;
-  conf.raw.rxmode.mq_mode = ETH_MQ_RX_RSS;
-  conf.raw.rx_adv_conf.rss_conf.rss_key = NULL;
-  conf.raw.rx_adv_conf.rss_conf.rss_hf = ETH_RSS_IP|ETH_RSS_TCP|ETH_RSS_UDP;
-  /* conf.debug_dump(stdout); */
-
-  ssn_port_configure(dpdk_pid, &conf, mp);
+  this->n_rxq = n_rxq;
+  this->n_txq = n_txq;
+  this->dpdk_pid = dpdk_pid;
 }
 
 void ssn_ma_port::configure_accessor(size_t n_rxacc, size_t n_txacc)
@@ -293,16 +293,16 @@ size_t ssn_ma_port::tx_burst(size_t aid, rte_mbuf** mbufs, size_t nb_mbufs)
 /* ssn_ma_port Instances */
 ssn_ma_port vnf_ports[RTE_MAX_ETHPORTS];
 
-void ssn_ma_port_link_up(size_t pid)     { ssn_port_link_up    (pid); }
-void ssn_ma_port_link_down(size_t pid)   { ssn_port_link_down  (pid); }
-void ssn_ma_port_promisc_on(size_t pid)  { ssn_port_promisc_on (pid); }
-void ssn_ma_port_promisc_off(size_t pid) { ssn_port_promisc_off(pid); }
-void ssn_ma_port_dev_up(size_t pid)      { ssn_port_dev_up     (pid); }
-void ssn_ma_port_dev_down(size_t pid)    { ssn_port_dev_down   (pid); }
+void ssn_ma_port_link_up(size_t pid)     { dpdk::eth_dev_link_up    (pid); }
+void ssn_ma_port_link_down(size_t pid)   { dpdk::eth_dev_link_down  (pid); }
+void ssn_ma_port_promisc_on(size_t pid)  { dpdk::eth_promisc_enable(pid); }
+void ssn_ma_port_promisc_off(size_t pid) { dpdk::eth_promisc_disable(pid); }
+void ssn_ma_port_dev_up(size_t pid)      { dpdk::eth_dev_start  (pid); }
+void ssn_ma_port_dev_down(size_t pid)    { dpdk::eth_dev_stop   (pid); }
 
 void ssn_ma_port_configure_hw(size_t port_id, size_t n_rxq, size_t n_txq, struct rte_mempool* mp)
 {
-  if (port_id >= ssn_dev_count()) {
+  if (port_id >= dpdk::eth_dev_count()) {
     std::string err = "ssn_ma_port_configure_hw: ";
     err += slankdev::format("port_id is invalid pid=%zd", port_id);
     throw slankdev::exception(err.c_str());
@@ -312,7 +312,7 @@ void ssn_ma_port_configure_hw(size_t port_id, size_t n_rxq, size_t n_txq, struct
 
 void ssn_ma_port_configure_acc(size_t port_id, size_t n_rxacc, size_t n_txacc)
 {
-  if (port_id >= ssn_dev_count()) {
+  if (port_id >= dpdk::eth_dev_count()) {
     std::string err = "ssn_ma_port_configure_acc: ";
     err += slankdev::format("port_id is invalid pid=%zd", port_id);
     throw slankdev::exception(err.c_str());

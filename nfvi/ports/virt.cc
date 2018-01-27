@@ -1,5 +1,4 @@
 
-
 /*
  * MIT License
  *
@@ -25,49 +24,26 @@
  * SOFTWARE.
  */
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <slankdev/string.h>
-#include <slankdev/exception.h>
-#include <slankdev/util.h>
-#include <exception>
+#include <ssn_vnf.h>
+#include <ports/virt.h>
 
-#include <ssn_port_stat.h>
-#include <ssn_ma_port.h>
-#include <ssn_ma_ring.h>
-#include <ssn_thread.h>
-#include <ssn_cpu.h>
-#include <ssn_common.h>
-#include <ssn_log.h>
-#include <dpdk/dpdk.h>
-#include <slankdev/vector.h>
-#include <ssn_vnf_port.h>
-
-
-
-size_t ssn_vnf_port::request_rx_access()
+bool ssn_vnf_port_patch_panel::deletable() const
 {
-  auto tmp = n_rxacc;
-  n_rxacc += 1;
-  return tmp;
-}
-
-size_t ssn_vnf_port::request_tx_access()
-{
-  auto tmp = n_txacc;
-  n_txacc += 1;
-  return tmp;
-}
-
-double ssn_vnf_port::get_perf_reduction() const
-{
-  size_t irx = get_inner_rx_perf();
-  size_t orx = get_outer_rx_perf();
-  if (orx == 0) return 1.0;
-  double ret = double(irx)/double(orx);
-  return ret;
+  if (left) {
+    if (left->is_attached_vnf()) {
+      if (left->get_attached_vnf()->is_running()) {
+        return false;
+      }
+    }
+  }
+  if (right) {
+    if (right->is_attached_vnf()) {
+      if (right->get_attached_vnf()->is_running()) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 

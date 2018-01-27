@@ -1,8 +1,10 @@
 
+
 /*
  * MIT License
  *
- * Copyright (c) 2017 Hiroki SHIROKURA
+ * Copyright (c) 2018 Susanow
+ * Copyright (c) 2018 Hiroki SHIROKURA
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,35 +26,31 @@
  */
 
 #pragma once
-#include <stdint.h>
-#include <stddef.h>
-#include <rte_ethdev.h>
+#include <dpdk/dpdk.h>
+#include <slankdev/string.h>
 
-struct rte_eth_conf;
-struct rte_mbuf;
+class ssn_vnf_port_dpdk_tap : public ssn_vnf_port_dpdk {
 
-class ssn_port_conf {
+  /**
+   * @brief get dpdk_port_id of tap_pmd by defice-name
+   * @details
+   *   This function probe vPMD dynamicaly using DPDK-API.
+   */
+  static size_t
+  vpmd_tap(const char* devname)
+  {
+    static size_t index = 0; index++;
+    std::string devargs =
+      slankdev::format("net_tap%zd,iface=%s", index, devname);
+    size_t pid = dpdk::eth_dev_attach(devargs.c_str());
+    ssn_port_stat_init_pid(pid);
+    return pid;
+  }
+
  public:
-  size_t nb_rxq;
-  size_t nb_txq;
-  size_t nb_rxd;
-  size_t nb_txd;
-  ssn_port_conf();
-  rte_eth_conf raw;
-  void debug_dump(FILE* fp) const;
-};
+  ssn_vnf_port_dpdk_tap(const char* n, const char* devname)
+    : ssn_vnf_port_dpdk(n, vpmd_tap(devname)) {}
 
-size_t ssn_dev_count();
-void ssn_port_link_up(size_t p);
-void ssn_port_link_down(size_t p);
-void ssn_port_promisc_on(size_t pid);
-void ssn_port_promisc_off(size_t pid);
-void ssn_port_dev_up(size_t pid);
-void ssn_port_dev_down(size_t pid);
-void ssn_port_configure(size_t pid, ssn_port_conf* conf, struct rte_mempool* mp);
-void ssn_port_init();
-void ssn_port_fin();
-void ssn_mbuf_free_bulk(rte_mbuf** m_list, size_t npkts);
-size_t ssn_port_rx_burst(size_t pid, size_t qid, rte_mbuf** mbufs, size_t nb_mbufs);
-size_t ssn_port_tx_burst(size_t pid, size_t qid, rte_mbuf** mbufs, size_t nb_mbufs);
+}; /* ssn_vnf_port_dpdk_tap */
+
 

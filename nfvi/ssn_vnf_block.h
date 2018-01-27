@@ -39,7 +39,6 @@
 #include <ssn_ma_ring.h>
 #include <ssn_thread.h>
 #include <ssn_cpu.h>
-#include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
 #include <dpdk/dpdk.h>
@@ -199,7 +198,7 @@ class ssn_vnf_block {
    */
   size_t get_vlcore_id() const
   {
-    size_t lcore_id = ssn_lcore_id();
+    size_t lcore_id = dpdk::lcore_id();
     for (size_t i=0; i<vcores.size(); i++) {
       if (vcores.at(i).lcore_id == lcore_id)
         return i;
@@ -217,7 +216,7 @@ class ssn_vnf_block {
   ssn_vnf_block(slankdev::fixed_size_vector<ssn_vnf_port*>& p, const char* n)
     : ports(p), name(n)
   {
-    size_t n_socket = ssn_socket_count();
+    size_t n_socket = dpdk::socket_count();
     socket_affinity.resize(n_socket);
   }
 
@@ -240,7 +239,7 @@ class ssn_vnf_block {
   {
     size_t sid = 0;
     size_t max = socket_affinity[sid];
-    const size_t n_sock = ssn_socket_count();
+    const size_t n_sock = dpdk::socket_count();
     for (size_t i=0; i<n_sock; i++) {
       if (socket_affinity[i] > max) {
         sid = i;

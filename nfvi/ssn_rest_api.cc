@@ -349,6 +349,27 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
             std::string pciaddr = req_json["options"]["pciaddr"].s();
             nfvi.port_alloc_pci(pname.c_str(), pciaddr.c_str());
 
+          } else if (cname == "vhost") {
+
+            /*
+             * - cname
+             * - options.pciaddr
+             */
+            printf("SLANKDEV create vhost\n");
+            assert(nfvi.nrxq == nfvi.ntxq);
+            nfvi.port_alloc_vhost(pname.c_str(), nfvi.nrxq);
+
+          } else if (cname == "afpacket") {
+
+            /*
+             * - cname
+             * - options.ifname
+             */
+            std::string ifname = req_json["options"]["ifname"].s();
+            assert(nfvi.nrxq == nfvi.ntxq);
+            nfvi.port_alloc_afpacket(pname.c_str(),
+                ifname.c_str(), nfvi.nrxq);
+
           } else if (cname == "virt") {
 
             /*

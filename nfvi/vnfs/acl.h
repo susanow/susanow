@@ -25,7 +25,6 @@
  */
 
 #pragma once
-#include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
 #include <dpdk/dpdk.h>
@@ -126,7 +125,7 @@ ssn_vnfalloc_acl(const char* instance_name)
 
 inline void ssn_vnf_acl_block::deploy_impl(void*)
 {
-  size_t lcore_id = ssn_lcore_id();
+  size_t lcore_id = dpdk::lcore_id();
   size_t vcore_id  = get_vlcore_id();
 
   running = true;

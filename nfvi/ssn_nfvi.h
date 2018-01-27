@@ -31,13 +31,17 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <unistd.h>
-
+#include <slankdev/system.h>
 
 #include <ssn_vnf_catalog.h>
 #include <ssn_rest_api.h>
-#include <ssn_vnf_port_dpdk.h>
-#include <ssn_vnf_port_virt.h>
-#include <slankdev/system.h>
+#include <ports/dpdk.h>
+#include <ports/dpdk_pci.h>
+#include <ports/dpdk_tap.h>
+#include <ports/dpdk_vhost.h>
+#include <ports/dpdk_afpacket.h>
+#include <ports/virt.h>
+
 
 extern bool _ssn_system_running_flag;
 class ssn_timer;
@@ -48,9 +52,6 @@ size_t get_socket_id_from_pci_addr(const char* pciaddr_);
 
 class ssn_nfvi final {
  private:
-  size_t nrxq;
-  size_t ntxq;
-
   std::vector<rte_mempool*> mp;
   ssn_vnf_catalog  vnf_catalog;
 
@@ -87,6 +88,8 @@ class ssn_nfvi final {
     nfvi->cpus.update();
   }
  public:
+  const size_t nrxq;
+  const size_t ntxq;
 
   bool is_running() const { return this->running; }
   ssn_nfvi(int argc, char** argv, ssn_log_level ll=SSN_LOG_INFO);
@@ -96,8 +99,8 @@ class ssn_nfvi final {
   void debug_dump(FILE* fp) const;
   struct rte_mempool* get_mp(size_t socket_id) { return mp.at(socket_id); }
 
-  size_t n_core() const { return ssn_lcore_count(); }
-  size_t n_socket() const { return ssn_socket_count(); }
+  size_t n_core() const { return dpdk::lcore_count(); }
+  size_t n_socket() const { return dpdk::socket_count(); }
 
   const std::vector<ssn_vnf*>& get_vnfs() const { return vnfs; }
   const std::vector<ssn_vnf_port*>& get_ports() const { return ports; }
@@ -127,11 +130,27 @@ class ssn_nfvi final {
 
   /**
    * @param [in] iname instance-name
+   * @param [in] ifname linux-if-name
+   * @return nullptr iname or cname is invalid
+   * @return port's pointer
+   */
+  ssn_vnf_port* port_alloc_afpacket(const char* iname, const char* ifname, size_t n_ques);
+
+  /**
+   * @param [in] iname instance-name
    * @param [in] pciaddr pci-address string
    * @return nullptr iname or cname is invalid
    * @return port's pointer
    */
   ssn_vnf_port* port_alloc_pci(const char* iname, const char* pciaddr);
+
+  /**
+   * @param [in] iname instance-name
+   * @param [in] number of queues
+   * @return nullptr iname or cname is invalid
+   * @return port's pointer
+   */
+  ssn_vnf_port* port_alloc_vhost(const char* iname, size_t n_ques);
 
   /**
    * @param [in] iname instance-name

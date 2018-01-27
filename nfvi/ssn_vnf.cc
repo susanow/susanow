@@ -38,7 +38,6 @@
 #include <ssn_ma_ring.h>
 #include <ssn_thread.h>
 #include <ssn_cpu.h>
-#include <ssn_port.h>
 #include <ssn_common.h>
 #include <ssn_log.h>
 #include <dpdk/dpdk.h>
