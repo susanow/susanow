@@ -38,6 +38,7 @@
 #include <ports/dpdk.h>
 #include <ports/dpdk_pci.h>
 #include <ports/dpdk_tap.h>
+#include <ports/dpdk_vhost.h>
 #include <ports/virt.h>
 
 
@@ -50,9 +51,6 @@ size_t get_socket_id_from_pci_addr(const char* pciaddr_);
 
 class ssn_nfvi final {
  private:
-  size_t nrxq;
-  size_t ntxq;
-
   std::vector<rte_mempool*> mp;
   ssn_vnf_catalog  vnf_catalog;
 
@@ -89,6 +87,8 @@ class ssn_nfvi final {
     nfvi->cpus.update();
   }
  public:
+  const size_t nrxq;
+  const size_t ntxq;
 
   bool is_running() const { return this->running; }
   ssn_nfvi(int argc, char** argv, ssn_log_level ll=SSN_LOG_INFO);
@@ -134,6 +134,14 @@ class ssn_nfvi final {
    * @return port's pointer
    */
   ssn_vnf_port* port_alloc_pci(const char* iname, const char* pciaddr);
+
+  /**
+   * @param [in] iname instance-name
+   * @param [in] number of queues
+   * @return nullptr iname or cname is invalid
+   * @return port's pointer
+   */
+  ssn_vnf_port* port_alloc_vhost(const char* iname, size_t n_ques);
 
   /**
    * @param [in] iname instance-name

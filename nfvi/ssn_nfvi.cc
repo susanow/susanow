@@ -188,12 +188,14 @@ ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
   printf("StartTIME: %s", ctime(&startup_time));
   ssn_log_set_level(ll);
 
-  char opt[] = "-w 0000:00:00.0";
-  argc += 1;
+  char opt0[] = "-w 0000:00:00.0";
+  char opt1[] = "--socket-mem=1024,1024";
+  argc += 2;
   char* wrapped_argv[argc];
   wrapped_argv[0] = argv[0];
-  wrapped_argv[1] = opt;
-  for (size_t i=2,j=1; i<argc; i++,j++) {
+  wrapped_argv[1] = opt0;
+  wrapped_argv[2] = opt1;
+  for (size_t i=3,j=1; i<argc; i++,j++) {
     wrapped_argv[i] = argv[j];
   }
   ssn_init(argc, wrapped_argv);
@@ -341,6 +343,19 @@ ssn_vnf_port* ssn_nfvi::port_alloc_pci(const char* iname, const char* pciaddr)
   rte_mempool* mp = get_mp(socket_id);
 
   ssn_vnf_port_dpdk_pci* port = new ssn_vnf_port_dpdk_pci(iname, pciaddr);
+  port->set_mp(mp);
+  port->config_hw(this->nrxq,this->ntxq);
+
+  this->ports.push_back(port);
+  return port;
+}
+
+ssn_vnf_port* ssn_nfvi::port_alloc_vhost(const char* iname, size_t n_ques)
+{
+  size_t socket_id = 0; // TODO to support NUMA-Aware
+  rte_mempool* mp = get_mp(socket_id);
+
+  ssn_vnf_port_dpdk_vhost* port = new ssn_vnf_port_dpdk_vhost(iname, n_ques);
   port->set_mp(mp);
   port->config_hw(this->nrxq,this->ntxq);
 
