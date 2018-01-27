@@ -35,11 +35,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <ssn_timer.h>
-#include <ssn_port.h>
 #include <ssn_port_stat.h>
 #include <ssn_green_thread.h>
 #include <ssn_native_thread.h>
-#include <ssn_port.h>
 #include <ssn_timer.h>
 #include <ssn_port_stat.h>
 #include <ssn_cpu.h>
@@ -50,15 +48,15 @@
 bool running = true;
 void wk(void*)
 {
-  size_t nb_ports = ssn_dev_count();
+  size_t nb_ports = rte_eth_dev_count();
   while (running) {
     for (size_t p=0; p<nb_ports; p++) {
       rte_mbuf* mbufs[32];
-      size_t nb_recv = ssn_port_rx_burst(p, 0, mbufs, 32);
+      size_t nb_recv = rte_eth_rx_burst(p, 0, mbufs, 32);
       if (nb_recv == 0) continue;
-      size_t nb_send = ssn_port_tx_burst(p^1, 0, mbufs, nb_recv);
+      size_t nb_send = rte_eth_tx_burst(p^1, 0, mbufs, nb_recv);
       if (nb_recv < nb_send) {
-        ssn_mbuf_free_bulk(&mbufs[nb_send], nb_recv-nb_send);
+        dpdk::rte_pktmbuf_free_bulk(&mbufs[nb_send], nb_recv-nb_send);
       }
     }
   }
@@ -88,8 +86,6 @@ void PRINT(void*)
 int main(int argc, char** argv)
 {
   ssn_init(argc, argv);
-  rte_mempool* mp = dpdk::mp_alloc("ssn", 0, 8192);
-
   ssn_timer_sched tm1(1);
   ssn_native_thread_launch(ssn_timer_sched_poll_thread, &tm1, 1);
 
@@ -99,14 +95,20 @@ int main(int argc, char** argv)
 
   ssn_native_thread_launch(PRINT, nullptr, 3);
 
-  size_t nb_ports = ssn_dev_count();
-  ssn_port_conf conf;
-  for (size_t i=0; i<nb_ports; i++) {
-    ssn_port_configure(i, &conf, mp);
-    ssn_port_dev_up(i);
-    ssn_port_link_up(i);
-    ssn_port_promisc_on(i);
+  struct rte_eth_conf port_conf;
+  dpdk::init_portconf(&port_conf);
+  port_conf.rxmode.mq_mode = ETH_MQ_RX_RSS;
+  port_conf.rx_adv_conf.rss_conf.rss_key = NULL;
+  port_conf.rx_adv_conf.rss_conf.rss_hf = ETH_RSS_IP|ETH_RSS_TCP|ETH_RSS_UDP;
+  struct rte_mempool* mp = dpdk::mp_alloc("RXMBUFMP", 0, 8192);
+
+  size_t n_ports = rte_eth_dev_count();
+  if (n_ports == 0) throw dpdk::exception("no ethdev");
+  printf("%zd ports found \n", n_ports);
+  for (size_t i=0; i<n_ports; i++) {
+    dpdk::port_configure(i, 1, 1, &port_conf, mp);
   }
+
 
   ssn_native_thread_launch(wk, nullptr, 2);
   sleep(5);

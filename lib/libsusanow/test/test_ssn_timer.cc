@@ -37,6 +37,7 @@
 #include <ssn_native_thread.h>
 #include <ssn_cpu.h>
 #include <ssn_common.h>
+#include <dpdk/dpdk.h>
 
 size_t num0=0;
 size_t num1=1;
@@ -48,7 +49,7 @@ size_t num5=5;
 void Slankdev (void* arg)
 {
   int* n = (int*)arg;
-  printf("slankdev arg=%d lcore%zd \n", *n, ssn_lcore_id());
+  printf("slankdev arg=%d lcore%zd \n", *n, dpdk::lcore_id());
 }
 
 int main(int argc, char** argv)

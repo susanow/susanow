@@ -36,7 +36,6 @@
 #include <stdio.h>
 #include <memory>
 
-#include <ssn_port.h>
 #include <ssn_log.h>
 #include <ssn_cpu.h>
 #include <ssn_common.h>
@@ -57,7 +56,7 @@ void l2fwd(void* acc_id_)
   size_t aid = *((size_t*)acc_id_);
   ssn_log(SSN_LOG_INFO, "start new thread %s, access_id=%zd\n", __func__, aid);
 
-  size_t nb_ports = ssn_dev_count();
+  size_t nb_ports = rte_eth_dev_count();
   while (l2fwd_running) {
     for (size_t pid=0; pid<nb_ports; pid++) {
       rte_mbuf* mbufs[32];
@@ -84,19 +83,24 @@ void l2fwd(void* acc_id_)
 void INIT(int argc, char** argv, size_t n_que)
 {
   ssn_init(argc, argv);
-  rte_mempool* mp = dpdk::mp_alloc("ssn", 0, 8192);
 
-  size_t n_ports = ssn_dev_count();
-  if (n_ports != 2) throw slankdev::exception("num ports is not 2");
+  struct rte_eth_conf port_conf;
+  dpdk::init_portconf(&port_conf);
+  port_conf.rxmode.mq_mode = ETH_MQ_RX_RSS;
+  port_conf.rx_adv_conf.rss_conf.rss_key = NULL;
+  port_conf.rx_adv_conf.rss_conf.rss_hf = ETH_RSS_IP|ETH_RSS_TCP|ETH_RSS_UDP;
+  struct rte_mempool* mp = dpdk::mp_alloc("RXMBUFMP", 0, 8192);
+
+  size_t n_ports = rte_eth_dev_count();
+  if (n_ports == 0) throw dpdk::exception("no ethdev");
+  printf("%zd ports found \n", n_ports);
   for (size_t i=0; i<n_ports; i++) {
-    ssn_ma_port_configure_hw(i, n_que, n_que, mp);
-    ssn_ma_port_dev_up(i);
-    ssn_ma_port_promisc_on(i);
+    dpdk::port_configure(i, n_que, n_que, &port_conf, mp);
   }
 
   if (n_ports != 2) {
     std::string err = slankdev::format("num ports is not 2 (current %zd)",
-        ssn_dev_count());
+        rte_eth_dev_count());
     throw slankdev::exception(err.c_str());
   }
 }
@@ -159,7 +163,7 @@ void main_neo(int argc, char** argv)
 
   ssn_init(argc, argv);
   rte_mempool* mp = dpdk::mp_alloc("ssn_neo", 0, 8192);
-  size_t n_ports = ssn_dev_count();
+  size_t n_ports = rte_eth_dev_count();
   if (n_ports != n_ports_want) {
     std::string err = slankdev::format("n_ports is not %zd (current %zd)",
         n_ports_want, n_ports);

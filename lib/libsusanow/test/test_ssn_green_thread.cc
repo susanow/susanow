@@ -35,6 +35,7 @@
 #include <ssn_log.h>
 #include <ssn_common.h>
 #include <ssn_green_thread.h>
+#include <dpdk/dpdk.h>
 
 size_t num1=1;
 size_t num2=2;
@@ -43,7 +44,7 @@ void test(void* arg)
 {
   size_t* n = (size_t*)arg;
   for (size_t i=0; i<5; i++) {
-    printf("test arg=%zd lcore%zd\n", *n, ssn_lcore_id());
+    printf("test arg=%zd lcore%zd\n", *n, dpdk::lcore_id());
     ssn_sleep(1000);
   }
 }
