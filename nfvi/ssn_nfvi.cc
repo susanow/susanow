@@ -365,10 +365,25 @@ ssn_vnf_port* ssn_nfvi::port_alloc_vhost(const char* iname, size_t n_ques)
 
 ssn_vnf_port* ssn_nfvi::port_alloc_tap(const char* iname, const char* ifname)
 {
-  size_t socket_id = 0; // TODO to support NUMA-Aware
+  size_t socket_id = 0; // todo to support numa-aware
   rte_mempool* mp = get_mp(socket_id);
 
   ssn_vnf_port_dpdk_tap* port = new ssn_vnf_port_dpdk_tap(iname, ifname);
+  port->set_mp(mp);
+  port->config_hw(this->nrxq,this->ntxq);
+
+  this->ports.push_back(port);
+  return port;
+}
+
+ssn_vnf_port*
+ssn_nfvi::port_alloc_afpacket(const char* iname,
+    const char* ifname, size_t n_ques)
+{
+  size_t socket_id = 0; // todo to support numa-aware
+  rte_mempool* mp = get_mp(socket_id);
+
+  ssn_vnf_port_dpdk_afpacket* port = new ssn_vnf_port_dpdk_afpacket(iname, ifname, n_ques);
   port->set_mp(mp);
   port->config_hw(this->nrxq,this->ntxq);
 

@@ -39,6 +39,7 @@
 #include <ports/dpdk_pci.h>
 #include <ports/dpdk_tap.h>
 #include <ports/dpdk_vhost.h>
+#include <ports/dpdk_afpacket.h>
 #include <ports/virt.h>
 
 
@@ -126,6 +127,14 @@ class ssn_nfvi final {
    * @return port's pointer
    */
   ssn_vnf_port* port_alloc_tap(const char* iname, const char* ifname);
+
+  /**
+   * @param [in] iname instance-name
+   * @param [in] ifname linux-if-name
+   * @return nullptr iname or cname is invalid
+   * @return port's pointer
+   */
+  ssn_vnf_port* port_alloc_afpacket(const char* iname, const char* ifname, size_t n_ques);
 
   /**
    * @param [in] iname instance-name

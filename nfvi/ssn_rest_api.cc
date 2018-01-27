@@ -359,6 +359,17 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
             assert(nfvi.nrxq == nfvi.ntxq);
             nfvi.port_alloc_vhost(pname.c_str(), nfvi.nrxq);
 
+          } else if (cname == "afpacket") {
+
+            /*
+             * - cname
+             * - options.ifname
+             */
+            std::string ifname = req_json["options"]["ifname"].s();
+            assert(nfvi.nrxq == nfvi.ntxq);
+            nfvi.port_alloc_afpacket(pname.c_str(),
+                ifname.c_str(), nfvi.nrxq);
+
           } else if (cname == "virt") {
 
             /*
