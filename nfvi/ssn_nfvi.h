@@ -111,6 +111,8 @@ class ssn_nfvi final {
   void del_vnf(ssn_vnf* vnf);
   void del_ppp(ssn_vnf_port_patch_panel* ppp);
 
+  void append_port(ssn_vnf_port* port) { ports.push_back(port); }
+
   /**
    * @brief Allocate new VNF from catalog
    * @param [in] cname catalog-name
@@ -119,45 +121,6 @@ class ssn_nfvi final {
    * @return vnfs pointer
    */
   ssn_vnf* vnf_alloc_from_catalog(const char* cname, const char* iname);
-
-  /**
-   * @param [in] iname instance-name
-   * @param [in] ifname linux-if-name
-   * @return nullptr iname or cname is invalid
-   * @return port's pointer
-   */
-  ssn_vnf_port* port_alloc_tap(const char* iname, const char* ifname);
-
-  /**
-   * @param [in] iname instance-name
-   * @param [in] ifname linux-if-name
-   * @return nullptr iname or cname is invalid
-   * @return port's pointer
-   */
-  ssn_vnf_port* port_alloc_afpacket(const char* iname, const char* ifname, size_t n_ques);
-
-  /**
-   * @param [in] iname instance-name
-   * @param [in] pciaddr pci-address string
-   * @return nullptr iname or cname is invalid
-   * @return port's pointer
-   */
-  ssn_vnf_port* port_alloc_pci(const char* iname, const char* pciaddr);
-
-  /**
-   * @param [in] iname instance-name
-   * @param [in] number of queues
-   * @return nullptr iname or cname is invalid
-   * @return port's pointer
-   */
-  ssn_vnf_port* port_alloc_vhost(const char* iname, size_t n_ques);
-
-  /**
-   * @param [in] iname instance-name
-   * @return nullptr iname or cname is invalid
-   * @return port's pointer
-   */
-  ssn_vnf_port* port_alloc_virt(const char* iname);
 
   /**
    * @brief Allocate new Port-patch-panel

@@ -110,7 +110,6 @@ void ssn_nfvi::run(uint16_t rest_server_port)
     usleep(500000);
   }
   printf("done!\n");
-  // std::thread console_thread(simple_console_thread, this);
 
   /*
    * Running loop
@@ -131,7 +130,6 @@ void ssn_nfvi::run(uint16_t rest_server_port)
       vnfs[i]->undeploy();
   }
   rest_api.join();
-  // console_thread.join();
 }
 
 void ssn_nfvi::stop()
@@ -188,9 +186,9 @@ ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
   printf("StartTIME: %s", ctime(&startup_time));
   ssn_log_set_level(ll);
 
+  argc += 2;
   char opt0[] = "-w 0000:00:00.0";
   char opt1[] = "--socket-mem=1024,1024";
-  argc += 2;
   char* wrapped_argv[argc];
   wrapped_argv[0] = argv[0];
   wrapped_argv[1] = opt0;
@@ -326,69 +324,6 @@ ssn_nfvi::ppp_alloc(const char* iname, ssn_vnf_port* r, ssn_vnf_port* l)
 
   ppps.push_back(ppp);
   return ppp;
-}
-
-ssn_vnf_port* ssn_nfvi::port_alloc_virt(const char* iname)
-{
-  ssn_vnf_port* port = new ssn_vnf_port_virt(iname);
-  port->config_hw(this->nrxq,this->ntxq);
-
-  this->ports.push_back(port);
-  return port;
-}
-
-ssn_vnf_port* ssn_nfvi::port_alloc_pci(const char* iname, const char* pciaddr)
-{
-  size_t socket_id = slankdev::get_numa_node(pciaddr);
-  rte_mempool* mp = get_mp(socket_id);
-
-  ssn_vnf_port_dpdk_pci* port = new ssn_vnf_port_dpdk_pci(iname, pciaddr);
-  port->set_mp(mp);
-  port->config_hw(this->nrxq,this->ntxq);
-
-  this->ports.push_back(port);
-  return port;
-}
-
-ssn_vnf_port* ssn_nfvi::port_alloc_vhost(const char* iname, size_t n_ques)
-{
-  size_t socket_id = 0; // TODO to support NUMA-Aware
-  rte_mempool* mp = get_mp(socket_id);
-
-  ssn_vnf_port_dpdk_vhost* port = new ssn_vnf_port_dpdk_vhost(iname, n_ques);
-  port->set_mp(mp);
-  port->config_hw(this->nrxq,this->ntxq);
-
-  this->ports.push_back(port);
-  return port;
-}
-
-ssn_vnf_port* ssn_nfvi::port_alloc_tap(const char* iname, const char* ifname)
-{
-  size_t socket_id = 0; // todo to support numa-aware
-  rte_mempool* mp = get_mp(socket_id);
-
-  ssn_vnf_port_dpdk_tap* port = new ssn_vnf_port_dpdk_tap(iname, ifname);
-  port->set_mp(mp);
-  port->config_hw(this->nrxq,this->ntxq);
-
-  this->ports.push_back(port);
-  return port;
-}
-
-ssn_vnf_port*
-ssn_nfvi::port_alloc_afpacket(const char* iname,
-    const char* ifname, size_t n_ques)
-{
-  size_t socket_id = 0; // todo to support numa-aware
-  rte_mempool* mp = get_mp(socket_id);
-
-  ssn_vnf_port_dpdk_afpacket* port = new ssn_vnf_port_dpdk_afpacket(iname, ifname, n_ques);
-  port->set_mp(mp);
-  port->config_hw(this->nrxq,this->ntxq);
-
-  this->ports.push_back(port);
-  return port;
 }
 
 ssn_vnf* ssn_nfvi::vnf_alloc_from_catalog(const char* cname, const char* iname)

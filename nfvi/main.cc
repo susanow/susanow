@@ -40,14 +40,15 @@ int main(int argc, char** argv)
 {
   ssn_nfvi nfvi(argc, argv);
   ssn_vnf_l2fwd_delay_block::n_delay = 100;
-  nfvi.vnf_register_to_catalog("l2fwd1b"      , ssn_vnfalloc_l2fwd);
-  nfvi.vnf_register_to_catalog("l2fwd1b_delay", ssn_vnfalloc_l2fwd_delay);
-  nfvi.vnf_register_to_catalog("l2fwd2b"      , ssn_vnfalloc_l2fwd_numa);
-  nfvi.vnf_register_to_catalog("l3fwd"        , ssn_vnfalloc_l3fwd);
-  nfvi.vnf_register_to_catalog("acl"          , ssn_vnfalloc_acl);
+  nfvi.vnf_register_to_catalog("l2fwd"      , ssn_vnfalloc_l2fwd);
+  nfvi.vnf_register_to_catalog("l2fwd_delay", ssn_vnfalloc_l2fwd_delay);
+  nfvi.vnf_register_to_catalog("l2fwd_numa" , ssn_vnfalloc_l2fwd_numa);
+  nfvi.vnf_register_to_catalog("l3fwd"      , ssn_vnfalloc_l3fwd);
+  nfvi.vnf_register_to_catalog("acl"        , ssn_vnfalloc_acl);
 
   nfvi.run(8888);
   printf("bye...\n");
 }
+
 
 
