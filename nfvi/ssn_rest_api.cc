@@ -6,6 +6,7 @@
 #include <string>
 #include <slankdev/string.h>
 #include <slankdev/exception.h>
+#include <slankdev/pci.h>
 #include <ssn_nfvi.h>
 #include <ssn_json.h>
 
@@ -338,7 +339,9 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
              * - options.ifname
              */
             std::string ifname = req_json["options"]["ifname"].s();
-            nfvi.port_alloc_tap(pname.c_str(), ifname.c_str());
+            ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk_tap(pname.c_str(), ifname.c_str());
+            port->set_mp(nfvi.get_mp(0)); // TODO support NUMA-Aware
+            nfvi.append_port(port);
 
           } else if (cname == "pci") {
 
@@ -347,7 +350,11 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
              * - options.pciaddr
              */
             std::string pciaddr = req_json["options"]["pciaddr"].s();
-            nfvi.port_alloc_pci(pname.c_str(), pciaddr.c_str());
+            ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk_pci(pname.c_str(), pciaddr.c_str());
+            size_t socket_id = slankdev::get_numa_node(pciaddr.c_str());
+            port->set_mp(nfvi.get_mp(socket_id));
+            port->config_hw(nfvi.nrxq,nfvi.ntxq);
+            nfvi.append_port(port);
 
           } else if (cname == "vhost") {
 
@@ -357,7 +364,10 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
              */
             printf("SLANKDEV create vhost\n");
             assert(nfvi.nrxq == nfvi.ntxq);
-            nfvi.port_alloc_vhost(pname.c_str(), nfvi.nrxq);
+            ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk_vhost(pname.c_str(), nfvi.nrxq);
+            port->set_mp(nfvi.get_mp(0)); // TODO support NUMA-Aware
+            port->config_hw(nfvi.nrxq,nfvi.ntxq);
+            nfvi.append_port(port);
 
           } else if (cname == "afpacket") {
 
@@ -367,15 +377,20 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
              */
             std::string ifname = req_json["options"]["ifname"].s();
             assert(nfvi.nrxq == nfvi.ntxq);
-            nfvi.port_alloc_afpacket(pname.c_str(),
-                ifname.c_str(), nfvi.nrxq);
+            ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk_afpacket(
+                    pname.c_str(), ifname.c_str(), nfvi.nrxq);
+            port->set_mp(nfvi.get_mp(0)); // TODO support NUMA-Aware
+            port->config_hw(nfvi.nrxq,nfvi.ntxq);
+            nfvi.append_port(port);
 
           } else if (cname == "virt") {
 
             /*
              * - cname
              */
-            nfvi.port_alloc_virt(pname.c_str());
+            ssn_vnf_port* port = new ssn_vnf_port_virt(pname.c_str());
+            port->config_hw(nfvi.nrxq,nfvi.ntxq);
+            nfvi.append_port(port);
 
           } else {
 
