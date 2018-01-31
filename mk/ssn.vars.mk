@@ -8,6 +8,8 @@ LIBDPDK_CPP_PATH = $(SSN_SDK)/lib/libdpdk_cpp
 LIBSSN_PATH      = $(SSN_SDK)/lib/libsusanow
 CROW_PATH        = $(SSN_SDK)/lib/crow
 
+RTE_SDK = $(SSN_SDK)/lib/dpdk
+RTE_TARGET = x86_64-native-linuxapp-gcc
 include $(SSN_SDK)/lib/libdpdk_cpp/mk/dpdk.cpp.mk
 
 SSN_LIB_CXXFLAGS += \
