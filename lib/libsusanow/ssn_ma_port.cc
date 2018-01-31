@@ -302,7 +302,7 @@ void ssn_ma_port_dev_down(size_t pid)    { dpdk::eth_dev_stop   (pid); }
 
 void ssn_ma_port_configure_hw(size_t port_id, size_t n_rxq, size_t n_txq, struct rte_mempool* mp)
 {
-  if (port_id >= dpdk::eth_dev_count()) {
+  if (!rte_eth_dev_is_valid_port(port_id)) {
     std::string err = "ssn_ma_port_configure_hw: ";
     err += slankdev::format("port_id is invalid pid=%zd", port_id);
     throw slankdev::exception(err.c_str());
@@ -312,7 +312,7 @@ void ssn_ma_port_configure_hw(size_t port_id, size_t n_rxq, size_t n_txq, struct
 
 void ssn_ma_port_configure_acc(size_t port_id, size_t n_rxacc, size_t n_txacc)
 {
-  if (port_id >= dpdk::eth_dev_count()) {
+  if (!rte_eth_dev_is_valid_port(port_id)) {
     std::string err = "ssn_ma_port_configure_acc: ";
     err += slankdev::format("port_id is invalid pid=%zd", port_id);
     throw slankdev::exception(err.c_str());

@@ -343,6 +343,19 @@ void addroute__ports_NAME(ssn_nfvi& nfvi, crow::App<Middleware>& app)
             port->set_mp(nfvi.get_mp(0)); // TODO support NUMA-Aware
             nfvi.append_port(port);
 
+          } else if (cname == "pipe") {
+
+            /*
+             * - cname
+             * - options.pciaddr
+             */
+            printf("SLANKDEV create pipe\n");
+            assert(nfvi.nrxq == nfvi.ntxq);
+            ssn_vnf_port_dpdk* port = new ssn_vnf_port_dpdk_pipe(pname.c_str());
+            port->set_mp(nfvi.get_mp(0)); // TODO support NUMA-Aware
+            port->config_hw(nfvi.nrxq,nfvi.ntxq);
+            nfvi.append_port(port);
+
           } else if (cname == "pci") {
 
             /*

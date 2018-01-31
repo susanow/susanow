@@ -25,12 +25,12 @@
 include $(SSN_SDK)/mk/ssn.vars.mk
 include $(SSN_SDK)/mk/ssn.rule.mk
 
+CXXFLAGS += -I. -std=c++11
 CXXFLAGS += $(SSN_CXXFLAGS)
-CXXFLAGS += -Wno-format-security -I. -std=c++11 -g -O0
+CFLAGS   += $(SSN_CFLAGS)
 LDFLAGS  += $(SSN_LDFLAGS)
-LDFLAGS  += -lpthread -lboost_system -lboost_thread
 
-SRC = \
+CXXSRC = \
 	ssn_nfvi.cc         \
 	ssn_json.cc         \
 	ssn_rest_api.cc     \
@@ -40,8 +40,8 @@ SRC = \
 	vnfs/l2fwd_delay.cc \
 	vnfs/acl.cc         \
 	main.cc
-
-OBJ = $(SRC:.cc=.o)
+CSRC = rte_eth_pipe.c
+OBJ  = $(CXXSRC:.cc=.o) $(CSRC:.c=.o)
 TARGET = susanow
 
 TARGET: $(OBJ)
@@ -51,7 +51,7 @@ TARGET: $(OBJ)
 clean:
 	rm -rf *.out *.o vnfs/*.o ports/*.o $(TARGET)
 
-pre:
+pch:
 	$(CXX) $(CXXFLAGS) pch.h
 
 cleanall: clean

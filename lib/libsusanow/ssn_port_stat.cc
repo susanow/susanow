@@ -47,7 +47,11 @@ class ssn_port_stat {
     cur_rx_bps(0), cur_tx_bps(0),
     cur_rx_err(0), cur_tx_err(0),
     cur_rx_mis(0),
-    cur_rx_nombuf(0) {}
+    cur_rx_nombuf(0)
+  {
+    memset(&cur, 0x0, sizeof(rte_eth_stats));
+    memset(&prev, 0x0, sizeof(rte_eth_stats));
+  }
   void update()
   {
     prev = cur;
@@ -75,9 +79,9 @@ ssn_port_stat* portstat[RTE_MAX_ETHPORTS];
 
 void ssn_port_stat_update(void*)
 {
-  size_t nb_ports = rte_eth_dev_count();
-  for (size_t i=0; i<nb_ports; i++) {
-    portstat[i]->update();
+  for (size_t i=0; i<RTE_MAX_ETHPORTS; i++) {
+    if (portstat[i])
+      portstat[i]->update();
   }
 }
 

@@ -35,10 +35,12 @@
 
 #include <ssn_vnf_catalog.h>
 #include <ssn_rest_api.h>
+
 #include <ports/dpdk.h>
 #include <ports/dpdk_pci.h>
 #include <ports/dpdk_tap.h>
 #include <ports/dpdk_vhost.h>
+#include <ports/dpdk_pipe.h>
 #include <ports/dpdk_afpacket.h>
 #include <ports/virt.h>
 
