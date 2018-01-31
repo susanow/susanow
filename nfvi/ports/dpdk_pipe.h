@@ -2,8 +2,8 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 Susanow
- * Copyright (c) 2017 Hiroki SHIROKURA
+ * Copyright (c) 2018 Susanow
+ * Copyright (c) 2018 Hiroki SHIROKURA
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,10 @@
  */
 
 #pragma once
+#include <ports/dpdk.h>
 #include <dpdk/dpdk.h>
 #include <slankdev/string.h>
+#include <ssn_vnf_port.h>
 
 
 class ssn_vnf_port_dpdk_pipe : public ssn_vnf_port_dpdk {
@@ -54,5 +56,39 @@ class ssn_vnf_port_dpdk_pipe : public ssn_vnf_port_dpdk {
     : ssn_vnf_port_dpdk(n, vpmd_pipe()) {}
 
 }; /* ssn_vnf_port_dpdk_pipe */
+
+
+class ssn_vnf_port_dpdk_pipeattach : public ssn_vnf_port_dpdk {
+
+  static size_t
+  _eth_dev_attach_slank(const char* devargs)
+  {
+    uint8_t new_pid;
+    int ret = rte_eth_dev_attach_slank(devargs, &new_pid);
+    if (ret < 0) {
+      std::string err = dpdk::format("dpdk::eth_dev_attach (ret=%d)", ret);
+      throw dpdk::exception(err.c_str());
+    }
+    return new_pid;
+  }
+
+  static size_t
+  vpmd_pipe(const char* remote)
+  {
+    static size_t index = 15; index--;
+    std::string devargs = slankdev::format(
+        "net_pipe%zd,attach=%s", index, remote);
+    size_t pid = _eth_dev_attach_slank(devargs.c_str());
+    printf("DEBUG id=3532 pid=%zd \n", pid);
+    ssn_port_stat_init_pid(pid);
+    return pid;
+  }
+
+ public:
+
+  ssn_vnf_port_dpdk_pipeattach(const char* n, const char* remote)
+    : ssn_vnf_port_dpdk(n, vpmd_pipe(remote)) {}
+
+}; /* ssn_vnf_port_dpdk_pipeattach */
 
 

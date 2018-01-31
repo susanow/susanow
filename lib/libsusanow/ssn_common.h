@@ -37,6 +37,17 @@
 void ssn_init(int argc, char** argv);
 
 /**
+ * @brief init susanow subprocess
+ * @param [in] argc command line argc
+ * @param [in] argv command line argv
+ * @details
+ *   User must run this function before using susanow-APIs
+ *   on Subprocess
+ *   This function call many allocation functions inside this.
+ */
+void ssn_subproc__init(int argc, char** argv);
+
+/**
  * @details
  *   User must run this function after using susanow-APIs
  *   This function call many free functions inside this.

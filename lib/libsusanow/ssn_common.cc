@@ -25,7 +25,7 @@
 
 #include <unistd.h>
 #include <lthread.h>
-#include <dpdk/hdr.h>
+#include <dpdk/dpdk.h>
 #include <ssn_cpu.h>
 #include <ssn_common.h>
 #include <ssn_types.h>
@@ -44,6 +44,25 @@ void ssn_init(int argc, char** argv)
   ssn_timer_init();
   ssn_port_stat_init();
 }
+
+
+void ssn_subproc_init(int argc, char** argv)
+{
+  argc += 3;
+  char opt1[] = "--proc-type=secondary";
+  char opt2[] = "--socket-mem=2048,2048";
+  char opt3[] = "-w 0000:00:00.0";
+  char* wrapped_argv[argc];
+  wrapped_argv[0] = argv[0];
+  wrapped_argv[1] = opt1;
+  wrapped_argv[2] = opt2;
+  wrapped_argv[3] = opt3;
+  for (size_t i=4,j=1; i<argc; i++,j++) {
+    wrapped_argv[i] = argv[j];
+  }
+  ssn_init(argc, wrapped_argv);
+}
+
 
 void ssn_fin()
 {
