@@ -25,9 +25,8 @@
 include $(SSN_SDK)/mk/ssn.vars.mk
 include $(SSN_SDK)/mk/ssn.rule.mk
 
-CXXFLAGS += -I. -std=c++11
-CXXFLAGS += $(SSN_CXXFLAGS)
 CFLAGS   += $(SSN_CFLAGS)
+CXXFLAGS += $(SSN_CXXFLAGS)
 LDFLAGS  += $(SSN_LDFLAGS)
 
 CXXSRC = \
@@ -40,8 +39,7 @@ CXXSRC = \
 	vnfs/l2fwd_delay.cc \
 	vnfs/acl.cc         \
 	main.cc
-CSRC = rte_eth_pipe.c
-OBJ  = $(CXXSRC:.cc=.o) $(CSRC:.c=.o)
+OBJ  = $(CXXSRC:.cc=.o) $(SSN_SDK)/lib/dpdk_pmd/rte_eth_pipe.o
 TARGET = susanow
 
 TARGET: $(OBJ)
@@ -56,3 +54,4 @@ pch:
 
 cleanall: clean
 	rm -rf *.pch
+

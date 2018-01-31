@@ -7,6 +7,7 @@ LIBSLANKDEV_PATH = $(SSN_SDK)/lib/libslankdev
 LIBDPDK_CPP_PATH = $(SSN_SDK)/lib/libdpdk_cpp
 LIBSSN_PATH      = $(SSN_SDK)/lib/libsusanow
 CROW_PATH        = $(SSN_SDK)/lib/crow
+NFVI_PATH        = $(SSN_SDK)/nfvi
 
 RTE_SDK = $(SSN_SDK)/lib/dpdk
 RTE_TARGET = x86_64-native-linuxapp-gcc
@@ -20,6 +21,7 @@ SSN_LIB_CXXFLAGS += \
 		-I$(LIBDPDK_CPP_PATH)  \
 		-I$(LIBSSN_PATH)       \
 		-I$(CROW_PATH)/include \
+		-I$(NFVI_PATH)         \
 		-m64 -mssse3           \
 		-std=c++11             \
 		-Wno-format-security
