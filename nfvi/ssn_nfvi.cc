@@ -188,7 +188,7 @@ ssn_nfvi::ssn_nfvi(int argc, char** argv, ssn_log_level ll)
 
   argc += 2;
   char opt0[] = "-w 0000:00:00.0";
-  char opt1[] = "--socket-mem=2048,2048";
+  char opt1[] = "--socket-mem=1024,1024";
   char* wrapped_argv[argc];
   wrapped_argv[0] = argv[0];
   wrapped_argv[1] = opt0;
